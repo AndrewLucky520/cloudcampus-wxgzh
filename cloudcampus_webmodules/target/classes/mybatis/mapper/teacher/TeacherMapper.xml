@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.teacher.dao.TeacherDao">
+
+	<cache eviction="FIFO" flushInterval="60000" size="1024"
+		readOnly="true" />
+
+	<resultMap type="com.talkweb.teacher.domain.page.THrTeacher"
+		id="teacherMap">
+	</resultMap>
+	<parameterMap type="com.talkweb.teacher.domain.page.THrTeacher"
+		id="teacherParam">
+	</parameterMap>
+	<select id="selectById" parameterType="String" resultMap="teacherMap">
+		select
+		* from ${zhx_conn}.t_hr_teacher
+		where
+		ZGH=#{zgh}
+	</select>
+
+	<select id="selectAll" resultMap="teacherMap">
+		select * from
+		${zhx_conn}.t_hr_teacher
+	</select>
+	<select id="getTeacherListByXX" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		select zgh,jsdm,sfzh from ${zhx_conn}.t_hr_teacher where xxdm=#{xxdm};
+	</select>
+	<select id="selectByLimit" useCache="true" parameterType="hashmap"
+		resultMap="teacherMap">
+		SELECT
+		a.XXDM,
+		a.ZGH,
+		a.JSDM,
+		a.XM,
+		a.XMPY,
+		b.mc AS XBM,
+		a.CSRQ,
+		a.SFZH,
+		c.mc AS HYXKM,
+		d.mc AS MZM,
+		a.JGM,
+		e.mc AS JTCSM,
+		f.mc AS BRCFM,
+		a.GZNY,
+		a.CJNY,
+		a.RXNY,
+		h.mc AS BZLBM,
+		i.mc AS GWZYM,
+		a.LXDH,
+		a.TXDZ,
+		a.YZBM,
+		a.DZXX,
+		a.ZP,
+		CASE WHEN a.GWZT='0' THEN '在岗'
+		WHEN a.GWZT='1' THEN '不在岗'
+		END AS GWZT,
+		k.mc AS XLM,
+		l.mc AS XWM,
+		m.mc AS ZZMMM,
+		n.mc AS SRKM,
+		o.mc AS ZW,
+		p.mc AS ZC
+		FROM ${zhx_conn}.t_hr_teacher a
+		LEFT JOIN ${zhx_conn}.t_dm_xb b ON a.XBM = b.dm
+		LEFT JOIN ${zhx_conn}.t_dm_hyzk c ON a.HYXKM = c.dm
+		LEFT JOIN ${zhx_conn}.t_dm_mz d ON a.MZM = d.dm
+		LEFT JOIN ${zhx_conn}.t_dm_jtcs e ON a.JTCSM = e.dm
+		LEFT JOIN ${zhx_conn}.t_dm_brcf f ON a.JTCSM = f.dm
+		LEFT JOIN ${zhx_conn}.t_dm_brcf g ON a.BRCFM = g.dm
+		LEFT JOIN ${zhx_conn}.t_dm_bzlb h ON a.BZLBM = h.dm
+		LEFT JOIN ${zhx_conn}.t_dm_gwzy i ON a.GWZYM = i.dm
+		LEFT JOIN ${zhx_conn}.t_dm_xl k ON a.XLM = k.dm
+		LEFT JOIN ${zhx_conn}.t_dm_xw l ON a.XWM = l.dm
+		LEFT JOIN ${zhx_conn}.t_dm_zzmm m ON a.ZZMMM = m.dm
+		LEFT JOIN ${zhx_conn}.t_dm_kmlx n ON a.SRKM = n.dm
+		LEFT JOIN ${zhx_conn}.t_dm_zw o ON a.ZW = o.dm
+		LEFT JOIN ${zhx_conn}.t_dm_zc p ON a.ZC = p.dm
+		<where>
+			<if test="xmzgh!=null">
+				JSDM=#{xmzgh}
+			</if>
+			<if test="xmzgh!=null">
+				or XM LIKE CONCAT('%',CONCAT(#{xmzgh},'%'))
+			</if>
+			<if test="duty!=null ">
+				and GWZT=#{duty}
+			</if>
+		</where>
+		ORDER BY a.JSDM
+	</select>
+	<delete id="delTeacher" parameterType="String">
+		delete from
+		${zhx_conn}.t_hr_teacher where ZGH=#{zgh}
+	</delete>
+
+	<insert id="addTeacher" parameterMap="teacherParam">
+		insert into
+		${zhx_conn}.t_hr_teacher
+		( XXDM,
+		ZGH,
+		JSDM,
+		XM,
+		XMPY,
+		CYM,
+		XBM,
+		CSRQ,
+		SFZH,
+		HYXKM,
+		MZM,
+		JGM,
+		JTCSM,
+		BRCFM,
+		GZNY,
+		CJNY,
+		RXNY,
+		BZLBM,
+		GWZYM,
+		LXDH,
+		TXDZ,
+		YZBM,
+		DZXX,
+		ZP,
+		GWZT,
+		XLM,
+		XWM,
+		ZZMMM,
+		SRKM,
+		ZW,
+		ZC
+		)
+		values
+		(
+		#{xxdm,jdbcType=VARCHAR},
+		#{zgh},
+		#{jsdm,jdbcType=VARCHAR},
+		#{xm},
+		#{xmpy,jdbcType=VARCHAR},
+		#{cym,jdbcType=VARCHAR},
+		#{xbm,jdbcType=VARCHAR},
+		#{csrq,jdbcType=DATE},
+		#{sfzh,jdbcType=VARCHAR},
+		#{hyxkm,jdbcType=VARCHAR},
+		#{mzm,jdbcType=VARCHAR},
+		#{jgm,jdbcType=VARCHAR},
+		#{jtcsm,jdbcType=VARCHAR},
+		#{brcfm,jdbcType=VARCHAR},
+		#{gzny,jdbcType=DATE},
+		#{cjny,jdbcType=DATE},
+		#{rxny,jdbcType=DATE},
+		#{bzlbm,jdbcType=VARCHAR},
+		#{gwzym,jdbcType=VARCHAR},
+		#{lxdh,jdbcType=VARCHAR},
+		#{txdz,jdbcType=VARCHAR},
+		#{yzbm,jdbcType=VARCHAR},
+		#{dzxx,jdbcType=VARCHAR},
+		#{zp,jdbcType=VARCHAR},
+		#{gwzt,jdbcType=VARCHAR},
+		#{xlm,jdbcType=VARCHAR},
+		#{xwm,jdbcType=VARCHAR},
+		#{zzmmm,jdbcType=VARCHAR},
+		#{srkm,jdbcType=VARCHAR},
+		#{zw,jdbcType=VARCHAR},
+		#{zc,jdbcType=VARCHAR}
+		)
+	</insert>
+	<update id="updateTeacher" parameterMap="teacherParam">
+		update ${zhx_conn}.t_hr_teacher
+		<set>
+			<if test="xxdm!=null and xxdm!=''">
+				XXDM=#{xxdm,jdbcType=VARCHAR},
+			</if>
+			<if test="zgh!=null and zgh!=''">
+				ZGH=#{zgh},
+			</if>
+			<if test="jsdm!=null and jsdm!=''">
+				JSDM=#{jsdm,jdbcType=VARCHAR},
+			</if>
+			<if test="xm!=null and xm!=''">
+				XM=#{xm},
+			</if>
+			<if test="xmpy!=null and xmpy!=''">
+				XMPY=#{xmpy,jdbcType=VARCHAR},
+			</if>
+			<if test="cym!=null and cym!=''">
+				CYM=#{cym,jdbcType=VARCHAR},
+			</if>
+			<if test="xbm!=null and xbm!=''">
+				XBM=#{xbm,jdbcType=VARCHAR},
+			</if>
+			<if test="csrq!=null and csrq!=''">
+				CSRQ=#{csrq,jdbcType=DATE},
+			</if>
+			<if test="sfzh!=null and sfzh!=''">
+				SFZH=#{sfzh,jdbcType=VARCHAR},
+			</if>
+			<if test="hyxkm!=null and hyxkm!=''">
+				HYXKM=#{hyxkm,jdbcType=VARCHAR},
+			</if>
+			<if test="mzm!=null and mzm!=''">
+				MZM=#{mzm,jdbcType=VARCHAR},
+			</if>
+			<if test="jgm!=null and jgm!=''">
+				JGM=#{jgm,jdbcType=VARCHAR},
+			</if>
+			<if test="jtcsm!=null and jtcsm!=''">
+				JTCSM=#{jtcsm,jdbcType=VARCHAR},
+			</if>
+			<if test="brcfm!=null and brcfm!=''">
+				BRCFM=#{brcfm,jdbcType=VARCHAR},
+			</if>
+			<if test="gzny!=null and gzny!=''">
+				GZNY=#{gzny,jdbcType=DATE},
+			</if>
+			<if test="cjny!=null and cjny!=''">
+				CJNY=#{cjny,jdbcType=DATE},
+			</if>
+			<if test="rxny!=null and rxny!=''">
+				RXNY=#{rxny,jdbcType=DATE},
+			</if>
+			<if test="bzlbm!=null and bzlbm!=''">
+				BZLBM=#{bzlbm,jdbcType=VARCHAR},
+			</if>
+			<if test="gwzym!=null and gwzym!=''">
+				GWZYM=#{gwzym,jdbcType=VARCHAR},
+			</if>
+			<if test="lxdh!=null and lxdh!=''">
+				LXDH=#{lxdh,jdbcType=VARCHAR},
+			</if>
+			<if test="txdz!=null and txdz!=''">
+				TXDZ=#{txdz,jdbcType=VARCHAR},
+			</if>
+			<if test="yzbm!=null and yzbm!=''">
+				YZBM=#{yzbm,jdbcType=VARCHAR},
+			</if>
+			<if test="dzxx!=null and dzxx!=''">
+				DZXX=#{dzxx,jdbcType=VARCHAR},
+			</if>
+			<if test="zp!=null and zp!=''">
+				ZP=#{zp,jdbcType=VARCHAR},
+			</if>
+			<if test="gwzt!=null and gwzt!=''">
+				GWZT=#{gwzt,jdbcType=VARCHAR},
+			</if>
+			<if test="xlm!=null and xlm!=''">
+				XLM=#{xlm,jdbcType=VARCHAR},
+			</if>
+			<if test="xwm!=null and xwm!=''">
+				XWM=#{xwm,jdbcType=VARCHAR},
+			</if>
+			<if test="zzmmm!=null and zzmmm!=''">
+				ZZMMM=#{zzmmm,jdbcType=VARCHAR},
+			</if>
+			<if test="srkm!=null and srkm!=''">
+				SRKM=#{srkm,jdbcType=VARCHAR},
+			</if>
+			<if test="zw!=null and zw!=''">
+				ZW=#{zw,jdbcType=VARCHAR},
+			</if>
+
+			<if test="zc!=null and zc!=''">
+				ZC=#{zc,jdbcType=VARCHAR}
+			</if>
+		</set>
+		WHERE t_hr_teacher.ZGH=#{zgh};
+	</update>
+	<delete id="deleteTeacherByIdMap" parameterType="list">
+		delete from
+		${zhx_conn}.t_hr_teacher where ZGH in(
+		<foreach collection="list" item="IdList" separator=",">
+			#{IdList}
+		</foreach>
+		)
+	</delete>
+
+	<select id="getZGHByUserSysId" parameterType="string"
+		resultType="string">
+		SELECT ZGH FROM ${zhx_conn}.T_HR_Teacher WHERE JSDM =
+		#{userSysId}
+	</select>
+
+	<insert id="insertTeaList" parameterType="java.util.List">
+		insert into ${zhx_conn}.t_hr_teacher (XXDM,zgh,jsdm,XM,csrq,hyxkm, mzm, jgm, sfzh,zzmmm,zw,zc,gzny,cjny,rxny,bzlbm,srkm,xlm,xwm,lxdh,yzbm,dzxx,txdz,gwzt)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.xxdm},#{item.zgh},#{item.jsdm},#{item.xm},#{item.csrq},#{item.hyxkm},#{item.mzm},#{item.jgm},#{item.sfzh},#{item.zzmmm},#{item.zw},#{item.zc},#{item.gzny},#{item.cjny},#{item.rxny},#{item.bzlbm},#{item.srkm},#{item.xlm},#{item.xwm},#{item.lxdh},#{item.yzbm},#{item.dzxx},#{item.txdz},'0')
+		</foreach>
+		on duplicate key update jsdm=values(jsdm),xm=values(xm),csrq=values(csrq),hyxkm=values(hyxkm),
+		mzm =values(mzm),jgm=values(jgm),sfzh=values(sfzh),zzmmm=values(zzmmm),zw=values(zw),zc=values(zc),
+		gzny=values(gzny),cjny=values(cjny),rxny=values(rxny),bzlbm=values(bzlbm),srkm=values(srkm),xlm=values(xlm),
+		xwm=values(xwm),lxdh=values(lxdh),yzbm=values(yzbm),dzxx=values(dzxx),txdz=values(txdz),gwzt=values(gwzt)
+	</insert>
+</mapper>

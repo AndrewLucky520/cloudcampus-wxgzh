@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC  
+    "-//mybatis.org//DTD Config 3.0//EN"
+    "http://www.mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+
+	<properties resource="config/dbname.properties" />
+	<!--
+	<settings>
+		<setting name="cacheEnabled" value="true" />
+		<setting name="callSettersOnNulls" value="true"/>
+	</settings>-->
+
+	<typeAliases>
+		<!-- 例子-->
+		<typeAlias type="com.talkweb.system.domain.business.User" 
+			alias="User" />
+		<!-- 数据字典实体类 -->
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmJg" 
+			alias="TDmJg" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmSzdlb" 
+			alias="TDmSzdlb" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmSzdjjsx" 
+			alias="TDmSzdjjsx" />
+
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmMzzzx" 
+			alias="TDmMzzzx" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmXxbb" 
+			alias="TDmXxbb" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmXxlb" 
+			alias="TDmXxlb" />
+
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmLoglx" 
+			alias="TDmLoglx" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmXxly" 
+			alias="TDmXxly" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmKmlx" 
+			alias="TDmKmlx" />
+
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmFjyt" 
+			alias="TDmFjyt" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmJxsyxz" 
+			alias="TDmJxsyxz" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmBjlx" 
+			alias="TDmBjlx" />
+
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmPycc" 
+			alias="TDmPycc" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmNj" 
+			alias="TDmNj" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmRxfs" 
+			alias="TDmRxfs" />
+
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmJdfs" 
+			alias="TDmJdfs" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmXslb" 
+			alias="TDmXslb" />
+
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmSfzjlxm" 
+			alias="TDmSfzjlxm" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmXb" 
+			alias="TDmXb" /> 
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmMz" 
+			alias="TDmMz" />
+
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmGjdq" 
+			alias="TDmGjdq" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmGatqw" 
+			alias="TDmGatqw" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmJkzk" 
+			alias="TDmJkzk" />
+
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmXyzjm"
+			alias="TDmXyzjm" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmZzmm"
+			alias="TDmZzmm" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmHkxz"
+			alias="TDmHkxz" />
+
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmSxxfs"
+			alias="TDmSxxfs" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmXx"
+			alias="TDmXx" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmXxly"
+			alias="TDmXxly" />
+
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmCjrlx"
+			alias="TDmCjrlx" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmSbjd"
+			alias="TDmSbjd" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmXjzt"
+			alias="TDmXjzt" />
+
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmJzdxz"
+			alias="TDmJzdxz" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmSzdjjsx"
+			alias="TDmSzdjjsx" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmGx"
+			alias="TDmGx" />
+
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmXl"
+			alias="TDmXl" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmYdlb"
+			alias="TDmYdlb" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmJyjg"
+			alias="TDmJyjg" />
+
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmByqx"
+			alias="TDmByqx" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmLqbcdm"
+			alias="TDmLqbcdm" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmHyzk"
+			alias="TDmHyzk" />
+
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmBzlb"
+			alias="TDmBzlb" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmGwzy"
+			alias="TDmGwzy" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmXw"
+			alias="TDmXw" />
+
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmZw"
+			alias="TDmZw" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmZc"
+			alias="TDmZc" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmKslb"
+			alias="TDmKslb" />
+		<typeAlias type="com.talkweb.datadictionary.domain.TDmWjlb"
+			alias="TDmWjlb" />
+		<typeAlias type="com.talkweb.student.domain.business.TSsStudent"
+			alias="TSsStudent" />
+		<typeAlias type="com.talkweb.systemManager.domain.business.TWsSyslog"
+			alias="TWsSyslog" />
+		<typeAlias type="com.alibaba.fastjson.JSONObject"
+			alias="JSONObject"/>
+		<typeAlias type="com.talkweb.system.domain.business.TGmScorerankdistribute"
+			alias="TGmScorerankdistribute" />
+		<typeAlias type="com.talkweb.system.domain.business.TGmScoreleveltemplatename"
+			alias="TGmScoreleveltemplatename" />
+		<typeAlias type="com.talkweb.common.splitDbAndTable.SplitDbAndTableRule"
+			alias="splitDbAndTableRule" />	
+	</typeAliases>
+	<!-- 
+	<mappers>
+		<mapper resource="mybatis/mapper/UserMapper.xml" />
+		<mapper resource="mybatis/mapper/systemManager/UserMapper.xml" />
+		<mapper resource="mybatis/mapper/systemManager/LogMapper.xml" />
+		<mapper resource="mybatis/mapper/auth/AuthMapper.xml" />
+		<mapper resource="mybatis/mapper/datadictionary/DataDictionary.xml" />
+		<mapper resource="mybatis/mapper/commondata/CommonData.xml" />
+		<mapper resource="mybatis/mapper/teacher/DepartmentMapper.xml" />
+		<mapper resource="mybatis/mapper/teacher/TeadeptMapper.xml" />
+		<mapper resource="mybatis/mapper/teacher/BmxxKmMapper.xml" />
+		<mapper resource="mybatis/mapper/teacher/BmnjMapper.xml" />
+		<mapper resource="mybatis/mapper/teacher/BmfzrMapper.xml" />
+		<mapper resource="mybatis/mapper/student/StudentImport.xml" />
+		<mapper resource="mybatis/mapper/student/StudentManageMapper.xml" /> 
+
+		<mapper resource="mybatis/mapper/teacher/TeacherMapper.xml" />
+		<mapper resource="mybatis/mapper/student/ClassMapper.xml" />
+		
+		<mapper resource="mybatis/mapper/maintenance/MaintenanceMapper.xml"/>
+		<mapper resource="mybatis/mapper/student/StudentStatic.xml"/>
+		<mapper resource="mybatis/mapper/teacher/TeacherClassMapper.xml"/>
+		
+		<mapper resource="mybatis/mapper/scoreManage/ScoreAnalysis.xml"/>
+		
+		
+		
+	</mappers>
+	 -->
+</configuration>

@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.placementtask.dao">
+	<!-- 插入定二走一设置 -->
+	<insert id="insertDezyPreSetting" parameterType="hashmap">
+		INSERT INTO
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_settings(placementId,schoolId,usedGrade,rePlacement,classNum,classRoundNum,minTeacherNum,isTechExist,isLearnExist,gradeSumLesson,fixedSumLesson,placeAlgMethod,wfId,formOfTech,avgClassNum,maxClassNum)
+		VALUES(#{placementId},#{schoolId},#{usedGrade},#{rePlacement},#{classNum},#{classRoundNum},#{minTeacherNum},#{isTechExist},#{isLearnExist},#{gradeSumLesson},#{fixedSumLesson},#{placeAlgMethod},#{wfId},${techSettings.goClass},#{avgStuInClass},#{maxStuInClass})
+		on duplicate key update
+			placementId=values(placementId),schoolId=values(schoolId),usedGrade=values(usedGrade),rePlacement=values(rePlacement),classNum=values(classNum),classRoundNum=values(classRoundNum),minTeacherNum=values(minTeacherNum),isTechExist=values(isTechExist),
+			isLearnExist=values(isLearnExist),gradeSumLesson=values(gradeSumLesson),fixedSumLesson=values(fixedSumLesson),placeAlgMethod=values(placeAlgMethod),wfId=values(wfId),formOfTech=values(formOfTech),avgClassNum=values(avgClassNum),maxClassNum=values(maxClassNum)
+	</insert>
+	<insert id="insertDezySubjectGroup" parameterType="hashmap">
+		INSERT INTO
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectgroup(placementId,schoolId,usedGrade,subjectGroupId,groupName,subjectIds,proLesson,optLesson,isProExist)
+		VALUES
+		<foreach collection="subjectGroup" item="item" separator=",">
+			(#{placementId},#{schoolId},#{usedGrade},'${item.subjectGroupId}',"${item.groupName}",'${item.subjectIds}',${item.proLesson},${item.optLesson},#{isLearnExist})
+		</foreach>
+		on duplicate key update
+		placementId=values(placementId),schoolId=values(schoolId),usedGrade=values(usedGrade),subjectGroupId=values(subjectGroupId),groupName=values(groupName),subjectIds=values(subjectIds),proLesson=values(proLesson),optLesson=values(optLesson),isProExist=values(isProExist)
+	</insert>
+	<insert id="insertDezySubjectSet" parameterType="hashmap">
+		INSERT INTO
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_subject_set(placementId,schoolId,usedGrade,subjectGroupId,subjectId,optLesson,proLesson,isProExist,classLimit,stuNum,teacherNum,proClassLimit,stuNumOfPro)
+		VALUES
+		<foreach collection="subjectGroup" item="group" separator=",">
+			<foreach collection="group.subject" item="item" separator=",">
+				(#{placementId},#{schoolId},#{usedGrade},'${group.subjectGroupId}',${item.subjectId},${group.optLesson},${group.proLesson},${item.isProExist},${item.classLimit},${item.stuNum},${item.teacherNum},${item.proClassLimit},${item.stuNumOfPro})
+			</foreach>
+		</foreach>
+		on duplicate key update
+		placementId=values(placementId),schoolId=values(schoolId),usedGrade=values(usedGrade),subjectGroupId=values(subjectGroupId),subjectId=values(subjectId),proLesson=values(proLesson),isProExist=values(isProExist),classLimit=values(classLimit),stuNum=values(stuNum),teacherNum=values(teacherNum),proClassLimit=values(proClassLimit)		
+	</insert>
+	<!-- 获取定二走一设置 -->
+	<resultMap type="JSONObject" id="dezyPreSetting">
+		<result property="wfId" column="wfId" />
+		<result property="usedGrade" column="usedGrade" />
+		<result property="rePlacement" column="rePlacement" />
+		<result property="classNum" column="classNum" />
+		<result property="classRoundNum" column="classRoundNum" />
+		<result property="minTeacherNum" column="minTeacherNum" />
+		<result property="gradeSumLesson" column="gradeSumLesson" />
+		<result property="fixedSumLesson" column="fixedSumLesson" />
+		<!-- <result property="maxClassNum" column="maxClassNum"/> -->
+		<result property="maxStuInClass" column="maxClassNum"/>
+		<collection property="techSettings"  resultMap="techSettings" />
+		<collection property="advancedOptions" javaType="java.util.List"
+			resultMap="advancedOptions" />
+		<collection property="subjectGroup" resultMap="subjectGroup" 
+			javaType="java.util.List"/>
+	</resultMap>
+	<resultMap type="JSONObject" id="techSettings">
+		<result property="goClass" column="formOfTech" />
+	</resultMap>
+	<resultMap type="JSONObject" id="advancedOptions">
+		<result property="subjectId" column="subjectId" />
+		<result property="classNum" column="classLimit" />
+		<result property="stuNum" column="stuNum" />
+		<result property="teacherNum" column="teacherNum"/>
+		<result property="proClassNum" column="proClassLimit"/>
+	</resultMap>
+	<resultMap type="JSONObject" id="subjectGroup">
+		<result property="subjectGroupId" column="subjectGroupId" />
+		<result property="groupName" column="groupName" />
+		<result property="optLesson" column="optLesson" />
+		<result property="proLesson" column="proLesson" />
+		<collection property="subject" javaType="java.util.List"
+			resultMap="subjectSetting" />
+	</resultMap>
+	<resultMap type="JSONObject" id="subjectSetting">
+		<result property="subjectId" column="subjectId" />
+		<result property="isProExist" column="isProExist" />
+	</resultMap>
+	<select id="queryDezyPreSetting" parameterType="hashmap"
+		resultMap="dezyPreSetting">
+		SELECT
+			a.*,b.groupName,b.optLesson,b.proLesson,b.subjectGroupId,b.subjectIds,c.isProExist,c.subjectId,c.classLimit,c.stuNum,c.teacherNum,c.proClassLimit
+		FROM ${db_name_placementtask}_${termInfo}.t_pl_dezy_settings a,
+			${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectgroup b,
+			${db_name_placementtask}_${termInfo}.t_pl_dezy_subject_set c
+		WHERE
+		a.schoolId = b.schoolId AND b.schoolId = c.schoolId
+		AND a.placementId = b.placementId AND b.placementId=c.placementId AND
+		(b.subjectGroupId=c.subjectGroupId OR (a.formOfTech=0 AND c.subjectGroupId=c.subjectId))
+		AND a.schoolId=#{schoolId} AND a.placementId=#{placementId}
+	</select>
+	<select id="queryLatestDivData" parameterType="hashmap" resultType="String">
+		SELECT placementId FROM  ${db_name_placementtask}_${termInfo}.t_pl_placementtask 
+		WHERE schoolId=#{schoolId} AND usedGrade=#{usedGrade} AND placementType=4 AND status=100 AND termInfo=#{termInfo} 
+		ORDER BY createDate DESC 
+		LIMIT 1;
+	</select>
+	<update id="batchInsertTPlDezyClassgroupList" parameterType="java.util.List">
+		insert into
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_classGroup(placementId,schoolId,usedGrade,subjectGroupId,classtGroupId,classIds,classGroupName)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.subjectGroupId},#{item.classtGroupId},#{item.classIds},#{item.classGroupName})
+		</foreach>
+		on duplicate key update
+		placementId=values(placementId),schoolId=values(schoolId),usedGrade=values(usedGrade),subjectGroupId=values(subjectGroupId),classtGroupId=values(classtGroupId),classIds=values(classIds)
+	</update>
+	
+	<!-- 还原班级名称 -->
+	<update id="recoverClassName" parameterType="hashmap">
+		UPDATE ${db_name_placementtask}_${termInfo}.t_pl_dezy_class 
+		SET tclassName = oriClassName 
+		WHERE schoolId=#{schoolId} AND placementId=#{placementId} 
+		<if test="useGrade!=null">
+			AND usedGrade=#{usedGrade}
+		</if>
+	</update>
+	
+	<update id="batchInsertTPlDezyClassList" parameterType="java.util.List">
+		insert into
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_class(placementId,schoolId,usedGrade,subjectGroupId,subjectId,classGroupId,tclassId,tclassType,tclassLevel,tclassNum,groundId,groundName,classSeq,tclassName,subLevel,oriClassName)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.subjectGroupId},#{item.subjectId},#{item.classGroupId},#{item.tclassId},#{item.tclassType},#{item.tclassLevel},#{item.tclassNum},#{item.groundId},#{item.groundName},#{item.classSeq},#{item.tclassName},#{item.subLevel},#{item.oriClassName})
+		</foreach>
+		on duplicate key update
+		placementId=values(placementId),schoolId=values(schoolId),usedGrade=values(usedGrade),subjectGroupId=values(subjectGroupId),subjectId=values(subjectId),classGroupId=values(classGroupId),tclassId=values(tclassId),tclassType=values(tclassType),tclassLevel=values(tclassLevel),<!--tclassNum=values(tclassNum), groundId=values(groundId),groundName=values(groundName), -->
+		classSeq=values(classSeq),tclassName=values(tclassName),subLevel=values(subLevel)
+	</update>
+	<update id="batchInsertTPlDezySubjectcompList" parameterType="java.util.List">
+		insert into
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectComp(placementId,schoolId,usedGrade,classId,subjectCompId,compName,compNum,compFrom)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.classId},#{item.subjectCompId},#{item.compName},#{item.compNum},#{item.compFrom})
+		</foreach>
+		on duplicate key update
+		placementId=values(placementId),schoolId=values(schoolId),usedGrade=values(usedGrade),classId=values(classId),subjectCompId=values(subjectCompId),compName=values(compName),compNum=values(compNum),compFrom=values(compFrom)
+	</update>
+	
+	<update id='batchInsertTPlDezySubjectSetList' parameterType='java.util.List' > insert into ${db_name_placementtask}_${termInfo}.t_pl_dezy_subject_set(placementId,schoolId,usedGrade,subjectGroupId,subjectId,optLesson,proLesson,isProExist,classLimit,stuNum,teacherNum,stuNumOfPro,proClassLimit) values  <foreach collection="list" item="item" index="index" separator=",">(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.subjectGroupId},#{item.subjectId},#{item.optLesson},#{item.proLesson},#{item.isProExist},#{item.classLimit},#{item.stuNum},#{item.teacherNum},#{item.stuNumOfPro},#{item.proClassLimit}) </foreach> on duplicate key update placementId=values(placementId),schoolId=values(schoolId),usedGrade=values(usedGrade),subjectGroupId=values(subjectGroupId),subjectId=values(subjectId),optLesson=values(optLesson),proLesson=values(proLesson),isProExist=values(isProExist),classLimit=values(classLimit),stuNum=values(stuNum),teacherNum=values(teacherNum),stuNumOfPro=values(stuNumOfPro),proClassLimit=values(proClassLimit)</update> 
+	<update id='batchInsertTPlDzbClassLevelList' parameterType='java.util.List' > insert into ${db_name_placementtask}_${termInfo}.t_pl_dzb_classlevel(placementId,schoolId,subLevelName,subLevel,classId,classType) values  <foreach collection="list" item="item" index="index" separator=",">(#{item.placementId},#{item.schoolId},#{item.subLevelName},#{item.subLevel},#{item.classId},#{item.classType}) </foreach> on duplicate key update placementId=values(placementId),schoolId=values(schoolId),subLevel=values(subLevel),subLevelName=values(subLevelName),classType=values(classType),classId=values(classId)</update> 
+	
+	
+	<update id='batchInsertTPlDezyTclassfromList' parameterType='java.util.List' > insert into ${db_name_placementtask}_${termInfo}.t_pl_dezy_tclassfrom(placementId,schoolId,usedGrade,subjectGroupId,classGroupId,tclassId,classId) values  <foreach collection="list" item="item" index="index" separator=",">(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.subjectGroupId},#{item.classGroupId},#{item.tclassId},#{item.classId}) </foreach> on duplicate key update placementId=values(placementId),schoolId=values(schoolId),usedGrade=values(usedGrade),subjectGroupId=values(subjectGroupId),classGroupId=values(classGroupId),tclassId=values(tclassId),classId=values(classId)</update> 
+	<update id='batchInsertTPlDezySubjectcompStudentList' parameterType='java.util.List' > insert into ${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp_student(placementId,schoolId,usedGrade,subjectCompId,studentId) values  <foreach collection="list" item="item" index="index" separator=",">(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.subjectCompId},#{item.studentId}) </foreach> on duplicate key update placementId=values(placementId),schoolId=values(schoolId),usedGrade=values(usedGrade),subjectCompId=values(subjectCompId),studentId=values(studentId)</update> 
+	<update id='batchInsertTPlDezyTclassSubcompList' parameterType='java.util.List' > insert into ${db_name_placementtask}_${termInfo}.t_pl_dezy_tclass_subcomp(placementId,schoolId,usedGrade,subjectCompId,tclassId) values  <foreach collection="list" item="item" index="index" separator=",">(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.subjectCompId},#{item.tclassId}) </foreach> on duplicate key update placementId=values(placementId),schoolId=values(schoolId),usedGrade=values(usedGrade),subjectCompId=values(subjectCompId),tclassId=values(tclassId)</update> 
+	<update id="deleteDezyResult" parameterType="hashmap" statementType="CALLABLE">
+		call ${db_name_placementtask}_${termInfo}.proc_delete_allDezyResult(#{schoolId},#{placementId});
+  	</update> 
+  
+  <select id="queryTableColumnNames" parameterType='hashmap'  resultType="String">
+  	SELECT column_name
+  	FROM information_schema.COLUMNS WHERE table_name=#{tableName}
+		AND TABLE_SCHEMA='${db_name_placementtask}_${termInfo}'
+  </select>
+  <update id='batchInsertTPlDezyTableFromItself' parameterType='hashmap'>
+   insert into ${db_name_placementtask}_${termInfo}.${tableName}
+   		SELECT #{placementId1} as placementId, ${columnNames}  
+   		FROM ${db_name_placementtask}_${termInfo}.${tableName} 
+   		WHERE placementId=#{placementId2} AND schoolId=#{schoolId}<!--  AND termInfo=#{termInfo} AND usedGrade=#{usedGrade}; -->
+  </update> 
+  <!-- 批量插入实验班高级设置 -->
+  <update id='batchInsertTPlDezyAdvancedOptList' parameterType='java.util.List' > 
+  		insert into ${db_name_placementtask}_${termInfo}.t_pl_dezy_advancedopt
+  			(placementId,schoolId,usedGrade,subjectIds,classId,className,expClassId,expClassName) 
+  		values  
+  		<foreach collection="list" item="item" index="index" separator=",">
+  			(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.subjectIds},#{item.classId},#{item.className},#{item.expClassId},#{item.expClassName}) 
+  		</foreach> 
+  		on duplicate key update placementId=values(placementId),schoolId=values(schoolId),usedGrade=values(usedGrade),classId=values(classId),expClassId=values(expClassId)
+	</update>
+	
+	<update id="updateClearLargeResult" parameterType="JSONObject" statementType="CALLABLE">
+		call ${db_name_placementtask}_${termInfo}.proc_delete_allDzbResult(#{schoolId},#{placementId});
+  	</update> 
+  
+	
+	
+	
+	
+	<!-- 	 大走班            -->
+	<insert id="batchInsertTPlDezySubjectSet" parameterType="java.util.List">
+		INSERT INTO
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_subject_set(placementId,schoolId,usedGrade,subjectGroupId,subjectId,optLesson,proLesson,isProExist,classLimit,stuNum)
+		VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+				(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.subjectGroupId},#{item.subjectId},#{item.optLesson},#{item.proLesson},#{item.isProExist},#{item.classLimit},#{item.stuNum},#{item.stuNumOfPro},#{item.proClassLimit})
+		</foreach>
+		on duplicate key update placementId=values(placementId),schoolId=values(schoolId),usedGrade=values(usedGrade),subjectGroupId=values(subjectGroupId),subjectId=values(subjectId),optLesson=values(optLesson)
+			,proLesson=values(proLesson),isProExist=values(isProExist),classLimit=values(classLimit),stuNum=values(stuNum),stuNumOfPro=values(stuNumOfPro),proClassLimit=values(proClassLimit)
+	</insert>
+	
+	<insert id="batchInsertTPlDzbClassLevel" parameterType="java.util.List">
+		INSERT INTO
+		${db_name_placementtask}_${termInfo}.t_pl_dzb_classLevel(placementId,schoolId,classId,classLevel,classLevelName,classType)
+		VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+				(#{item.placementId},#{item.schoolId},#{item.classId},#{item.classLevel},#{item.classLevelName},#{item.classType})
+		</foreach>
+		on duplicate key update placementId=values(placementId),schoolId=values(schoolId),classId=values(classId),classLevel=values(classLevel),classLevelName=values(classLevelName),classType=values(classType);
+	</insert>
+	
+	<!-- 获取大走班设置 -->	<!--    -->
+	<resultMap type="JSONObject" id="dzbSubjectGroup">
+		<result property="wfId" column="wfId" />
+		<result property="usedGrade" column="usedGrade" />
+		<result property="avgStuInClass" column="avgClassNum" />
+		<result property="maxStuInClass" column="maxClassNum" />
+		<result property="totalClsNum" column="totalClsNum"/>
+		<collection property="subjectGroup" resultMap="subGroup" />
+		<collection property="advancedOptions" resultMap="dzbAdvancedOptions" />
+	</resultMap>
+	<resultMap type="JSONObject" id="subGroup">
+		<result property="fixedSumLesson" column="fixedSumLesson" />
+		<result property="totalWeekLessons" column="totalWeekLessons" />
+		<collection property="subject" resultMap="dzbSubject" javaType="java.util.List"/>
+	</resultMap>
+	<resultMap type="JSONObject" id="dzbSubject">
+		<result property="subjectId" column="subjectId" />
+		<result property="optLesson" column="optLesson" />
+		<result property="proLesson" column="proLesson" />
+	</resultMap>
+	<resultMap type="JSONObject" id="dzbAdvancedOptions">
+		<!-- <result property="subjectId" column="subjectId" /> -->
+		<result property="optLesson" column="optLesson" />
+		<collection property="subMaxLessons" resultMap="subMaxLessons" javaType="java.util.List"/>
+	</resultMap>
+	<resultMap type="JSONObject" id="subMaxLessons">
+		<result property="subjectId" column="subjectId" />
+		<result property="stuNum" column="stuNum" />
+		<result property="teacherNum" column="teacherNum" />
+		<result property="stuNumOfPro" column="stuNumOfPro" />
+		<result property="proClassNum" column="proClassNum" />
+		<result property="classNum" column="classNum" />
+	</resultMap>
+	<select id="getDzbPreSettings" parameterType="hashmap" resultMap="dzbSubjectGroup">
+		SELECT a.usedGrade,a.fixedSumLesson,a.gradeSumLesson AS totalWeekLessons,a.wfId,a.avgClassNum,a.maxClassNum,a.classNum as totalClsNum,
+			b.subjectId,b.optLesson,b.proLesson,b.stuNum,b.teacherNum,b.stuNumOfPro,b.proClassLimit AS proClassNum,b.classLimit AS classNum
+		FROM ${db_name_placementtask}_${termInfo}.t_pl_dezy_settings a,${db_name_placementtask}_${termInfo}.t_pl_dezy_subject_set b
+		WHERE a.schoolId=#{schoolId} AND a.placementId=#{placementId}
+			AND a.schoolId=b.schoolId AND a.placementId=b.placementId 
+		
+	</select>
+	<select id="getDzbClassLevel" parameterType="hashmap" resultType="com.talkweb.placementtask.domain.TPlDzbClassLevel">
+		select * FROM ${db_name_placementtask}_${termInfo}.t_pl_dzb_classlevel
+		where  placementId = #{placementId} and schoolId = #{schoolId}   
+	</select>
+	
+	<!-- 获取大走班分班结果 -->
+	<resultMap type="JSONObject" id="dzbDivData">
+		<result property="classLevel" column="classLevel"/>
+		<result property="subjectId" column="subjectId"/>
+		<collection property="subject" resultMap="dzbSubjectArray" javaType="java.util.List"/>
+	</resultMap>
+	<resultMap type="JSONObject" id="dzbSubjectArray">
+		<result property="subjectId" column="subjectId"/>
+		<collection property="classArray" resultMap="classArray" javaType="java.util.List"/>
+	</resultMap>
+	<resultMap type="JSONObject" id="classArray">
+		<result property="classType" column="classType"/>
+		<collection property="tclassArray" resultMap="tclassArray" javaType="java.util.List"/>
+	</resultMap>
+	<resultMap type="JSONObject" id="tclassArray">
+		<result property="tclassId" column="tclassId"/>
+		<result property="tclassName" column="tclassName"/>
+		<result property="teachingGround" column="teachingGround"/>
+		<result property="teachingGroundId" column="teachingGroundId"/>
+		<result property="stuNum"  column="stuNum"/>
+	</resultMap>
+	
+	<select id="getDzbDivResult" parameterType="hashmap" resultMap="dzbDivData">
+		SELECT subLevel as classLevel,subjectId,tclassLevel AS classType<!-- ,count(*) AS classSum -->,tclassId,tclassName,groundId AS teachingGroundId,
+			groundName AS teachingGround,tclassNum AS stuNum
+		FROM ${db_name_placementtask}_${termInfo}.t_pl_dezy_class
+		WHERE schoolId=#{schoolId} AND placementId=#{placementId} AND tclassType&lt;&gt;6
+		<if test="subjectIds != null">
+			AND subjectId IN 
+			<foreach collection="subjectIds" item="item" open="(" close=")" separator=",">
+				#{item}		
+			</foreach>
+			
+		</if>
+		GROUP BY subLevel,subjectId,tclassLevel,tclassId
+	</select>
+	
+	<!-- 大走班分班结果需求更改 -->
+	<resultMap type="JSONObject" id="dzbDivData2">
+		
+	</resultMap>
+	<resultMap type="JSONObject" id="subjectDetail">
+		<result property="tclassName" column="tclassName"/>
+		<result property="groundName" column="groundName"/>
+		<result property="compNum" column="compNum"/>
+	</resultMap>
+	<select id="getDzbDivResult2" parameterType="hashmap" resultMap="dzbDivData2">
+		SELECT subjectId,tclassLevel,tclassName,<!-- a.groundId, -->a.groundName,b.subjectCompId,tmp.compName,tmp.studentId,tmp.compNum
+		FROM (${db_name_placementtask}_${termInfo}.t_pl_dezy_class a NATURAL JOIN ${db_name_placementtask}_${termInfo}.t_pl_dezy_tclass_subcomp b),(
+			SELECT subjectCompId,compName,studentId,tclassId,compNum
+			FROM (${db_name_placementtask}_${termInfo}.t_pl_dezy_tclass_subcomp w NATURAL JOIN ${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp_student s) 
+				NATURAL JOIN ${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp c	
+			WHERE w.schoolId=#{schoolId} AND w.placementId=#{placementId}
+		) tmp
+		WHERE	a.schoolId=#{schoolId} AND a.placementId=#{placementId} AND b.subjectCompId=tmp.subjectCompId AND b.tclassId=tmp.tclassId		
+	</select>
+	
+	
+	<!-- 获取分班主表 -->
+	<resultMap type="JSONObject" id="MainTable">
+		<result property="classLevel" column="tclassLevel"/>
+		<collection property="subject" resultMap="SubjectTable" javaType="java.util.List"/>
+	</resultMap>
+	<resultMap type="JSONObject" id="SubjectTable">
+		<result property="subjectId" column="subjectId"/>
+		<collection property="class" resultMap="ClassTable" javaType="java.util.List"/>
+	</resultMap>
+	<resultMap type="JSONObject" id="ClassTable">
+		<result property="tclassName" column="tclassName"/>
+		<result property="groundName" column="groundName"/>	
+		<result property="totalNum" column="totalNum"/>
+		<collection property="subComps" resultMap="SubcompTable" javaType="java.util.List"/>
+	</resultMap>
+	<resultMap type="JSONObject" id="SubcompTable">
+		<result property="stuInTclassComp" column="stuInTclassComp"/>
+		<result property="compName" column="compName"/>
+	</resultMap>
+	
+	<select id="getDzbMainTable" resultMap="MainTable" parameterType="JSONObject">
+		SELECT subLevel AS tclassLevel,subjectId,tclassName,a.groundName,tmp.studentId,tmp.compNum,tmp.compName,<!-- COUNT(studentId) -->compNum AS stuInTclassComp,a.tclassNum AS totalNum
+		FROM (${db_name_placementtask}_${termInfo}.t_pl_dezy_class a INNER JOIN ${db_name_placementtask}_${termInfo}.t_pl_dezy_tclass_subcomp b ON a.placementId=b.placementId AND a.schoolId=b.schoolId AND a.tclassId=b.tclassId),(
+			SELECT s.subjectCompId,compName,studentId,tclassId,compNum
+			FROM (${db_name_placementtask}_${termInfo}.t_pl_dezy_tclass_subcomp w INNER JOIN ${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp_student s ON w.placementId=s.placementId AND w.schoolId=s.schoolId AND w.subjectCompId=s.subjectCompId)
+				INNER JOIN ${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp c	ON c.subjectCompId=s.subjectCompId
+			WHERE w.schoolId=#{schoolId} AND w.placementId=#{placementId} GROUP BY tclassId,subjectCompId,studentId
+		) tmp
+		WHERE	a.schoolId=#{schoolId} AND a.placementId=#{placementId} AND b.subjectCompId=tmp.subjectCompId AND b.tclassId=tmp.tclassId
+		<if test="querySubjectId!=null">
+			 AND a.subjectId=#{querySubjectId}
+		</if>
+		<if test="queryClassLevel!=null">
+			AND a.subLevel=#{queryClassLevel}
+		</if>
+		GROUP BY tclassLevel,subjectId,b.tclassId,b.subjectCompId
+	</select>
+	
+	
+	<select id="queryDzbPreview"  resultMap="MainTable" parameterType="JSONObject">
+		select a.subLevel as tclassLevel,a.subjectId,a.tclassName,a.groundName,
+			c.studentId,d.compName,count(d.compNum) AS stuInTclassComp,a.tclassNum AS totalNum
+			from ${db_name_placementtask}_${termInfo}.t_pl_dezy_class a,${db_name_placementtask}_${termInfo}.t_pl_dezy_tclass_subcomp b, 
+			${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp_student c,${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp d 
+			where a.schoolid=b.schoolid and b.schoolId=c.schoolId and a.placementId=b.placementId and b.placementId=c.placementId
+			and a.tclassid=b.tclassid and b.subjectCompId=c.subjectCompId
+			and b.subjectCompId=d.subjectCompId
+			and a.schoolId=#{schoolId} AND a.placementId=#{placementId}
+			<if test="querySubjectId!=null">
+				 AND a.subjectId=#{querySubjectId}
+			</if>
+			<if test="queryClassLevel!=null">
+				AND a.subLevel=#{queryClassLevel}
+			</if>
+			group By a.subjectId,a.tclassName,d.compName
+	</select>
+	
+	<!-- 大走班学生详情 -->
+	<resultMap type="JSONObject" id="DzbStuClassInfoDetail">
+		<result property="studentId" column="studentId"/>
+		<result property="subjectCompId" column="subjectCompId"/>
+		<result property="subjectGroupName" column="compName"/>
+		<result property="classId" column="classId"/>
+		<result property="compFrom" column="compFrom"/>
+		<collection property="tclassGroup" resultMap="dzbTclassGroup" javaType="java.util.List"/>	
+	</resultMap>
+	<resultMap type="JSONObject" id="dzbTclassGroup">
+		<result property="subjectId" column="subjectId"/>
+		<result property="tclassId" column="tclassId"/>
+		<result property="tclassName" column="tclassName"/>
+		<result property="tclassType" column="tclassLevel"/>
+	</resultMap>
+	<select id="getDzbStuClassInfoDetail" parameterType="JSONObject" resultMap="DzbStuClassInfoDetail">
+		SELECT a.studentId,a.subjectCompId,a.compName,a.compFrom,a.classId,b.tclassId,c.subjectId,c.tclassName,c.tclassLevel
+		FROM (
+			SELECT w.compName,w.compFrom,w.classId,s.studentId,s.subjectCompId  <!-- 学生志愿 -->
+			FROM ${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectComp w 
+				INNER JOIN ${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectComp_student s ON w.placementId=s.placementId AND w.schoolId=s.schoolId AND w.subjectCompId=s.subjectCompId
+			WHERE w.schoolId=#{schoolId} AND w.placementId=#{placementId}
+		) a INNER JOIN ${db_name_placementtask}_${termInfo}.t_pl_dezy_tclass_subcomp b ON a.subjectCompId=b.subjectCompId ,( <!-- 学生的教学班及所教科目  -->
+			SELECT subjectId,tclassId,tclassName,tclassLevel 
+			FROM ${db_name_placementtask}_${termInfo}.t_pl_dezy_class 
+			WHERE schoolId=#{schoolId} AND placementId=#{placementId} AND tclassType &lt;&gt; 6 
+			<!-- 定二走一 ，科目查询选项 -->
+			<if test="querySubjectId!=null">
+				AND subjectId = #{querySubjectId}
+			</if>
+		) c WHERE b.schoolId=#{schoolId} AND b.placementId=#{placementId} AND b.tclassId=c.tclassId 
+		<if test="tclassIdList!=null">
+			AND b.tclassId IN 
+			<foreach collection="tclassIdList" item="item" open="(" close=")" separator=",">
+				#{item}
+			</foreach>
+		</if>
+		<!-- SELECT a.studentId,a.subjectCompId,a.compName,a.compFrom,b.tclassId,c.subjectId,c.tclassName,c.tclassLevel
+		FROM (
+			SELECT w.compName,w.compFrom,s.studentId,s.subjectCompId  学生志愿
+			FROM ${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectComp w 
+				NATURAL JOIN ${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectComp_student s 
+			WHERE w.schoolId=#{schoolId} AND w.placementId=#{placementId}
+		) a NATURAL JOIN ${db_name_placementtask}_${termInfo}.t_pl_dezy_tclass_subcomp b, ( 学生的教学班及所教科目 
+			SELECT subjectId,tclassId,tclassName,tclassLevel 
+			FROM ${db_name_placementtask}_${termInfo}.t_pl_dezy_class 
+			WHERE schoolId=#{schoolId} AND placementId=#{placementId} AND tclassType &lt;&gt; 6 
+			定二走一 ，科目查询选项
+			<if test="querySubjectId!=null">
+				AND subjectId = #{querySubjectId}
+			</if>
+		) c WHERE b.schoolId=#{schoolId} AND b.placementId=#{placementId} AND b.tclassId=c.tclassId 
+		<if test="tclassIdList!=null">
+			AND b.tclassId IN 
+			<foreach collection="tclassIdList" item="item" open="(" close=")" separator=",">
+				#{item}
+			</foreach>
+		</if> -->	
+	</select>
+	
+	<!-- 查询分班预览参数 -->
+	<resultMap type="JSONObject" id="dzbDivQueryParams">
+		<result property="classLevelId" column="subLevel"/>
+		<collection property="subject" resultMap="querySubject" javaType="java.util.List"/>
+	</resultMap>
+	<resultMap type="JSONObject" id="querySubject">
+		<result property="subjectId" column="subjectId"/>
+	</resultMap>
+	<select id="getDzbDivQueryParams" parameterType="hashmap" resultMap="dzbDivQueryParams">
+		SELECT subjectId,subLevel
+		FROM ${db_name_placementtask}_${termInfo}.t_pl_dezy_class
+		WHERE schoolId=#{schoolId} AND placementId=#{placementId}
+		GROUP BY subLevel,subjectId
+	</select>
+	
+	<!-- 查询师资配比表 -->
+	<resultMap type="JSONObject" id="teachingResource">
+		<result column="subjectId"	property="subjectId"/>	
+		
+		<collection property="classOptions" resultMap="subTeachingResource" javaType="java.util.List"/>	
+	</resultMap>
+	<resultMap type="JSONObject" id="subTeachingResource">
+		<result property="upClassLimit" column="maxStuInCls"/>
+		<result property="bottomClassLimit" column="minStuInCls"/>
+		<result property="groundNum" column="groundNum"/>
+	
+		<result property="type" column="tclassLevel"/>	<!-- 学选考 -->
+		<result property="classNum" column="classNum"/>	<!-- 同时最大开班数 -->
+		<result property="levelClassNum" column="levelClassNum"/>	<!-- 科目开班数 -->
+	</resultMap>
+	<select id="queryDzbTeachingResource" parameterType="JSONObject" resultMap="teachingResource">
+		SELECT subjectId,tclassLevel,MAX(tclassNum) AS maxStuInCls,MIN(tclassNum) AS minStuInCls,COUNT(*) AS classNum, count(DISTINCT(classSeq)) AS levelClassNum,
+			COUNT(DISTINCT(groundId)) AS groundNum, groundName 
+		FROM ${db_name_placementtask}_${termInfo}.t_pl_dezy_class
+		WHERE schoolId=#{schoolId} AND placementId=#{placementId} AND tclassType&lt;&gt;6 
+		GROUP BY subjectId,tclassLevel	 
+	</select>
+	<update id='batchInsertTPlConfIndexSubsList' parameterType='java.util.List' > insert into ${db_name_placementtask}_${termInfo}.t_pl_conf_index_subs(placementId,schoolId,usedGrade,idx,isOpt,seq,subIds,isSeqRebuild,reSeq,isIdxRebuild,reIdx) values 
+	 <foreach collection="list" item="item" index="index" separator=",">
+	 (#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.idx},#{item.isOpt},#{item.seq},#{item.subIds},#{item.isSeqRebuild},#{item.reSeq},#{item.isIdxRebuild},#{item.reIdx})
+	  </foreach> on duplicate key update 
+		
+		placementId=values(placementId),schoolId=values(schoolId),usedGrade=values(usedGrade),idx=values(idx),isOpt=values(isOpt),seq=values(seq),subIds=values(subIds),isSeqRebuild=values(isSeqRebuild),reSeq=values(reSeq),isIdxRebuild=values(isIdxRebuild),reIdx=values(reIdx)
+		
+	</update>
+<select id="getConfIndexSubsList" parameterType="hashmap" resultType="com.talkweb.placementtask.domain.TPlConfIndexSubs">
+		select * from ${db_name_placementtask}_${termInfo}.t_pl_conf_index_subs
+		WHERE schoolId=#{schoolId} AND placementId=#{placementId} 
+	</select>
+	<update id='batchInsertTPlStudentinfoList' parameterType='java.util.List' > insert into ${db_name_placementtask}_${termInfo}.t_pl_studentinfo(placementId,schoolId,teachingClassId,accountId,classId,openClassInfoId,openClassTaskId,type,termInfo) values  <foreach collection="list" item="item" index="index" separator=",">(#{item.placementId},#{item.schoolId},#{item.teachingClassId},#{item.accountId},#{item.classId},#{item.openClassInfoId},#{item.openClassTaskId},#{item.type},#{item.termInfo}) </foreach> on duplicate key update placementId=values(placementId),schoolId=values(schoolId),teachingClassId=values(teachingClassId),accountId=values(accountId),classId=values(classId),openClassInfoId=values(openClassInfoId),openClassTaskId=values(openClassTaskId),type=values(type),termInfo=values(termInfo)</update> 
+	
+	
+	<!-- 查找科目对应的上课地点Id -->
+	<select id="selectGroundIdBysubjectIds" parameterType="hashmap" resultType="JSONObject">
+		SELECT subjectId,tclassLevel,groundId 
+		FROM ${db_name_placementtask}_${termInfo}.t_pl_dezy_class
+		WHERE schoolId=#{schoolId} AND placementId=#{placementId} AND tclassType&lt;&gt;6 
+		GROUP BY subjectId,tclassId
+  	</select>
+</mapper>

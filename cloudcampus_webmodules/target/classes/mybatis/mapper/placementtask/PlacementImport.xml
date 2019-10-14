@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.placementtask.dao.import">
+
+	<select id="selectDistinctSubjectGroupIdByPlacementId" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.vo.SubjectGroupIdInfo">
+		SELECT DISTINCT
+			subjectid as subjectId,
+			subjectGroupId as subjectGroupId 
+		FROM
+			${db_name_placementtask}_${termInfo}.t_pl_dezy_class
+		WHERE
+			schoolId = #{schoolId} AND placementId = #{placementId}
+	</select>
+	
+	
+	<select id="selectDistinctClassGroupIdByPlacementId" parameterType="hashmap" resultType="string">
+		SELECT DISTINCT
+			classGroupId 
+		FROM
+			${db_name_placementtask}_${termInfo}.t_pl_dezy_class
+		WHERE
+			schoolId = #{schoolId} AND placementId = #{placementId}
+	</select>
+	
+	
+	<update id="updateClassGroupClassIds" parameterType="hashmap">
+		UPDATE ${db_name_placementtask}_${termInfo}.t_pl_dezy_classgroup 
+		set classIds = #{classIds} WHERE schoolId = #{schoolId} AND placementId = #{placementId}
+	</update>
+
+	<delete id="deleteTPlDezyClassgroup" parameterType="hashmap">
+		DELETE FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_classgroup
+		WHERE schoolId = #{schoolId}
+		AND placementId = #{placementId}
+	</delete>
+	
+	<insert id="batchInsertTPlDezyClassgroupList" parameterType="hashmap">
+		insert into
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_classGroup(placementId,schoolId,usedGrade,subjectGroupId,classtGroupId,classIds,classGroupName)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.subjectGroupId},#{item.classtGroupId},#{item.classIds},#{item.classGroupName})
+		</foreach>
+	</insert>
+	
+	
+	<delete id="deleteTPlDezyClass" parameterType="hashmap">
+		DELETE FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_class
+		WHERE schoolId = #{schoolId}
+		AND placementId = #{placementId}
+	</delete>
+	<insert id="batchInsertTPlDezyClassList" parameterType="hashmap">
+		insert into
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_class(placementId,schoolId,usedGrade,subjectGroupId,subjectId,classGroupId,tclassId,tclassType,tclassLevel,tclassNum,groundId,groundName,classSeq,tclassName,subLevel,oriClassName)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.subjectGroupId},#{item.subjectId},#{item.classGroupId},#{item.tclassId},#{item.tclassType},#{item.tclassLevel},#{item.tclassNum},#{item.groundId},#{item.groundName},#{item.classSeq},#{item.tclassName},#{item.subLevel},#{item.oriClassName})
+		</foreach>
+	</insert>
+	
+	
+	<delete id="deleteTPlDezySubjectcomp" parameterType="hashmap">
+		DELETE FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectComp
+		WHERE schoolId = #{schoolId}
+		AND placementId = #{placementId}
+	</delete>
+	<insert id="batchInsertTPlDezySubjectcompList" parameterType="hashmap">
+		insert into
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectComp(placementId,schoolId,usedGrade,classId,subjectCompId,compName,compNum,compFrom)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.classId},#{item.subjectCompId},#{item.compName},#{item.compNum},#{item.compFrom})
+		</foreach>
+	</insert>
+	
+	
+	<delete id="deleteTPlDezyTclassSubcomp" parameterType="hashmap">
+		DELETE FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_tclass_subcomp
+		WHERE schoolId = #{schoolId}
+		AND placementId = #{placementId}
+	</delete>
+	<insert id="batchInsertTPlDezyTclassSubcompList" parameterType="hashmap">
+ 		insert into
+ 		${db_name_placementtask}_${termInfo}.t_pl_dezy_tclass_subcomp(placementId,schoolId,usedGrade,subjectCompId,tclassId) 
+ 		values
+ 		<foreach collection="list" item="item" index="index" separator=",">
+ 			(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.subjectCompId},#{item.tclassId}) 
+ 		</foreach>
+	</insert>
+	
+	
+	<delete id="deleteTPlDezyTclassfrom" parameterType="hashmap">
+		DELETE FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_tclassfrom
+		WHERE schoolId = #{schoolId}
+		AND placementId = #{placementId}
+	</delete>
+	<insert id="batchInsertTPlDezyTclassfromList" parameterType="hashmap">
+ 		insert into 
+ 		${db_name_placementtask}_${termInfo}.t_pl_dezy_tclassfrom(placementId,schoolId,usedGrade,subjectGroupId,classGroupId,tclassId,classId) 
+ 		values
+ 		<foreach collection="list" item="item" index="index" separator=",">
+ 			(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.subjectGroupId},#{item.classGroupId},#{item.tclassId},#{item.classId})
+ 		</foreach>
+	</insert>
+	
+	<delete id="deleteTPlDezySubjectcompStudent" parameterType="hashmap">
+		DELETE FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp_student
+		WHERE schoolId = #{schoolId}
+		AND placementId = #{placementId}
+	</delete>
+	<insert id="batchInsertTPlDezySubjectcompStudentList" parameterType="hashmap">
+ 		insert into 
+ 		${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp_student(placementId,schoolId,usedGrade,subjectCompId,studentId) 
+ 		values 
+ 		<foreach collection="list" item="item" index="index" separator=",">
+ 			(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.subjectCompId},#{item.studentId})
+ 		</foreach>
+	</insert>
+	
+	
+	<delete id="deleteTPlConfIndexSubs" parameterType="hashmap">
+		DELETE FROM
+		${db_name_placementtask}_${termInfo}.t_pl_conf_index_subs
+		WHERE schoolId = #{schoolId}
+		AND placementId = #{placementId}
+	</delete>
+	<insert id="batchInsertTPlConfIndexSubsList" parameterType="hashmap">
+ 		insert into ${db_name_placementtask}_${termInfo}.t_pl_conf_index_subs(placementId,schoolId,usedGrade,idx,isOpt,seq,subIds,isSeqRebuild,reSeq,isIdxRebuild,reIdx) 
+ 		values 
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.placementId},#{item.schoolId},#{item.usedGrade},#{item.idx},#{item.isOpt},#{item.seq},#{item.subIds},#{item.isSeqRebuild},#{item.reSeq},#{item.isIdxRebuild},#{item.reIdx})
+		</foreach>
+	</insert>
+	
+</mapper>

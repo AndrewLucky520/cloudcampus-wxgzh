@@ -1,0 +1,1202 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.placementtask.dao">
+	<select id="queryPlacementTaskList" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.PlacementTask">
+		SELECT placementId, placementName, placementType, status,
+		layerStatus, usedGrade
+		FROM ${db_name_placementtask}_${termInfo}.t_pl_placementtask
+		WHERE schoolId= #{schoolId} and termInfo= #{termInfo}
+		ORDER BY createDate DESC
+	</select>
+	
+	<select id="queryPlacementTaskById" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.PlacementTask">
+		SELECT placementId,schoolId,termInfo,autoIncr, placementName, usedGrade,
+		placementType, status, layerStatus, genderBalance, differentName,
+		wfId, wfTermInfo
+		FROM ${db_name_placementtask}_${termInfo}.t_pl_placementtask
+		WHERE schoolId
+		= #{schoolId}
+		AND placementId = #{placementId}
+		LIMIT 1
+	</select>
+
+	<select id="ifExistsSamePlacementName" parameterType="hashmap"
+		resultType="java.lang.Integer">
+		SELECT 1 FROM ${db_name_placementtask}_${termInfo}.t_pl_placementtask
+		WHERE schoolId = #{schoolId} AND placementName = #{placementName}
+		<if test="placementId != null">
+			AND placementId != #{placementId}
+		</if>
+		LIMIT 1
+	</select>
+
+	<insert id="insertOrUpdatePlacementTask" parameterType="com.talkweb.placementtask.domain.PlacementTask">
+		INSERT
+		INTO ${db_name_placementtask}_${termInfo}.t_pl_placementtask
+		(placementId, schoolId, createDate, accountId, placementName,
+		usedGrade, placementType, status, genderBalance, differentName,
+		termInfo)
+		VALUES (#{placementId}, #{schoolId}, #{createDate}, #{accountId},
+		#{placementName}, #{usedGrade}, #{placementType}, 0, #{genderBalance},
+		#{differentName}, #{termInfo})
+		ON DUPLICATE KEY UPDATE placementName = #{placementName}, usedGrade =
+		#{usedGrade}, placementType = #{placementType},
+		genderBalance = #{genderBalance}, differentName = #{differentName}
+	</insert>
+
+	<update id="updatePlacementTaskById" parameterType="com.talkweb.placementtask.domain.PlacementTask">
+		UPDATE ${db_name_placementtask}_${termInfo}.t_pl_placementtask
+		<set>
+			<if test="wfId != null">
+				wfId = #{wfId},
+			</if>
+			<if test="wfTermInfo != null">
+				wfTermInfo = #{wfTermInfo},
+			</if>
+			<if test="status != null">
+				status = #{status},
+			</if>
+			<if test="layerStatus != null">
+				layerStatus = #{layerStatus},
+			</if>
+		</set>
+		WHERE schoolId = #{schoolId} AND placementId = #{placementId}
+	</update>
+
+	<delete id="deletePlacementTask" parameterType="hashmap">
+		DELETE FROM
+		${db_name_placementtask}_${termInfo}.t_pl_placementtask
+		WHERE schoolId = #{schoolId}
+		AND placementId = #{placementId}
+	</delete>
+
+	<select id="queryOpenClassInfo" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.OpenClassInfo">
+		SELECT openClassInfoId, type, zhName, subjectIdsStr, classIdsStr,
+		scoreUpLimit, scoreDownLimit, ruleId
+		FROM ${db_name_placementtask}_${termInfo}.t_pl_openclassinfo
+		WHERE schoolId
+		= #{schoolId} AND placementId = #{placementId} AND placementType =
+		#{placementType}
+		AND termInfo = #{termInfo}
+		<if test="openClassInfoId != null">
+			AND openClassInfoId = #{openClassInfoId}
+		</if>
+		<if test="type != null">
+			AND type = #{type}
+		</if>
+		<if test="types != null">
+			AND type IN
+			<foreach collection="types" open="(" separator="," close=")"
+				item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="multipleSubjectIdsStr != null">
+			AND subjectIdsStr IN
+			<foreach collection="multipleSubjectIdsStr" open="("
+				separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="subjectIdsStr != null">
+			AND subjectIdsStr = #{subjectIdsStr}
+		</if>
+		<if test="openClassInfos != null">
+			AND openClassInfoId IN
+			<foreach collection="openClassInfos" open="(" separator=","
+				close=")" item="item">
+				#{item.openClassInfoId}
+			</foreach>
+		</if>
+	</select>
+
+	<select id="queryOpenClassTask" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.OpenClassTask">
+		SELECT openClassTaskId, openClassInfoId, status, subjectLevel,
+		layName, layValue, numOfStuds, numOfOpenClasses, classSize
+		FROM ${db_name_placementtask}_${termInfo}.t_pl_openclasstask
+		WHERE schoolId
+		= #{schoolId} AND placementId = #{placementId}
+		AND termInfo = #{termInfo}
+		<if test="openClassInfos != null">
+			AND openClassInfoId IN
+			<foreach collection="openClassInfos" open="(" separator=","
+				close=")" item="item">
+				#{item.openClassInfoId}
+			</foreach>
+		</if>
+		<if test="openClassTaskIds != null">
+			AND openClassTaskId IN
+			<foreach collection="openClassTaskIds" open="(" separator=","
+				close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="status != null">
+			AND status = #{status}
+		</if>
+	</select>
+
+	<update id="updateOpenClassInfo" parameterType="com.talkweb.placementtask.domain.OpenClassInfo">
+		UPDATE ${db_name_placementtask}_${termInfo}.t_pl_openclassinfo
+		<set>
+			<if test="ruleId != null">
+				ruleId = #{ruleId},
+			</if>
+			<if test="zhName != null">
+				zhName = #{zhName},
+			</if>
+			<if test="subjectIdsStr != null">
+				subjectIdsStr = #{subjectIdsStr},
+			</if>
+		</set>
+		WHERE schoolId = #{schoolId} AND openClassInfoId = #{openClassInfoId}
+		AND termInfo = #{termInfo}
+		<if test="placementId != null">
+			AND placementId = #{placementId}
+		</if>
+		<if test="placementType != null">
+			AND placementType = #{placementType}
+		</if>
+	</update>
+
+	<update id="updateOpenClassTask" parameterType="com.talkweb.placementtask.domain.OpenClassTask">
+		UPDATE ${db_name_placementtask}_${termInfo}.t_pl_openclasstask
+		<set>
+			<if test="status != null">
+				status = #{status},
+			</if>
+			<if test="numOfStuds != null">
+				numOfStuds = #{numOfStuds},
+			</if>
+			<if test="numOfOpenClasses != null">
+				numOfOpenClasses = #{numOfOpenClasses},
+			</if>
+			<if test="classSize != null">
+				classSize = #{classSize},
+			</if>
+		</set>
+		WHERE schoolId = #{schoolId} AND openClassTaskId = #{openClassTaskId}
+		AND termInfo = #{termInfo}
+		<if test="placementId != null">
+			AND placementId = #{placementId}
+		</if>
+	</update>
+
+	<delete id="deleteOpenClassInfo" parameterType="hashmap">
+		DELETE FROM ${db_name_placementtask}_${termInfo}.t_pl_openclassinfo
+		WHERE placementId = #{placementId} AND schoolId = #{schoolId}
+		<if test="placementType != null">
+			AND placementType = #{placementType}
+		</if>
+		<if test="type != null">
+			AND type = #{type}
+		</if>
+		<if test="openClassInfoId != null">
+			AND openClassInfoId = #{openClassInfoId}
+		</if>
+		<if test="openClassInfoIds != null">
+			AND openClassInfoId IN
+			<foreach collection="openClassInfoIds" open="(" separator=","
+				close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="openClassInfos != null">
+			AND openClassInfoId IN
+			<foreach collection="openClassInfos" open="(" separator=","
+				close=")" item="item">
+				#{item.openClassInfoId}
+			</foreach>
+		</if>
+	</delete>
+
+	<delete id="deleteOpenClassTask" parameterType="hashmap">
+		DELETE FROM ${db_name_placementtask}_${termInfo}.t_pl_openclasstask
+		WHERE placementId = #{placementId} AND schoolId = #{schoolId} AND
+		termInfo = #{termInfo}
+		<if test="openClassInfoId != null">
+			AND openClassInfoId = #{openClassInfoId}
+		</if>
+		<if test="openClassInfos != null">
+			AND openClassInfoId IN
+			<foreach collection="openClassInfos" open="(" separator=","
+				close=")" item="item">
+				#{item.openClassInfoId}
+			</foreach>
+		</if>
+		<if test="openClassInfoIds != null">
+			AND openClassInfoId IN
+			<foreach collection="openClassInfoIds" open="(" separator=","
+				close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="openClassInfos != null">
+			AND openClassInfoId IN
+			<foreach collection="openClassInfos" open="(" separator=","
+				close=")" item="item">
+				#{item.openClassInfoId}
+			</foreach>
+		</if>
+	</delete>
+
+	<insert id="insertOpenClassInfo" parameterType="com.talkweb.placementtask.domain.OpenClassInfo">
+		INSERT INTO
+		${db_name_placementtask}_${termInfo}.t_pl_openclassinfo
+		(openClassInfoId, schoolId, placementId, placementType, type, zhName,
+		subjectIdsStr, classIdsStr, scoreUpLimit,
+		scoreDownLimit, ruleId, termInfo)
+		VALUES
+		(#{openClassInfoId}, #{schoolId}, #{placementId}, #{placementType}, #{type}, #{zhName},
+		#{subjectIdsStr},
+		#{classIdsStr}, #{scoreUpLimit}, #{scoreDownLimit}, #{ruleId}, #{termInfo})
+	</insert>
+
+	<insert id="insertOpenClassInfoBatch" parameterType="hashmap">
+		INSERT INTO ${db_name_placementtask}_${termInfo}.t_pl_openclassinfo
+		(openClassInfoId, schoolId, placementId, placementType, type, zhName,
+		subjectIdsStr, classIdsStr, scoreUpLimit,
+		scoreDownLimit, ruleId, termInfo)
+		VALUES
+		<foreach collection="openClassInfos" separator="," item="item">
+			(#{item.openClassInfoId}, #{item.schoolId}, #{item.placementId},
+			#{item.placementType}, #{item.type},
+			#{item.zhName}, #{item.subjectIdsStr}, #{item.classIdsStr}, #{item.scoreUpLimit},
+			#{item.scoreDownLimit},
+			#{item.ruleId}, #{item.termInfo})
+		</foreach>
+	</insert>
+
+	<insert id="insertOpenClassTask" parameterType="com.talkweb.placementtask.domain.OpenClassTask">
+		INSERT INTO
+		${db_name_placementtask}_${termInfo}.t_pl_openclasstask
+		(openClassTaskId, schoolId, placementId, openClassInfoId,
+		subjectLevel, layName, layValue, numOfStuds, numOfOpenClasses,
+		classSize, termInfo)
+		VALUES
+		(#{openClassTaskId}, #{schoolId}, #{placementId}, #{openClassInfoId}, #{subjectLevel},
+		#{layName}, #{layValue}, #{numOfStuds}, #{numOfOpenClasses},
+		#{classSize}, #{termInfo})
+	</insert>
+
+	<insert id="insertOpenClassTaskBatch" parameterType="hashmap">
+		INSERT INTO ${db_name_placementtask}_${termInfo}.t_pl_openclasstask
+		(openClassTaskId, schoolId, placementId, openClassInfoId,
+		subjectLevel, layName, layValue, numOfStuds, numOfOpenClasses,
+		classSize, termInfo)
+		VALUES
+		<foreach collection="openClassTasks" separator="," item="item">
+			(#{item.openClassTaskId}, #{item.schoolId}, #{item.placementId},
+			#{item.openClassInfoId}, #{item.subjectLevel},
+			#{item.layName}, #{item.layValue}, #{item.numOfStuds}, #{item.numOfOpenClasses},
+			#{item.classSize},
+			#{item.termInfo})
+		</foreach>
+	</insert>
+
+	<select id="queryRuleInfo" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.PlacementRule">
+		SELECT ruleId, examId, examTermInfo, ruleCode FROM
+		${db_name_placementtask}_${termInfo}.t_pl_placementrule r
+		WHERE r.placementId = #{placementId} AND r.schoolId = #{schoolId} AND
+		r.termInfo = #{termInfo}
+		<if test="placementType != null">
+			AND EXISTS (
+			SELECT 1 FROM ${db_name_placementtask}_${termInfo}.t_pl_openclassinfo i
+			WHERE i.placementId = r.placementId AND i.schoolId = r.schoolId AND
+			i.termInfo = r.termInfo
+			AND i.placementType = #{placementType}
+			<if test="type != null">
+				AND i.type = #{type}
+			</if>
+			<if test="types != null">
+				AND i.type IN
+				<foreach collection="types" open="(" separator="," close=")"
+					item="item">
+					#{item}
+				</foreach>
+			</if>
+			AND i.ruleId = r.ruleId
+			)
+		</if>
+	</select>
+
+	<insert id="insertPlacementRule" parameterType="com.talkweb.placementtask.domain.PlacementRule">
+		INSERT INTO
+		${db_name_placementtask}_${termInfo}.t_pl_placementrule
+		(ruleId, placementId, schoolId, examId, examTermInfo, ruleCode, termInfo)
+		VALUES
+		(#{ruleId}, #{placementId}, #{schoolId}, #{examId}, #{examTermInfo}, #{ruleCode},
+		#{termInfo})
+	</insert>
+
+	<delete id="deletePlacementRule" parameterType="hashmap">
+		DELETE FROM ${db_name_placementtask}_${termInfo}.t_pl_placementrule
+		WHERE placementId = #{placementId} AND schoolId = #{schoolId}
+		AND termInfo = #{termInfo}
+		<if test="ruleId != null">
+			AND ruleId = #{ruleId}
+		</if>
+		<if test="ruleIds != null">
+			AND ruleId IN
+			<foreach collection="ruleIds" open="(" separator="," close=")"
+				item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="openClassInfos != null">
+			AND ruleId IN
+			<foreach collection="openClassInfos" open="(" separator=","
+				close=")" item="item">
+				#{item.ruleId}
+			</foreach>
+		</if>
+		<if test="openClassInfoId != null or openClassInfoIdJSONList != null">
+			AND ruleId IN(
+			SELECT ruleId FROM ${db_name_placementtask}_${termInfo}.t_pl_openclassinfo
+			WHERE schoolId = #{schoolId} AND placementId = #{placementId} AND
+			termInfo = #{termInfo}
+			AND placementType = #{placementType} AND ruleId IS NOT NULL
+			<if test="type != null">
+				AND type = #{type}
+			</if>
+			<if test="openClassInfoId != null">
+				AND openClassInfoId = #{openClassInfoId}
+			</if>
+			<if test="openClassInfoIdJSONList != null">
+				AND openClassInfoId IN
+				<foreach collection="openClassInfoIdJSONList" open="("
+					separator="," close=")" item="item">
+					#{item.openClassInfoId}
+				</foreach>
+			</if>
+			)
+		</if>
+	</delete>
+
+	<select id="queryTeachingClassInfo" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.TeachingClassInfo">
+		SELECT teachingClassId, usedGrade, teachingClassName, openClassInfoId,
+		openClassTaskId, numOfBoys, numOfGirls, numOfStuds
+		FROM ${db_name_placementtask}_${termInfo}.t_pl_teachingclassinfo
+		WHERE
+		schoolId = #{schoolId} AND placementId = #{placementId} AND termInfo =
+		#{termInfo}
+		<if test="teachingClassId != null">
+			AND teachingClassId = #{teachingClassId}
+		</if>
+		<if test="teachingClassIds != null">
+			AND teachingClassId IN
+			<foreach collection="teachingClassIds" item="item" open="("
+				close=")" separator=",">
+				#{item}
+			</foreach>
+		</if>
+		<if test="openClassTaskIds != null">
+			AND openClassTaskId IN
+			<foreach collection="openClassTaskIds" item="item" open="("
+				close=")" separator=",">
+				#{item}
+			</foreach>
+		</if>
+		<if test="openClassTaskId != null">
+			AND openClassTaskId = #{openClassTaskId}
+		</if>
+		<if test="openClassInfoIds != null or openClassInfoId != null">
+			AND openClassTaskId IN (
+			SELECT openClassTaskId FROM
+			${db_name_placementtask}_${termInfo}.t_pl_openclasstask
+			WHERE schoolId = #{schoolId} AND placementId = #{placementId} AND termInfo
+			= #{termInfo}
+			<if test="openClassInfoId != null">
+				AND openClassInfoId = #{openClassInfoId}
+			</if>
+			<if test="openClassInfoIds != null">
+				AND openClassInfoId IN
+				<foreach collection="openClassInfoIds" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			)
+		</if>
+	</select>
+
+	<select id="ifExistsSameTClassName" parameterType="hashmap"
+		resultType="java.lang.Integer">
+		SELECT 1 FROM
+		${db_name_placementtask}_${termInfo}.t_pl_teachingclassinfo t1
+		WHERE t1.placementId = #{placementId} AND t1.schoolId = #{schoolId}
+		AND t1.termInfo = #{termInfo} AND t1.teachingClassName =
+		#{teachingClassName}
+		AND EXISTS (
+		SELECT 1 FROM ${db_name_placementtask}_${termInfo}.t_pl_teachingclassinfo t2
+		WHERE t2.schoolId = t1.schoolId
+		AND t2.placementId = t1.placementId
+		AND t2.termInfo = t1.termInfo
+		AND t2.teachingClassId = #{teachingClassId}
+		AND t2.openClassInfoId = t1.openClassInfoId
+		AND t2.openClassTaskId = t1.openClassTaskId
+		)
+		LIMIT 1
+	</select>
+
+	<update id="updateTeachingClassInfo" parameterType="hashmap">
+		UPDATE ${db_name_placementtask}_${termInfo}.t_pl_teachingclassinfo
+		<set>
+			<if test="teachingClassName != null">
+				teachingClassName = #{teachingClassName},
+			</if>
+		</set>
+		WHERE schoolId = #{schoolId} AND placementId = #{placementId}
+		AND termInfo = #{termInfo}
+		<if test="teachingClassId != null">
+			AND teachingClassId = #{teachingClassId}
+		</if>
+	</update>
+
+	<insert id="insertTeachingClassInfoBatch" parameterType="hashmap">
+		INSERT INTO
+		${db_name_placementtask}_${termInfo}.t_pl_teachingclassinfo
+		(teachingClassId, schoolId, usedGrade, teachingClassName, placementId,
+		openClassInfoId,
+		openClassTaskId, numOfBoys, numOfGirls, numOfStuds, termInfo)
+		VALUES
+		<foreach collection="teachingClassInfos" separator="," item="item">
+			(#{item.teachingClassId}, #{item.schoolId}, #{item.usedGrade},
+			#{item.teachingClassName}, #{item.placementId},
+			#{item.openClassInfoId}, #{item.openClassTaskId}, #{item.numOfBoys},
+			#{item.numOfGirls}, #{item.numOfStuds},
+			#{item.termInfo})
+		</foreach>
+	</insert>
+
+	<delete id="deleteTeachingClassInfo" parameterType="hashmap">
+		DELETE FROM
+		${db_name_placementtask}_${termInfo}.t_pl_teachingclassinfo
+		WHERE schoolId = #{schoolId} AND placementId = #{placementId}
+		AND termInfo = #{termInfo}
+		<if test="openClassTaskIds != null">
+			AND openClassTaskId IN
+			<foreach collection="openClassTaskIds" item="item" separator=","
+				open="(" close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="openClassTaskId != null">
+			AND openClassTaskId = #{openClassTaskId}
+		</if>
+		<if test="openClassTasks != null">
+			AND openClassTaskId IN
+			<foreach collection="openClassTasks" open="(" separator=","
+				close=")" item="item">
+				#{item.openClassTaskId}
+			</foreach>
+		</if>
+		<if test="openClassInfoIds != null">
+			AND openClassInfoId IN
+			<foreach collection="openClassInfoIds" item="item" separator=","
+				open="(" close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="openClassInfos != null">
+			AND openClassInfoId IN
+			<foreach collection="openClassInfos" open="(" separator=","
+				close=")" item="item">
+				#{item.openClassInfoId}
+			</foreach>
+		</if>
+		<if test="openClassInfoId != null">
+			AND openClassInfoId = #{openClassInfoId}
+		</if>
+	</delete>
+
+	<select id="queryStudentInfo" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.StudentInfo">
+		SELECT placementId, schoolId, teachingClassId, openClassInfoId,
+		openClassTaskId, accountId, classId, termInfo
+		FROM ${db_name_placementtask}_${termInfo}.t_pl_studentinfo
+		WHERE schoolId =
+		#{schoolId}
+		AND placementId = #{placementId}
+		AND termInfo = #{termInfo}
+		<if test="type != null">
+			AND type = #{type}
+		</if>
+		<if test="teachingClassId != null">
+			AND teachingClassId = #{teachingClassId}
+		</if>
+		<if test="teachingClassIds != null">
+			AND teachingClassId IN
+			<foreach collection="teachingClassIds" item="item" open="("
+				separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="accountIds != null">
+			AND accountId IN
+			<foreach collection="accountIds" item="item" open="("
+				separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<insert id="insertStudentInfoBatch" parameterType="hashmap">
+		INSERT INTO ${db_name_placementtask}_${termInfo}.t_pl_studentinfo
+		(placementId, schoolId, teachingClassId, accountId, classId,
+		openClassInfoId, openClassTaskId, type, termInfo)
+		VALUES
+		<foreach collection="studentInfos" separator="," item="item">
+			(#{item.placementId}, #{item.schoolId}, #{item.teachingClassId},
+			#{item.accountId}, #{item.classId},
+			#{item.openClassInfoId}, #{item.openClassTaskId}, #{item.type}, #{termInfo})
+		</foreach>
+	</insert>
+
+	<delete id="deleteStudentInfo" parameterType="hashmap">
+		DELETE FROM ${db_name_placementtask}_${termInfo}.t_pl_studentinfo
+		WHERE schoolId = #{schoolId} AND placementId = #{placementId}
+		AND termInfo = #{termInfo}
+		<if test="openClassTaskIds != null">
+			AND openClassTaskId IN
+			<foreach collection="openClassTaskIds" item="item" open="("
+				separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="openClassTasks != null">
+			AND openClassTaskId IN
+			<foreach collection="openClassTasks" open="(" separator=","
+				close=")" item="item">
+				#{item.openClassTaskId}
+			</foreach>
+		</if>
+		<if test="openClassInfos != null">
+			AND openClassInfoId IN
+			<foreach collection="openClassInfos" open="(" separator=","
+				close=")" item="item">
+				#{item.openClassInfoId}
+			</foreach>
+		</if>
+		<if test="openClassInfoIds != null">
+			AND openClassInfoId IN
+			<foreach collection="openClassInfoIds" item="item" open="("
+				separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="openClassInfoId != null">
+			AND openClassInfoId = #{openClassInfoId}
+		</if>
+		<if test="teachingClassId != null">
+			AND teachingClassId = #{teachingClassId}
+		</if>
+		<if test="teachingClassIds != null">
+			AND teachingClassId IN
+			<foreach collection="teachingClassIds" item="item" open="("
+				separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="accountIds != null">
+			AND accountId IN
+			<foreach collection="accountIds" item="item" open="("
+				separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</delete>
+
+	<select id="validateScoreLayerLarge" parameterType="hashmap"
+		resultType="java.lang.Float">
+		SELECT sortField FROM
+		${db_name_placementtask}_${termInfo}.t_pl_studentinfowaitforplacement
+		WHERE placementId = #{placementId} AND schoolId = #{schoolId}
+		AND termInfo = #{termInfo} AND openClassInfoId = #{openClassInfoId}
+		ORDER BY sortField DESC
+		LIMIT #{skip}, 2
+	</select>
+
+	<select id="queryStudentInfoWaitForPlacement" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.StudentInfo">
+		SELECT schoolId, placementId, openClassInfoId, openClassTaskId,
+		accountId, classId, sortField, termInfo
+		FROM ${db_name_placementtask}_${termInfo}.t_pl_studentinfowaitforplacement
+		WHERE schoolId = #{schoolId} AND placementId = #{placementId}
+		AND termInfo = #{termInfo}
+		<if test="openClassInfoId != null">
+			AND openClassInfoId = #{openClassInfoId}
+		</if>
+		<if test="openClassInfoIds != null">
+			AND openClassInfoId IN
+			<foreach collection="openClassInfoIds" item="item" separator=","
+				open="(" close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="openClassTaskId != null">
+			AND openClassTaskId = #{openClassTaskId}
+		</if>
+		<if test="openClassTaskIds != null">
+			AND openClassTaskId IN
+			<foreach collection="openClassTaskIds" item="item" separator=","
+				open="(" close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="accountIds != null">
+			AND accountId IN
+			<foreach collection="accountIds" item="item" open="("
+				separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<insert id="insertStudentInfoWaitForPlacementBatch"
+		parameterType="hashmap">
+		INSERT INTO
+		${db_name_placementtask}_${termInfo}.t_pl_studentinfowaitforplacement
+		(placementId, schoolId, classId, accountId, openClassInfoId,
+		openClassTaskId, sortField, termInfo)
+		VALUES
+		<foreach collection="studentInfos" separator="," item="item">
+			(#{item.placementId}, #{item.schoolId}, #{item.classId},
+			#{item.accountId}, #{item.openClassInfoId},
+			#{item.openClassTaskId}, #{item.sortField}, #{item.termInfo})
+		</foreach>
+	</insert>
+
+	<delete id="deleteStudentInfoWaitForPlacement" parameterType="hashmap">
+		DELETE FROM
+		${db_name_placementtask}_${termInfo}.t_pl_studentinfowaitforplacement
+		WHERE schoolId = #{schoolId} AND placementId = #{placementId}
+		AND termInfo = #{termInfo}
+		<if test="openClassTaskIds != null">
+			AND openClassTaskId IN
+			<foreach collection="openClassTaskIds" item="item" separator=","
+				open="(" close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="openClassTasks != null">
+			AND openClassTaskId IN
+			<foreach collection="openClassTasks" open="(" separator=","
+				close=")" item="item">
+				#{item.openClassTaskId}
+			</foreach>
+		</if>
+		<if test="openClassTaskId != null">
+			AND openClassTaskId = #{openClassTaskId}
+		</if>
+		<if test="openClassInfoIds != null">
+			AND openClassInfoId IN
+			<foreach collection="openClassInfoIds" item="item" separator=","
+				open="(" close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="openClassInfos != null">
+			AND openClassInfoId IN
+			<foreach collection="openClassInfos" open="(" separator=","
+				close=")" item="item">
+				#{item.openClassInfoId}
+			</foreach>
+		</if>
+		<if test="openClassInfoId != null">
+			AND openClassInfoId = #{openClassInfoId}
+		</if>
+		<if test="accountIds != null">
+			AND accountId IN
+			<foreach collection="accountIds" item="item" open="("
+				separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</delete>
+
+
+
+	<select id="getPlacementTaskSchemas" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE
+		SCHEMA_NAME LIKE CONCAT(#{prefixSchema}, '%')
+	</select>
+
+	<select id="getPlacementTaskDropDownList" parameterType="hashmap"
+		resultType="com.alibaba.fastjson.JSONObject">
+		<foreach collection="schemas" separator="UNION " item="item">
+			SELECT placementId, placementType, placementName, termInfo,
+			createDate FROM ${item}.t_pl_placementtask
+			WHERE schoolId = #{schoolId} AND usedGrade = #{usedGrade} AND (status =
+			100 OR layerStatus = 100)
+		</foreach>
+		ORDER BY createDate DESC
+	</select>
+
+
+	<select id="getTPlDezyAutorize" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.TPlDezyAutorize">
+		select * FROM ${db_name_placementtask}_${termInfo}.t_pl_dezy_autorize
+		<if test="schoolId!=null">
+			where schoolId = #{schoolId}
+		</if>
+	</select>
+	<select id="getTPlDezySet" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.TPlDezySettings">
+		select * FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_settings
+		where
+		placementId = #{placementId} and schoolId = #{schoolId} limit 0,1
+	</select>
+	<select id="getSubjectGroupList" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.TPlDezySubjectgroup">
+		select * FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectgroup
+		where
+		placementId = #{placementId} and schoolId = #{schoolId}
+	</select>
+	<select id="getSubjectSetList" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.TPlDezySubjectSet">
+		select * FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_subject_set
+		where
+		placementId = #{placementId} and schoolId = #{schoolId}
+	</select>
+	
+		<select id="getSubjectGroupIDList" parameterType="hashmap"
+		resultType="java.lang.String">
+		select subjectGroupId FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_subject_set
+		where
+		placementId = #{placementId} and schoolId = #{schoolId}
+	</select>
+	
+	<select id="getDezyClassGroupList" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.TPlDezyClassgroup">
+		select * FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_classgroup
+		where
+		placementId = #{placementId} and schoolId = #{schoolId}
+	</select>
+	<select id="getDezyClassList" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.TPlDezyClass">
+		select * FROM ${db_name_placementtask}_${termInfo}.t_pl_dezy_class
+		where placementId = #{placementId} and schoolId = #{schoolId}
+		<if test="queryClassType!=null">
+			AND tclassType=#{queryClassType}
+		</if>
+		<if test="tclassId !=null">
+			And tclassId = #{tclassId}
+		</if>
+	</select>
+	<select id="getSubjectcompList" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.TPlDezySubjectcomp">
+		select * FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp
+		where
+		placementId = #{placementId} and schoolId = #{schoolId}
+		<if test="subjectCompId !=null">
+		 and subjectCompId = #{subjectCompId}
+		</if>
+		<if test="compFrom !=null">
+			and compFrom = #{compFrom}
+		</if>
+	</select>
+	<select id="getSubjectcompStuList" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.TPlDezySubjectcompStudent">
+		select * FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp_student
+		where placementId = #{placementId} and schoolId = #{schoolId}
+		
+	</select>
+	<select id="getTclassSubcompList" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.TPlDezyTclassSubcomp">
+		select * FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_tclass_subcomp
+		where
+		placementId = #{placementId} and schoolId = #{schoolId}
+	</select>
+	<select id="getTclassFromList" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.TPlDezyTclassfrom">
+		select * FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_tclassfrom
+		where
+		placementId = #{placementId} and schoolId = #{schoolId}
+		<if test="tclassId !=null">
+			and tclassId =#{tclassId}
+		</if>
+		<if test="classId !=null">
+			and classId =#{classId}
+		</if>
+	</select>
+	<select id="getAdvancedOptList" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.TPlDezyAdvancedOpt">
+		select * FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_advancedopt
+		where
+		placementId = #{placementId} and schoolId = #{schoolId}
+		<if test="useGrade != null">
+			and useGrade=#{useGrade}
+		</if>
+	</select>
+	<!-- <select id="getStuInClassDetail" parameterType="hashmap" resultType="com.talkweb.placementtask.domain.TPlDezySubjectcompStudent"> 
+		select * FROM ${db_name_placementtask}_${termInfo}.t_pl_dezy_tclassfrom where 
+		placementId = #{placementId} and schoolId = #{schoolId} </select> -->
+	<!-- 更新分班进度 -->
+	<update id="updateDivProc" parameterType="hashmap">
+		UPDATE
+		${db_name_placementtask}_${termInfo}.t_pl_placementtask
+		SET status=#{status} WHERE placementId=#{placementId}
+	</update>
+
+	<select id="selectUsedWfId" parameterType="hashmap"
+		resultType="java.lang.String">
+		SELECT wfId FROM
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_settings GROUP BY wfId;
+	</select>
+
+
+	<!-- 获取单个学生组合列表 -->
+	<select id="getZhStudentToThirdByAccountId" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT sub.`accountId`,zhsub.`zhName`,zhsub.`subjectIds`  FROM ${db_name_wishFilling}.`t_wf_zhstudent` sub
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` zhsub ON zhsub.`schoolId`=sub.`schoolId` AND zhsub.`wfId`=sub.`wfId`
+		AND sub.`schoolYear`=zhsub.`schoolYear` AND sub.`termInfoId`=zhsub.`termInfoId` AND sub.`zhId`=zhsub.`zhId` 
+		 WHERE  
+		 sub.`schoolId`=#{schoolId} AND sub.`wfId`=#{wfId}
+		<if test="accountId !=null">
+			 AND sub.`accountId`=#{accountId} 
+		 </if>
+		 ORDER BY sub.`zhId`,sub.`classId`
+	</select>
+	<!-- 获取补选单个学生组合列表 -->
+	<select id="getByZhStudentToThirdByAccountId" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT sub.`accountId`,zhsub.`zhName`,zhsub.`subjectIds`  FROM ${db_name_wishFilling}.`t_wf_zhstudentby` sub
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` zhsub ON zhsub.`schoolId`=sub.`schoolId` AND zhsub.`wfId`=sub.`wfId`
+		AND sub.`schoolYear`=zhsub.`schoolYear` AND sub.`termInfoId`=zhsub.`termInfoId` AND sub.`zhId`=zhsub.`zhId` 
+		 WHERE 
+		 sub.`schoolId`=#{schoolId} AND sub.`wfId`=#{wfId}
+		 <if test="accountId !=null">
+			 AND sub.`accountId`=#{accountId} 
+		 </if>
+		 ORDER BY sub.`zhId`,sub.`classId`
+	</select>
+	
+	<select id="getWfInfo" parameterType="hashmap" resultType="java.lang.String">
+		select isByElection from ${db_name_wishFilling}.t_wf_wfinfo
+		where `schoolId`=#{schoolId} and `wfId`=#{wfId}
+	</select>
+	
+	<select id="getStudentClassInfo" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		select accountId,classId from ${db_name_csCurCommonData}${termInfo}.t_student 
+		where schoolId=#{schoolId} 
+		<if test="accountId != null">
+		and accountId=#{accountId}
+		</if>
+		<if test="classIds != null">
+			AND classId IN
+			<foreach collection="classIds" item="item" open="(" close=")" separator=",">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<select id="getOldClassInfo" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		select c.id,c.className from ${db_name_csCurCommonData}${termInfo}.t_class c,${db_name_csCurCommonData}${termInfo}.t_grade g 
+		where c.schoolId=g.schoolId and c.gradeId=g.id 
+		and g.schoolId=#{schoolId} and g.createLevel =#{createLevel}
+	</select>
+	
+	<select id="getplacementInfoByWfid" parameterType="hashmap" resultType="java.lang.String">
+		select a.placementId from ${db_name_placementtask}_${termInfo}.t_pl_dezy_settings a,${db_name_placementtask}_${termInfo}.t_pl_placementtask b
+		where a.schoolId=#{schoolId} and a.wfId=#{wfId} and a.placementId=b.placementId
+	</select>
+	
+	<select id="getSubjectcompInfoByAccountId" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		select  a.placementId,a.studentId,a.subjectCompId,b.classId,b.compNum,b.compFrom,c.tclassId from 
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp_student a,
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp b,
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_tclass_subcomp c,
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_class d
+		where a.subjectCompId=b.subjectCompId and b.subjectCompId=c.subjectCompId and c.tclassId=d.tclassId and d.tClassType='7'
+		and a.placementId=#{placementId} and a.studentId=#{studentId} and a.schoolId=#{schoolId}
+	</select>
+	
+	<select id="getDezyClassListByClassIds" parameterType="hashmap" resultType="com.talkweb.placementtask.domain.TPlDezyClass">
+		select * from ${db_name_placementtask}_${termInfo}.t_pl_dezy_class 
+		where placementId=#{placementId} and schoolId=#{schoolId}
+		<if test="studentClassIds != null">
+			AND tclassId IN
+			<foreach collection="studentClassIds" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<update id="updateTPlDezyClassNum" parameterType="hashmap">
+		update ${db_name_placementtask}_${termInfo}.t_pl_dezy_class set tclassNum=#{tclassNum}
+		where placementId=#{placementId} and schoolId=#{schoolId} and tclassId=#{tclassId}
+	</update>
+	
+	<delete id="deleteTPlDezyClass" parameterType="hashmap">
+		delete from ${db_name_placementtask}_${termInfo}.t_pl_dezy_class 
+		where placementId=#{placementId} and schoolId=#{schoolId}
+		<if test="classIds !=null">
+			and tclassId in 
+			<foreach collection="classIds" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</delete>
+	
+	<delete id="deleteTPlDezyTclassfrom" parameterType="hashmap">
+		delete from ${db_name_placementtask}_${termInfo}.t_pl_dezy_tclassfrom 
+		where placementId=#{placementId} and schoolId=#{schoolId}
+		<if test="classIds !=null">
+			and tclassId in 
+			<foreach collection="classIds" item="item" open="(" separator="," close=")">
+			 	#{item}
+			</foreach>
+		</if>
+	</delete>
+	
+	<delete id="deleteTPlDezyclassfrom" parameterType="hashmap">
+		delete from ${db_name_placementtask}_${termInfo}.t_pl_dezy_tclassfrom 
+		where placementId=#{placementId} and schoolId=#{schoolId}
+		<if test="classIds !=null">
+			and classId in 
+			<foreach collection="classIds" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</delete>
+	
+	<delete id="deleteTPlDezySubjectcomp" parameterType="hashmap">
+		delete from ${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp 
+		where placementId=#{placementId} and schoolId=#{schoolId} and subjectCompId=#{subjectCompId}
+	</delete>
+	
+	<delete id="deleteTPlDezyTclassSubcomp" parameterType="hashmap">
+		delete from ${db_name_placementtask}_${termInfo}.t_pl_dezy_tclass_subcomp 
+		where placementId=#{placementId} and schoolId=#{schoolId} and subjectCompId=#{subjectCompId}
+	</delete>
+	
+	<update id="updateTPlDezySubjectcomp" parameterType="hashmap">
+		update ${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp set compNum=#{compNum}
+		where placementId=#{placementId} and schoolId=#{schoolId} and subjectCompId=#{subjectCompId}
+	</update>
+	
+	<delete id="deleteTPlDezySubjectcompStudentById" parameterType="hashmap">
+		delete from ${db_name_placementtask}_${termInfo}.t_pl_dezy_subjectcomp_student
+		where placementId=#{placementId} and schoolId=#{schoolId} and subjectCompId=#{subjectCompId} and studentId=#{studentId}
+	</delete>
+	
+	<select id="getCurrenTermInfo" resultType="java.lang.String">
+		select content from ${db_name_auth}.t_system_config where id ='termInfo'
+	</select>
+	
+	<select id="countIdByWfid" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		select subjectId,count(subjectId) as countNum from ${db_name_wishFilling}.t_wf_studenttb 
+		where wfid=#{wfId} and schoolId=#{schoolId}
+		group By subjectId
+	</select>
+	
+	<select id="countByIdByWfid" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		select subjectId,count(subjectId) as countNum from ${db_name_wishFilling}.t_wf_studenttbby 
+		where wfid=#{wfId} and schoolId=#{schoolId}
+		group By subjectId
+	</select>
+	
+	<update id="updateTPlDezySubjectSet" parameterType="hashmap">
+		update ${db_name_placementtask}_${termInfo}.t_pl_dezy_subject_set 
+		set stuNum=#{stuNum},stuNumOfPro=#{stuNumOfPro}
+		where placementId=#{placementId} and schoolId=#{schoolId} and subjectId=#{subjectId}
+	</update>
+	
+	<select id="getOpenClassByAccountId" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		select a.classId,a.openClassInfoId,a.openClassTaskId,b.numOfStuds AS taskNum,
+		c.subjectIdsStr,d.teachingClassId,d.numOfBoys,d.numOfGirls,d.numOfStuds AS teachingclassNum from 
+		${db_name_placementtask}_${termInfo}.t_pl_studentinfo a,
+		${db_name_placementtask}_${termInfo}.t_pl_openclasstask b,
+		${db_name_placementtask}_${termInfo}.t_pl_openclassinfo c,
+		${db_name_placementtask}_${termInfo}.t_pl_teachingclassinfo d
+		where a.openClassInfoId=c.openClassInfoId and a.openClassTaskId=b.openClassTaskId
+		and a.openClassInfoId=d.openClassInfoId and a.openClassTaskId=d.openClassTaskId and a.teachingClassId=d.teachingClassId
+		and a.schoolId=b.schoolId and a.schoolId=c.schoolId and a.placementId=b.placementId and a.placementId=c.placementId
+		and a.schoolId=#{schoolId} and a.placementId=#{placementId} and a.accountId=#{accountId}
+	</select>
+	
+	<delete id="deleteTPlOpenclasstask" parameterType="hashmap">
+		delete from ${db_name_placementtask}_${termInfo}.t_pl_openclasstask
+		where placementId=#{placementId} and schoolId=#{schoolId} and openClassTaskId=#{openClassTaskId}
+	</delete>
+	
+	<delete id="deleteTPlOpenclassinfo" parameterType="hashmap">
+		delete from ${db_name_placementtask}_${termInfo}.t_pl_openclassinfo
+		where placementId=#{placementId} and schoolId=#{schoolId} and openClassInfoId=#{openClassInfoId}
+	</delete>
+	
+	<update id="updateTPlOpenclasstask" parameterType="hashmap">
+		update ${db_name_placementtask}_${termInfo}.t_pl_openclasstask set numOfStuds=#{numOfStuds}
+		where placementId=#{placementId} and schoolId=#{schoolId} and openClassTaskId=#{openClassTaskId}
+	</update>
+	
+	<delete id="deleteTPlTeachingclassinfo" parameterType="hashmap">
+		delete from ${db_name_placementtask}_${termInfo}.t_pl_teachingclassinfo
+		where placementId=#{placementId} and schoolId=#{schoolId} and teachingClassId=#{teachingClassId}
+		and openClassInfoId=#{openClassInfoId} and openClassTaskId=#{openClassTaskId} 
+	</delete>
+	
+	<delete id="deleteTPlStudentinfo" parameterType="hashmap">
+		delete from ${db_name_placementtask}_${termInfo}.t_pl_studentinfo
+		where placementId=#{placementId} and schoolId=#{schoolId} and teachingClassId=#{teachingClassId}
+		and openClassInfoId=#{openClassInfoId} and openClassTaskId=#{openClassTaskId} and accountId=#{accountId}
+	</delete>
+	
+	<update id="updateTPlTeachingclassinfo" parameterType="hashmap">
+		update ${db_name_placementtask}_${termInfo}.t_pl_teachingclassinfo 
+		set numOfBoys=#{numOfBoys},numOfGirls=#{numOfGirls},numOfStuds=#{numOfStuds}
+		where placementId=#{placementId} and schoolId=#{schoolId} and teachingClassId=#{teachingClassId}
+		and openClassInfoId=#{openClassInfoId} and openClassTaskId=#{openClassTaskId}
+	</update>
+	
+	<select id="queryGender" parameterType="hashmap" resultType="java.lang.String">
+		select gender from ${db_name_csCurCommonData}${termInfo}.t_account where id=#{accountId}
+	</select>
+	
+	<select id="getplacementIdByWfid" parameterType="hashmap" resultType="java.lang.String">
+		select placementId from ${db_name_placementtask}_${termInfo}.t_pl_placementtask 
+		where schoolId=#{schoolId} and wfId=#{wfId}
+	</select>
+	
+	<select id="getopenClassTaskId" parameterType="hashmap" resultType="java.lang.String">
+		select a.openClassTaskId from 
+		${db_name_placementtask}_${termInfo}.t_pl_openclasstask a,
+		${db_name_placementtask}_${termInfo}.t_pl_openclassinfo b
+		where a.placementId=b.placementId and a.schoolId=b.schoolId and a.openClassInfoId=b.openClassInfoId
+		and b.subjectIdsStr=#{subjectIdsStr} and b.placementId=#{placementId} and b.schoolId=#{schoolId}
+	</select>
+	
+	<delete id="deleteTPlStudentinfowaitforplacement" parameterType="hashmap">
+		delete from ${db_name_placementtask}_${termInfo}.t_pl_studentinfowaitforplacement
+		where placementId=#{placementId} and schoolId=#{schoolId} and accountId=#{accountId} and classId=#{classId}
+	</delete>
+	
+	<update id="insertTPlStudentinfowaitforplacement" parameterType="hashmap">
+		insert into ${db_name_placementtask}_${termInfo}.t_pl_studentinfowaitforplacement
+		(placementId,schoolId,openClassTaskId,accountId,classId,termInfo)
+		VALUES
+		(#{placementId},#{schoolId},#{openClassTaskId},#{accountId},#{classId},#{termInfo})
+	</update>
+	
+	<select id="getClassToTClassRelation" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		select a.tclassId,b.tclassNum as TeachNum,b.subjectId,b.tclassLevel,b.classseq,a.classId,c.tclassNum as AdminNum from  
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_tclassfrom a 
+		left outer join ${db_name_placementtask}_${termInfo}.t_pl_dezy_class b 
+		on a.tclassId = b.tclassId and a.placementId = b.placementId and a.schoolId = b.schoolId
+		left outer join ${db_name_placementtask}_${termInfo}.t_pl_dezy_class c 
+		on a.classId = c.tclassId and a.placementId = c.placementId and a.schoolId = c.schoolId
+		where a.placementId=#{placementId} and a.schoolId =#{schoolId}
+	</select>
+	
+	<select id="getTPlDezyClassBySubjectCompId" parameterType="hashmap"
+		resultType="com.talkweb.placementtask.domain.TPlDezyClass">
+		select a.* from ${db_name_placementtask}_${termInfo}.t_pl_dezy_class a,
+		${db_name_placementtask}_${termInfo}.t_pl_dezy_tclass_subcomp b where 
+		a.placementId=b.placementId and a.schoolId=b.schoolId and a.tclassId =b.tclassId 
+		and b.subjectCompId=#{subjectCompId} and  a.placementId=#{placementId} and a.schoolId=#{schoolId}
+	</select>
+	
+	<select id="getTPlMediumSettings" parameterType="hashmap" resultType="com.talkweb.placementtask.domain.TPlMediumSettings">
+		select * from ${db_name_placementtask}_${termInfo}.t_pl_medium_settings
+		where placementId=#{placementId} and schoolId =#{schoolId}
+	</select>
+	
+	<select id="getTPlMediumZhSet" parameterType="hashmap" resultType="com.talkweb.placementtask.domain.TPlMediumZhSet">
+		select * from ${db_name_placementtask}_${termInfo}.t_pl_medium_zh_set
+		where placementId=#{placementId} and schoolId =#{schoolId}
+	</select>
+	
+	<select id="getTPlMediumClasslevel" parameterType="hashmap" resultType="com.talkweb.placementtask.domain.TPlMediumClasslevel">
+		select * from ${db_name_placementtask}_${termInfo}.t_pl_medium_classlevel
+		where placementId=#{placementId} and schoolId =#{schoolId}
+	</select>
+	
+	<select id="getTPlMediumSubjectSet" parameterType="hashmap" resultType="com.talkweb.placementtask.domain.TPlMediumSubjectSet">
+		select * from ${db_name_placementtask}_${termInfo}.t_pl_medium_subject_set
+		where placementId=#{placementId} and schoolId =#{schoolId}
+	</select>
+	
+	<delete id="deleteTPlMediumZhSet" parameterType="hashmap">
+		delete from ${db_name_placementtask}_${termInfo}.t_pl_medium_zh_set
+		where placementId=#{placementId} and schoolId =#{schoolId}
+	</delete>
+	
+	<insert id="insertTPlMediumZhSet" parameterType="hashmap">
+		insert into
+ 		${db_name_placementtask}_${termInfo}.t_pl_medium_zh_set
+ 		(placementId,schoolId,termInfo,openClassInfoId,compFrom,compName,compNum,numOfOpenClasses,numOfStuds) 
+ 		values
+ 		<foreach collection="list" item="item" index="index" separator=",">
+ 			(#{item.placementId},#{item.schoolId},#{item.termInfo},#{item.openClassInfoId},
+ 			#{item.compFrom},#{item.compName},#{item.compNum},#{item.numOfOpenClasses},#{item.numOfStuds}) 
+ 		</foreach>
+	</insert>
+	
+	<update id="updateTPlMediumSettings" parameterType="hashmap">
+		update ${db_name_placementtask}_${termInfo}.t_pl_medium_settings
+		set
+		ruleCode=#{ruleCode},examId=#{examId},examTermInfo=#{examTermInfo},
+		maxClassNum=#{maxClassNum},gradeSumLesson=#{gradeSumLesson},fixedSumLesson=#{fixedSumLesson}
+		where placementId=#{placementId} and schoolId =#{schoolId} and ruleId=#{ruleId}		
+	</update>
+	
+	<delete id="deleteTPlMediumClasslevel" parameterType="hashmap">
+		delete from ${db_name_placementtask}_${termInfo}.t_pl_medium_classlevel
+		where placementId=#{placementId} and schoolId =#{schoolId}
+	</delete>
+	
+	<insert id="insertTPlMediumClasslevel" parameterType="hashmap">
+		insert into
+ 		${db_name_placementtask}_${termInfo}.t_pl_medium_classlevel
+ 		(placementId,schoolId,termInfo,compFrom,subLevelName,subLevel) 
+ 		values
+ 		<foreach collection="list" item="item" index="index" separator=",">
+ 			(#{item.placementId},#{item.schoolId},#{item.termInfo},#{item.compFrom},
+ 			#{item.subLevelName},#{item.subLevel}) 
+ 		</foreach>
+	</insert>
+	
+	<delete id ="deleteTPlMediumSubjectSet" parameterType="hashmap">
+		delete from ${db_name_placementtask}_${termInfo}.t_pl_medium_subject_set
+		where placementId=#{placementId} and schoolId =#{schoolId}
+	</delete>
+	
+	<insert id="insertTPlMediumSubjectSet" parameterType="hashmap">
+		insert into
+ 		${db_name_placementtask}_${termInfo}.t_pl_medium_subject_set
+ 		(placementId,schoolId,termInfo,subjectId,optLesson,proLesson) 
+ 		values
+ 		<foreach collection="list" item="item" index="index" separator=",">
+ 			(#{item.placementId},#{item.schoolId},#{item.termInfo},#{item.subjectId},
+ 			#{item.optLesson},#{item.proLesson}) 
+ 		</foreach>
+	</insert>
+	
+	<insert id="insertTPlMediumSettings" parameterType="hashmap">
+		insert into
+		${db_name_placementtask}_${termInfo}.t_pl_medium_settings
+		(ruleId,placementId,schoolId,termInfo,ruleCode,examId,examTermInfo,maxClassNum,gradeSumLesson,fixedSumLesson)
+		values
+		(#{ruleId},#{placementId},#{schoolId},#{termInfo},#{ruleCode},#{examId},
+		#{examTermInfo},#{maxClassNum},#{gradeSumLesson},#{fixedSumLesson})
+	</insert>
+</mapper>

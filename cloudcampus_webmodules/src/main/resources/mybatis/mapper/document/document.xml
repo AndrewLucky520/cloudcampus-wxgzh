@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.document.dao.DocumentDao">
+ 
+ 
+	
+	 <select id= "getDocumentManager" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			 SELECT c.schoolId , c.teacherId      
+			 FROM ${db_name_document}.t_dm_manager c 
+			 WHERE c.schoolId = #{schoolId} 
+			 <if test="teacherId!=null and teacherId!=''">
+				 AND   c.teacherId = #{teacherId} 
+			</if>
+	 </select>
+	 
+
+	 
+	  <insert id="addDocumentManager" parameterType="java.util.List">
+		     insert into    ${db_name_document}.t_dm_manager (schoolId , teacherId  ) VALUES
+		     <foreach collection="list" index="index" item="item" separator=",">
+		        (#{item.schoolId}, #{item.teacherId} )
+		    </foreach>
+	  </insert>
+	     
+	 <delete id="delDocumentManager" parameterType="com.alibaba.fastjson.JSONObject">
+		    DELETE FROM  ${db_name_document}.t_dm_manager  where schoolId =  #{schoolId} 
+	 </delete>
+	 
+	 
+	 
+	 <select id= "getDocumentTypeList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			 SELECT c.schoolId , c.categoryId , c.categoryName     
+			 FROM ${db_name_document}.t_dm_category c 
+			 WHERE c.schoolId = #{schoolId} 
+			 <if test="categoryId!=null and categoryId!=''">
+				 AND   c.categoryId = #{categoryId} 
+			</if>
+			order by c.seq
+	 </select>
+ 
+	 
+	 <insert id="addDocumentType" parameterType="java.util.List">
+		     insert into    ${db_name_document}.t_dm_category (schoolId , categoryId , categoryName , seq) VALUES
+		     <foreach collection="list" index="index" item="item" separator=",">
+		        (#{item.schoolId},#{item.categoryId},#{item.categoryName} , #{item.seq} )
+		    </foreach>
+	  </insert>
+	  
+ 
+	     
+	 <delete id="delDocumentType" parameterType="com.alibaba.fastjson.JSONObject">
+		    DELETE FROM  ${db_name_document}.t_dm_category  where schoolId =  #{schoolId}
+		    <if test="categoryId!=null and categoryId!=''">
+				 AND    categoryId = #{categoryId} 
+			</if>
+	 </delete>
+	     
+	     
+	  <resultMap type="com.alibaba.fastjson.JSONObject" id="documentList">
+  		<result column="schoolId" property="schoolId"/>
+  		<result column="documentId" property="documentId"/>
+  		<result column="theme" property="theme"/>
+  		<result column="categoryId" property="categoryId"/>
+  		<result column="categoryName" property="categoryName"/>
+  		<result column="source" property="source"/>
+  		<result column="teacherId" property="teacherId"/>
+  		<result column="description" property="description"/>
+  		<result column="createDate" property="createDate"/>
+  		<result column="viewType" property="viewType"/>
+  		<collection property="teacherGroup"    javaType="java.util.List" resultMap="teacherGroupSet"/>
+      </resultMap> 
+      
+       <resultMap type="com.alibaba.fastjson.JSONObject" id="teacherGroupSet">
+  	     <result column="teacherGroupId" property="teacherGroupId"/>
+      </resultMap> 
+       
+	<select id= "getDocumentList" parameterType="com.alibaba.fastjson.JSONObject" resultMap="documentList">
+			 SELECT a.schoolId , a.documentId , a.theme ,   a.categoryId , a.source ,  a.teacherId , 
+			  a.description , a.createDate , a.viewType , d.teacherGroupId
+			 FROM ${db_name_document}.t_dm_record a 
+			 left join  ${db_name_document}.t_dm_review d on (a.documentId = d.documentId) 
+			 WHERE a.schoolId = #{schoolId}  
+			 <if test="role!=null and role=='1'">
+				 AND   a.teacherId = #{teacherId} 
+			</if>
+			<if test="startTime!=null and startTime!=''">
+					AND a.createDate &gt;=  #{startTime}
+			</if>
+			<if test="endTime!=null and endTime!=''">
+					AND a.createDate &lt;=  #{endTime}
+			</if>
+			<if test="categoryId!=null and categoryId!=''">
+					AND a.categoryId  =  #{categoryId}
+			</if>
+			<if test="theme!=null and theme!=''">
+					AND a.theme  like  "%${theme}%"  
+			</if>
+			
+ 
+			 <choose>
+			     <when test='queryType!=null and queryType=="0"'>
+			           <if test='role!=null and role=="1"'>
+					     AND a.teacherId = #{teacherId}
+					  </if>
+			     </when>
+			      <when test='queryType!=null and queryType=="1"'>
+			          
+					     AND ( (a.viewType = '0' ) or (a.viewType = '2' and  d.teacherGroupId = #{teacherId} ) 
+					     
+					       <if test='orgIdList!=null'>
+					           or ( a.viewType = '1' and d.teacherGroupId in 
+					        	<foreach collection="orgIdList" index="index" item="item" open="(" separator="," close=")">
+										${item}
+								</foreach>
+								)
+					      </if>
+					     )
+			     </when>
+		     </choose>
+			
+			order by a.createDate  desc 
+	 </select>
+ 
+	
+          <insert id="uploadDocument" parameterType="com.alibaba.fastjson.JSONObject">
+		     insert into    ${db_name_document}.t_dm_record (schoolId , documentId , theme , categoryId , source ,teacherId , description , 
+		     createDate , viewType )  VALUES ( #{schoolId} ,   #{documentId} , #{theme} , #{categoryId} , #{source} , #{teacherId} , #{description} , 
+		     #{createDate} ,  #{viewType})
+	     </insert>
+	     
+	      <delete id="delDocument" parameterType="com.alibaba.fastjson.JSONObject">
+		    DELETE FROM  ${db_name_document}.t_dm_record where documentId =  #{documentId} and schoolId =  #{schoolId}
+	     </delete>
+  
+ 
+     <resultMap type="com.alibaba.fastjson.JSONObject" id="documents">
+  		<result column="schoolId" property="schoolId"/>
+  		<result column="documentId" property="documentId"/>
+  		<result column="theme" property="theme"/>
+  		<result column="categoryId" property="categoryId"/>
+  		<result column="categoryName" property="categoryName"/>
+  		<result column="source" property="source"/>
+  		<result column="teacherId" property="teacherId"/>
+  		<result column="description" property="description"/>
+  		<result column="createDate" property="createDate"/>
+  		<result column="viewType" property="viewType"/>
+		<collection property="files"       javaType="java.util.List" resultMap="filesSet"/>
+      </resultMap> 
+      
+      <resultMap type="com.alibaba.fastjson.JSONObject" id="filesSet">
+  	     <result column="fileName" property="fileName"/>
+  	     <result column="fileUrl" property="fileUrl"/>
+      </resultMap> 
+      
+     
+      
+      
+    	<select id= "getDocumentDetail" parameterType="com.alibaba.fastjson.JSONObject" resultMap="documents">
+			 SELECT a.schoolId , a.documentId , a.theme ,   a.categoryId , a.source ,  a.teacherId ,  a.description , a.createDate , a.viewType 
+			  ,  b.fileName , b.fileUrl 
+			 FROM ${db_name_document}.t_dm_record a 
+			 left join ${db_name_document}.t_dm_file b  on (a.documentId = b.documentId)
+			 WHERE a.schoolId = #{schoolId}  AND a.documentId = #{documentId}
+ 	   </select>
+    
+ 
+	 	
+	 	<select id= "getDocumentFileList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			 SELECT a.schoolId ,  a.documentId ,  a.fileName ,  a.fileUrl   
+			 FROM ${db_name_document}.t_dm_file a  
+			 WHERE a.schoolId = #{schoolId}  AND a.documentId = #{documentId}
+ 	   </select>
+ 
+         <insert id="uploadDocumentFile" parameterType="com.alibaba.fastjson.JSONObject">
+		     insert into    ${db_name_document}.t_dm_file (schoolId , documentId , fileName , fileUrl )
+		     VALUES ( #{schoolId} ,   #{documentId} , #{fileName} , #{fileUrl})
+	     </insert>
+	     
+	     <delete id="delDocumentFile" parameterType="com.alibaba.fastjson.JSONObject">
+		    DELETE FROM  ${db_name_document}.t_dm_file where documentId =  #{documentId} and  schoolId = #{schoolId}
+		    <if test="fileUrl!=null and fileUrl!=''">
+					AND  fileUrl  =  #{fileUrl}
+			</if>
+	     </delete>
+	     
+	     
+	   <select id= "getReviewList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			 SELECT a.schoolId , a.documentId , a.teacherGroupId  
+			 FROM ${db_name_document}.t_dm_review a  
+			 WHERE a.schoolId = #{schoolId}  AND a.documentId = #{documentId}
+ 	   </select>
+ 
+         <insert id="addDocumentReview" parameterType="java.util.List">
+		     insert into    ${db_name_document}.t_dm_review ( schoolId , documentId , teacherGroupId )VALUES
+				<foreach collection="list" item="item" index="index" separator=",">
+			  ( #{item.schoolId} ,   #{item.documentId} , #{item.teacherGroupId}  )
+			    </foreach>
+	     </insert>
+	     
+	     <delete id="delDocumentReview" parameterType="com.alibaba.fastjson.JSONObject">
+		    DELETE FROM  ${db_name_document}.t_dm_review where documentId =  #{documentId} and  schoolId = #{schoolId}
+		    
+	     </delete>
+	     
+ 
+	     
+	
+	     
+ 
+
+</mapper>

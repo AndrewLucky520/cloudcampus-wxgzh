@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.scoreManage.resultMap">
+	<resultMap id="topGroupBj" type="com.talkweb.scoreManage.po.gm.TopGroupBj">
+		<result column="xnxq" property="xnxq"/>
+		<result column="kslc" property="kslc"/>
+		<result column="xxdm" property="xxdm"/>
+		<result column="bmfz" property="bmfz"/>
+		<result column="bh" property="bh"/>
+		<result column="fw" property="fw"/>
+		<association property="topGroup" resultMap="topGroup"></association>
+	</resultMap>
+	
+	<resultMap type="com.talkweb.scoreManage.po.gm.TopGroup" id="topGroup">
+		<result column="kslc" property="kslc"/>
+		<result column="xxdm" property="xxdm"/>
+		<result column="bmfz" property="bmfz"/>
+		<result column="fzmc" property="fzmc"/>
+		<result column="nj" property="nj"/>
+		<result column="bjlxm" property="bjlxm"/>
+		<result column="fw" property="fw"/>
+		<result column="bjlxm" property="bjlxm"/>
+		<result column="fw" property="fw"/>
+		<result column="fs" property="fs"/>
+		<result column="ssfz" property="ssfz"/>
+		<result column="lb" property="lb"/>
+		<result column="xnxq" property="xnxq"/>
+	</resultMap>
+</mapper>

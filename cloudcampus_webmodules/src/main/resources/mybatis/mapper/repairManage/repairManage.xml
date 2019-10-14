@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.repairManage.dao.RepairManageDao">
+	<select id="getRepairInfoList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT t0.repairId,t0.deviceName,t0.askPhone as phone,t0.repairAddr,t0.askPerson,t0.askDate,t0.bugDisplay,t0.isFeedback, t0.isCheck,t0.repairState,t0.isEvaled,
+		t1.checkPersons as isCheckconfig  FROM ${db_name_repairManage}.t_rp_repairinfo t0,${db_name_repairManage}.t_rp_repairtypeinfo t1 
+		WHERE t0.repairTypeId = t1.repairTypeId	AND (t1.checkPersons LIKE '%${accountId}%' OR t0.askPerson = #{accountId}) AND t0.schoolId = #{schoolId}
+		<if test="repairTypeId!=null">
+		    and t0.repairTypeId=#{repairTypeId}
+		    </if>
+		<if test="repairState!=null">
+			AND t0.repairState =#{repairState}
+		</if>
+		<if test="deviceName!=null">
+			AND t0.deviceName LIKE '%${deviceName}%'
+		</if>
+		 AND t0.askDate BETWEEN #{startDate} AND #{endDate} ORDER BY t0.askDate DESC
+	</select>
+	
+	 <resultMap type="com.alibaba.fastjson.JSONObject" id="RepairInfoList">
+		<result column="repairId" property="repairId"/>
+		<result column="deviceName" property="deviceName"/>
+		<result column="repairTypeId" property="repairTypeId"/>
+		<result column="bugDisplay" property="bugDisplay"/>
+		<result column="askDate" property="askDate"/>
+		<result column="repairAddr" property="repairAddr"/>
+		<result column="askPerson" property="askPerson"/>
+		<result column="schoolId" property="schoolId"/>
+		<result column="phone" property="phone"/>
+		<result column="isCheck" property="isCheck"/>
+		<result column="isFeedback" property="isFeedback"/>
+		<result column="repairState" property="repairState"/>
+		<result column="isEvaled" property="isEvaled"/>
+		<result column="repairType" property="repairType"/>
+		<result column="repairDate" property="repairDate"/>
+		<result column="repairDetail" property="repairDetail"/>
+		<result column="checkPersons" property="checkPersons"/>
+		<collection property="repairPersonList" javaType="java.util.List" resultMap="repairPersonLists"/>
+     </resultMap>
+     <resultMap type="com.alibaba.fastjson.JSONObject" id="repairPersonLists">
+		<result column="repairPersonId" property="repairPersonId"/>
+		<result column="repairPersonName" property="repairPersonName"/>
+		<result column="repairRange" property="repairRange"/>
+	 </resultMap>
+	
+	<select id="getRepairInfoListPlus" parameterType="com.alibaba.fastjson.JSONObject" resultMap="RepairInfoList">
+		SELECT
+			t0.repairId,
+			t0.deviceName,
+			t0.repairTypeId,
+			t0.bugDisplay,
+			DATE_FORMAT(t0.askDate , '%Y-%m-%d') as askDate,
+			t0.repairAddr,
+			t0.askPerson,
+			t0.schoolId,
+			t0.askPhone AS phone,
+			t0.isCheck,
+			t0.isFeedback,
+			t0.repairState,
+			t0.isEvaled,
+			t1.repairType,
+			t1.repairDate,
+			t1.repairDetail,
+			t1.checkPersons,
+			t2.repairPersonId,
+			t2.repairPersonName,
+			t2.repairRange
+		FROM
+			${db_name_repairManage}.t_rp_repairinfo t0
+		LEFT JOIN ${db_name_repairManage}.t_rp_repairtypeinfo t1 ON t0.repairTypeId = t1.repairTypeId
+		LEFT JOIN (
+		   select a.repairId ,  a.repairPersonId , b.repairPersonName ,b.repairRange
+		   from ${db_name_repairManage}.t_rp_repair_person a 
+		   left join ${db_name_repairManage}.t_rp_repairpersoninfo  b on (a.repairPersonId = b.repairPersonId)
+		)t2  ON ( t0.repairId = t2.repairId )
+		WHERE
+			t0.askPerson = #{accountId}
+		AND t0.schoolId = #{schoolId}
+		<if test="repairState!=null">
+			AND t0.repairState =#{repairState}
+		</if>
+		ORDER BY
+			t0.askDate DESC
+	</select>
+	
+	<select id="getRepairPersonByIds" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT a.repairId,b.repairPersonId,b.phoneNum FROM ${db_name_repairManage}.t_rp_repair_person a left join ${db_name_repairManage}.t_rp_repairpersoninfo b
+		on a.repairPersonId=b.repairPersonId where b.schoolId=#{schoolId} and a.repairId in 
+		 <foreach collection="repairIds" item="repairId" separator="," open="(" close=")">
+		#{repairId}
+		</foreach>
+	</select>
+		
+	<select id="getAllRepairInfoList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT t0.repairId,t0.deviceName,t0.askPhone as phone,t0.repairAddr,t0.askPerson,t0.askDate,t0.bugDisplay,t0.isFeedback, t0.isCheck,t0.repairState,t0.isEvaled,
+		t1.checkPersons as isCheckconfig  FROM ${db_name_repairManage}.t_rp_repairinfo t0,${db_name_repairManage}.t_rp_repairtypeinfo t1 
+		WHERE t0.repairTypeId = t1.repairTypeId	AND t0.schoolId = #{schoolId}
+		<if test="repairTypeId!=null">
+		    and t0.repairTypeId=#{repairTypeId}
+		    </if>
+		
+		<if test="repairState!=null">
+			AND t0.repairState =#{repairState}
+		</if>
+		<if test="deviceName!=null">
+			AND t0.deviceName LIKE '%${deviceName}%'
+		</if>
+		 AND t0.askDate BETWEEN #{startDate} AND #{endDate} ORDER BY t0.askDate DESC
+	</select>
+	
+	<select id="getOwnRepairInfoList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT t0.repairId,t0.deviceName,t0.repairAddr,t0.askDate,t0.bugDisplay,t0.isFeedback,t0.isCheck,t0.repairState, t0.isEvaled,
+		(CASE WHEN ISNULL(t1.checkPersons) OR t1.checkPersons='' THEN '0' ELSE '1' END) isCheckconfig  FROM ${db_name_repairManage}.t_rp_repairinfo t0,${db_name_repairManage}.t_rp_repairtypeinfo t1 
+		WHERE t0.repairTypeId = t1.repairTypeId	AND t0.askPerson=#{accountId} AND t0.schoolId = #{schoolId}
+		<if test="repairState!=null">
+			AND t0.repairState =#{repairState}
+		</if>
+		<if test="deviceName!=null">
+			AND t0.deviceName LIKE '%${deviceName}%'
+		</if>
+		 AND t0.askDate BETWEEN #{startDate} AND #{endDate} ORDER BY t0.askDate DESC
+	</select>
+	<select id="getAPPRepairInfoList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT t.repairId,t.deviceName,t.askDate,t.isFeedback,t.repairState,t.isEvaled,
+		(CASE WHEN ISNULL(t1.checkPersons) OR t1.checkPersons='' OR t.isCheck='1' THEN '1' ELSE '0' END) isCheck FROM ${db_name_repairManage}.t_rp_repairinfo t,${db_name_repairManage}.t_rp_repairtypeinfo t1 
+		 WHERE t.askPerson=#{teacherId} AND t.schoolId=#{schoolId} AND t.repairTypeId = t1.repairTypeId 
+		AND (t.repairState='0' OR t.askDate BETWEEN #{startDate} AND #{endDate} ) ORDER BY t.askDate DESC
+	</select>
+	
+	<select id="getSelPersons" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.String">
+		select checkPersons  from ${db_name_repairManage}.t_rp_repairtypeinfo where schoolId =#{schoolId}
+	</select>
+	
+	<delete id="deleteRepairInfo" parameterType="com.alibaba.fastjson.JSONObject">
+		DELETE FROM ${db_name_repairManage}.t_rp_repairinfo WHERE repairId = #{repairId}
+	</delete>
+	
+	<insert id="addFeedbackInfo" parameterType="com.alibaba.fastjson.JSONObject">
+		INSERT INTO ${db_name_repairManage}.t_rp_repairFeedback VALUES
+		(#{feedbackId},#{repairId},#{feedbackPerson},#{personType},#{feedbackTime},#{feedbackInfo})
+	</insert>
+	<update id="updateFeedbackState" parameterType="com.alibaba.fastjson.JSONObject">
+		UPDATE ${db_name_repairManage}.t_rp_repairinfo SET isFeedback = '1' WHERE repairId = #{repairId}
+	</update>
+	<update id="addRepairEvalInfo" parameterType="com.alibaba.fastjson.JSONObject">
+		UPDATE ${db_name_repairManage}.t_rp_repairinfo SET isEvaled = #{isEvaled} WHERE repairId = #{repairId}
+	</update>
+	<update id="updateRepairEvalState" parameterType="com.alibaba.fastjson.JSONObject">
+		UPDATE ${db_name_repairManage}.t_rp_repairinfo SET repairState = #{repairState} WHERE repairId = #{repairId}
+	</update>
+	<select id="getFeedbackInfo" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT feedbackPerson,personType,feedbackTime,feedbackInfo FROM ${db_name_repairManage}.t_rp_repairFeedback WHERE repairId = #{repairId}
+		ORDER BY feedbackTime DESC
+	</select>
+	<select id="getAllRepairFeedbackInfosById" parameterType="java.util.List" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT repairId,feedbackPerson,feedbackTime,feedbackInfo FROM ${db_name_repairManage}.t_rp_repairFeedback WHERE repairId IN
+		<foreach collection="list" item="repairId" separator="," open="(" close=")">
+		#{repairId}
+		</foreach>
+		ORDER BY repairId,feedbackTime DESC
+	</select>
+	<insert id="addRepairInfo" parameterType="com.alibaba.fastjson.JSONObject">
+		INSERT INTO ${db_name_repairManage}.t_rp_repairinfo(repairId,deviceName,repairAddr,repairTypeId,bugDisplay,askDate,askDepartment,askPerson,askPhone,schoolId)
+		VALUES(#{repairId},#{deviceName},#{repairAddr},#{repairTypeId},#{bugDisplay},#{askDate},#{askDepartment},#{askPerson},#{askPhone},#{schoolId})
+	</insert>
+	
+	<insert id="addRepair_person" parameterType="java.util.List">
+		INSERT INTO ${db_name_repairManage}.t_rp_repair_person VALUES
+		<foreach collection="list" index="index" item="item" separator=",">
+		(#{item.repairId},#{item.repairPersonId},#{item.isSendMsg})
+		</foreach>
+	</insert>
+	
+	<select id="getRepairTypeInfo" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT t.repairTypeId,t.repairType,t.repairDetail FROM ${db_name_repairManage}.t_rp_repairtypeinfo t WHERE t.schoolId = #{schoolId} ORDER BY t.repairDate DESC
+	</select>
+	
+	<select id="getRepairPersonInfo" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT t.repairPersonId,t.repairPersonName,t.repairRange,t.phoneNum FROM ${db_name_repairManage}.t_rp_repairpersoninfo t WHERE 
+		t.repairTypeId = #{repairTypeId} AND t.schoolId = #{schoolId} ORDER BY t.repairPersonName
+	</select>
+	
+	
+	 <resultMap type="com.alibaba.fastjson.JSONObject" id="RepairDetail">
+		<result column="repairId" property="repairId"/>
+		<result column="deviceName" property="deviceName"/>
+		<result column="repairAddr" property="repairAddr"/>
+		<result column="repairTypeId" property="repairTypeId"/>
+		<result column="bugDisplay" property="bugDisplay"/>
+		<result column="askDepartment" property="askDepartment"/>
+		<result column="askPerson" property="askPerson"/>
+		<result column="askPhone" property="askPhone"/>
+		<result column="checkPerson" property="checkPerson"/>
+		<result column="askDate" property="askDate"/>
+		<result column="schoolId" property="schoolId"/>
+		<collection property="attachmentIds" javaType="java.util.List" resultMap="attachmentIdMap"/>
+  </resultMap>
+   <resultMap type="com.alibaba.fastjson.JSONObject"  id="attachmentIdMap">
+      <result column="picName" property="name"/>
+      <result column="picUrl" property="accessUrl"/>
+      <result column="fileId" property="fileId"/>
+  </resultMap>
+  
+	<select id="getRepairDetail" parameterType="com.alibaba.fastjson.JSONObject" resultMap="RepairDetail">
+		SELECT t.repairId,t.deviceName,t.repairAddr,t.repairTypeId,t.bugDisplay,
+		t.askDepartment,t.askPerson,t.askPhone , t.askDate , t.checkPerson , t.schoolId, p.picName , p.picUrl , p.fileId
+		FROM ${db_name_repairManage}.t_rp_repairinfo t 
+		left join ${db_name_repairManage}.t_rp_repairpicture p on (t.repairId = p.repairId)
+		WHERE t.repairId = #{repairId}
+	</select>
+	
+	
+	 <resultMap type="com.alibaba.fastjson.JSONObject" id="DetailCheck">
+		<result column="repairType" property="repairType"/>
+		<result column="askDate" property="askDate"/>
+		<result column="repairId" property="repairId"/>
+		<result column="deviceName" property="deviceName"/>
+		<result column="repairAddr" property="repairAddr"/>
+		<result column="repairTypeId" property="repairTypeId"/>
+		<result column="bugDisplay" property="bugDisplay"/>
+		<result column="askDepartment" property="askDepartment"/>
+		<result column="askPerson" property="askPerson"/>
+		<result column="askPhone" property="askPhone"/>
+		<result column="isCheck" property="isCheck"/>
+		<collection property="attachmentIds" javaType="java.util.List" resultMap="attachmentIdMap"/>
+     </resultMap>
+	<select id="getAPPRepairDetailCheck" parameterType="com.alibaba.fastjson.JSONObject" resultMap="DetailCheck">
+		SELECT rt.repairType,t.askDate,t.repairId,t.deviceName,t.repairAddr,t.repairTypeId,t.bugDisplay,
+		t.askDepartment,t.askPerson,t.askPhone , p.picName , p.picUrl  , p.fileId , t.isCheck
+		FROM ${db_name_repairManage}.t_rp_repairinfo t 
+        LEFT JOIN  ${db_name_repairManage}.t_rp_repairtypeinfo rt ON rt.schoolId=t.schoolId AND rt.repairTypeId=t.repairTypeId
+        LEFT JOIN  ${db_name_repairManage}.t_rp_repairpicture p ON ( p.repairId = t.repairId  )
+		WHERE t.repairId = #{repairId}
+	</select>
+	<select id="getRepair_person" parameterType="java.lang.String" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT t.isSendMsg,t.repairPersonId FROM ${db_name_repairManage}.t_rp_repair_person t WHERE t.repairId = #{repairId}
+	</select>
+	
+	
+	 <resultMap type="com.alibaba.fastjson.JSONObject" id="AppRepairDetail">
+		<result column="deviceName" property="deviceName"/>
+		<result column="repairAddr" property="repairAddr"/>
+	    <result column="repairType" property="repairType"/>
+	    <result column="repairTypeId" property="repairTypeId"/>
+		<result column="bugDisplay" property="bugDisplay"/>
+		<result column="askDepartment" property="askDepartment"/>
+		<result column="askPerson" property="askPerson"/>
+		<result column="askPhone" property="askPhone"/>
+		<collection property="attachmentIds" javaType="java.util.List" resultMap="attachmentIdMap"/>
+     </resultMap>
+	<select id="getAPPRepairDetail" parameterType="com.alibaba.fastjson.JSONObject" resultMap="AppRepairDetail">
+		SELECT t.repairTypeId,t.deviceName,t.repairAddr,
+		if(t0.repairDetail='' ,t0.repairType  , CONCAT(t0.repairType  ,  '(',  t0.repairDetail , ')' ) )  as  repairType,
+		t.bugDisplay,
+		t.askDepartment,t.askPerson,t.askPhone , p.picName , p.picUrl  , p.fileId
+		FROM ${db_name_repairManage}.t_rp_repairinfo t 
+		LEFT JOIN ${db_name_repairManage}.t_rp_repairtypeinfo t0 on ( t.repairTypeId = t0.repairTypeId)
+		LEFT JOIN  ${db_name_repairManage}.t_rp_repairpicture p ON ( p.repairId = t.repairId  )
+		WHERE   t.repairId = #{repairId}
+	</select>
+	<select id="getAPPRepair_person" parameterType="java.lang.String" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT t0.repairPersonName,t0.repairRange,t0.phoneNum FROM ${db_name_repairManage}.t_rp_repair_person t,${db_name_repairManage}.t_rp_repairpersoninfo t0 WHERE t.repairPersonId = t0.repairPersonId AND t.repairId = #{repairId}
+	</select>
+	<update id="updateCheckRepairInfo" parameterType="com.alibaba.fastjson.JSONObject">
+		UPDATE ${db_name_repairManage}.t_rp_repairinfo SET deviceName=#{deviceName},repairAddr=#{repairAddr},repairTypeId=#{repairTypeId},bugDisplay=#{bugDisplay},askDepartment=#{askDepartment},
+		askPhone=#{askPhone},isCheck=#{isCheck},checkPerson=#{checkPerson}	WHERE repairId = #{repairId}		
+	</update>
+	<select id="getPersonsByRepairId" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.String">
+		SELECT t1.checkPersons FROM ${db_name_repairManage}.t_rp_repairtypeinfo t1 WHERE t1.repairTypeId=#{repairTypeId}
+	</select>
+	
+	<update id="updateRepairInfo" parameterType="com.alibaba.fastjson.JSONObject">
+		UPDATE ${db_name_repairManage}.t_rp_repairinfo SET deviceName=#{deviceName},repairAddr=#{repairAddr},repairTypeId=#{repairTypeId},bugDisplay=#{bugDisplay},askDepartment=#{askDepartment},
+		askPhone=#{askPhone} WHERE repairId = #{repairId}
+	</update>
+	<delete id="deleteRepair_person" parameterType="java.lang.String">
+		DELETE FROM ${db_name_repairManage}.t_rp_repair_person WHERE repairId = #{repairId}
+	</delete>
+	
+	<resultMap type="com.alibaba.fastjson.JSONObject" id="TypeListResult">
+  		<result column="repairTypeId" property="repairTypeId"/>
+		<result column="repairType" property="repairType"/>
+		<result column="repairDetail" property="repairDetail"/>
+		<result column="checkPersons" property="checkPersons"/>
+		<collection property="repairPersons" javaType="java.util.List" resultMap="RepairPersonsSet"/>
+  </resultMap> 
+  <resultMap type="com.alibaba.fastjson.JSONObject" id="RepairPersonsSet">
+		<result column="repairPersonId" property="repairPersonId"/>
+		<result column="repairPersonName" property="repairPersonName"/>
+		<result column="repairRange" property="repairRange"/>
+		<result column="phoneNum" property="phoneNum"/>
+  </resultMap>
+  <select id="getRepairTypeList" parameterType="com.alibaba.fastjson.JSONObject" resultMap="TypeListResult">
+      SELECT t0.repairTypeId,t0.repairType,t0.repairDetail,t0.checkPersons,t1.repairPersonId,t1.repairPersonName,t1.repairRange,
+	  t1.phoneNum FROM ${db_name_repairManage}.t_rp_repairtypeinfo t0 LEFT JOIN ${db_name_repairManage}.t_rp_repairpersoninfo t1 ON t0.repairTypeId = t1.repairTypeId 
+	  AND t0.schoolId = t1.schoolId WHERE t0.schoolId = #{schoolId} ORDER BY t0.repairDate DESC,t1.repairPersonName
+  </select>
+  <delete id="deleteRepairTypeInfo" parameterType="com.alibaba.fastjson.JSONObject">
+  		DELETE FROM ${db_name_repairManage}.t_rp_repairtypeinfo WHERE repairTypeId = #{repairTypeId}
+  </delete>
+  <delete id="deleteRepairPersonInfo" parameterType="com.alibaba.fastjson.JSONObject">
+  		DELETE FROM ${db_name_repairManage}.t_rp_repairpersoninfo WHERE repairTypeId = #{repairTypeId}
+  </delete>
+  <select id="getEditRepairType" parameterType="com.alibaba.fastjson.JSONObject" resultMap="TypeListResult">
+  		SELECT t0.repairTypeId,t0.repairType,t0.repairDetail,t0.checkPersons,t1.repairPersonId,t1.repairPersonName,t1.repairRange,
+	  t1.phoneNum FROM ${db_name_repairManage}.t_rp_repairtypeinfo t0 LEFT JOIN ${db_name_repairManage}.t_rp_repairpersoninfo t1 ON t0.repairTypeId = t1.repairTypeId 
+	  AND t0.schoolId = t1.schoolId WHERE t0.repairTypeId = #{repairTypeId}
+  </select>
+  <insert id="addRepairTypeInfo" parameterType="com.alibaba.fastjson.JSONObject">
+  		INSERT INTO ${db_name_repairManage}.t_rp_repairtypeinfo VALUES
+  		(#{repairTypeId},#{repairType},#{repairDate},#{repairDetail},#{checkPersons},#{schoolId})
+  </insert>
+  <insert id="addRepairPersonInfo" parameterType="java.util.List">
+  		INSERT INTO ${db_name_repairManage}.t_rp_repairpersoninfo VALUES
+  		<foreach collection="list" index="index" item="item" separator=",">
+  		(#{item.repairPersonId},#{item.repairPersonName},#{item.repairRange},#{item.phoneNum},#{item.repairTypeId},#{item.schoolId})
+  		</foreach>
+  </insert>
+  <update id="updateRepairTypeInfo" parameterType="com.alibaba.fastjson.JSONObject">
+  		UPDATE ${db_name_repairManage}.t_rp_repairtypeinfo SET repairType=#{repairType},repairDetail=#{repairDetail},
+  		checkPersons=#{checkPersons} WHERE repairTypeId=#{repairTypeId}
+  </update>
+  <select id="getRepairStatistics" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  		SELECT t0.repairId,t0.repairAddr,t0.deviceName,t1.repairType,t0.bugDisplay,t0.isEvaled 'evalInfo',t0.checkPerson,t0.askDepartment,t0.askDate,t0.askPerson
+ 		FROM ${db_name_repairManage}.t_rp_repairinfo t0,${db_name_repairManage}.t_rp_repairtypeinfo t1 WHERE t0.repairTypeId = t1.repairTypeId AND t0.repairState = '1' AND t0.schoolId=#{schoolId} AND t1.checkPersons LIKE '%${teacherId}%' 
+ 		AND t0.askDate BETWEEN #{startDate} AND #{endDate} ORDER BY t0.askDate DESC
+  </select>
+  <select id="getAdminRepairStatistics" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  		SELECT t0.repairId,t0.repairAddr,t0.deviceName,t1.repairType,t0.bugDisplay,t0.isEvaled 'evalInfo',t0.checkPerson,t0.askDepartment,t0.askDate,t0.askPerson
+ 		FROM ${db_name_repairManage}.t_rp_repairinfo t0,${db_name_repairManage}.t_rp_repairtypeinfo t1 WHERE t0.repairTypeId = t1.repairTypeId AND t0.repairState = '1'  AND t0.schoolId=#{schoolId}
+ 		AND t0.askDate BETWEEN #{startDate} AND #{endDate} ORDER BY t0.askDate DESC
+  </select>
+  <select id="getIsCheckPerson" parameterType="java.lang.String" resultType="java.lang.String">
+  		SELECT checkPersons FROM ${db_name_repairManage}.t_rp_repairtypeinfo WHERE repairTypeId = #{repairTypeId}
+  </select>
+  <select id="getAllRepairPersonByschoolId" parameterType="java.util.List" resultType="com.alibaba.fastjson.JSONObject">
+  		SELECT t1.repairId, t0.repairPersonName FROM ${db_name_repairManage}.t_rp_repairpersoninfo t0,${db_name_repairManage}.t_rp_repair_person t1 WHERE t0.repairPersonId =t1.repairPersonId
+		AND t1.repairId IN 
+		<foreach collection="list" item="repairId" separator="," open="(" close=")">
+		#{repairId}
+		</foreach>
+  </select>
+  <select id="getRepairTypeCount" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.Integer">
+  		SELECT COUNT(repairTypeId) FROM ${db_name_repairManage}.t_rp_repairtypeinfo WHERE schoolId = #{schoolId}
+  </select>
+  
+ 
+    <insert id="insertRepairpicture" parameterType="com.alibaba.fastjson.JSONObject" >
+         insert into ${db_name_repairManage}.t_rp_repairpicture (repairId , picName , picUrl , fileId) VALUES
+         <foreach collection="list" item="item" index="index" separator=",">
+	        (#{item.repairId},#{item.picName},#{item.picUrl} , #{item.fileId}) 
+	     </foreach>
+    </insert>
+    <delete id="deleteRepairpicture">
+          DELETE FROM  ${db_name_repairManage}.t_rp_repairpicture  
+          WHERE  repairId = #{repairId}
+          <if test='picUrl!=null and picUrl!="" '>
+            and   picUrl = #{picUrl}
+          </if>
+    </delete>
+    <select id="selectRepairpictures"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+         select  a.picName , a.picUrl  from
+         ${db_name_repairManage}.t_rp_repairpicture a
+         where  a.repairId = #{repairId}
+    </select>
+    
+    
+  
+</mapper>

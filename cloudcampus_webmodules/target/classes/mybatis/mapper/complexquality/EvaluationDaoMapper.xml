@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.talkweb.complexquality.dao.EvaluationDao">  
+	
+	<!-- 获取学生账号与学籍号绑定关系 -->
+	<select id="getStudentReative" parameterType="Map" resultType="Map">
+	   select accountId,schoolId,studentCode,studentName from   ${db_name_complexquality}.t_cq_studentrelative 
+	   <where>
+	     accountId=#{accountId} and schoolId=#{schoolId}
+	   <if test="studentCode!=null and studentCode!=''">
+	     and studentCode=#{studentCode}
+	   </if>
+	   <if test="studentName!=null and studentName!=''">
+	     and studentName#{studentName}
+	   </if>
+	   </where>
+	</select>
+	
+	<!-- 添加学生账号与学籍号绑定关系 -->
+	<insert id="addStudentReative" parameterType="Map">
+	  insert into  ${db_name_complexquality}.t_cq_studentrelative(accountId,schoolId,studentCode,studentName)
+	   values(#{accountId},#{schoolId},#{studentCode},#{studentName}) on duplicate key update 
+       accountId=values(accountId),schoolId=values(schoolId),studentName=values(studentName);
+	</insert>
+	
+	<!-- 更新学生编号绑定的学籍号和姓名 -->
+    <update id="updateStudentReative" parameterType="Map">
+	   update  ${db_name_complexquality}.t_cq_studentrelative
+	   <set>
+	     <if test="studentCode!=null and studentCode!=''">studentCode=#{studentCode},</if>
+	     <if test="studentName!=null and studentName!=''">studentName=#{studentName}</if>
+	   </set>
+	   where accountId=#{accountId} and schoolId=#{schoolId};
+	</update>
+</mapper>

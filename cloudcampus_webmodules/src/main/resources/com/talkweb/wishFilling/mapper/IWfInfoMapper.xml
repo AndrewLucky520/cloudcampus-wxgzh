@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.wishFilling.mapper.IWfInfoMapper">
+
+  <resultMap id="BaseResultMap" type="com.talkweb.wishFilling.vo.WfInfoVo">
+    <id column="wfId" jdbcType="VARCHAR" property="wfid" />
+    <result column="schoolId" jdbcType="VARCHAR" property="schoolid" />
+    <result column="schoolYear" jdbcType="VARCHAR" property="schoolyear" />
+    <result column="termInfoId" jdbcType="VARCHAR" property="terminfoid" />
+    <result column="wfName" jdbcType="VARCHAR" property="wfname" />
+    <result column="wfStartTime" jdbcType="TIMESTAMP" property="wfstarttime" />
+    <result column="wfEndTime" jdbcType="TIMESTAMP" property="wfendtime" />
+    <result column="wfNum" jdbcType="VARCHAR" property="wfnum" />
+    <result column="wfUseGrade" jdbcType="VARCHAR" property="wfusegrade" />
+    <result column="createDate" jdbcType="TIMESTAMP" property="createdate" />
+    <result column="hasStudentTb" jdbcType="VARCHAR" property="hasstudenttb" />
+    <result column="isShowRight" jdbcType="VARCHAR" property="isshowright" />
+    <result column="isByElection" jdbcType="VARCHAR" property="isbyelection" />
+    <result column="byStartTime" jdbcType="TIMESTAMP" property="bystarttime" />
+    <result column="byEndTime" jdbcType="TIMESTAMP" property="byendtime" />
+    <result column="wfWay" jdbcType="VARCHAR" property="wfway" />
+    <result column="wfIndex" jdbcType="BIGINT" property="wfindex" />
+    <result column="pycc" jdbcType="INTEGER" property="pycc" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    wfId, schoolId, schoolYear, termInfoId, wfName, wfStartTime, wfEndTime, wfNum, wfUseGrade, 
+    createDate, hasStudentTb, isShowRight, isByElection, byStartTime, byEndTime, wfWay, 
+    wfIndex, pycc
+  </sql>
+  
+  <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from ${db_name_wishFilling}.t_wf_wfinfo
+    where wfId = #{wfid,jdbcType=VARCHAR}
+  </select>
+ 
+</mapper>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.student.dao.StudentImportDao">
+	<!-- 例子 -->
+	<cache eviction="FIFO" flushInterval="60000" size="1024"
+		readOnly="true" />
+
+	<insert id='insertStudent' flushCache="true" parameterType='TSsStudent'>
+		insert into ${zhx_conn}.t_ss_student
+
+		(XH,XXDM,USER_XH,XJH,XM,CYM,XMPY,RXNY,NJ,RXFS,BH,XSLBM,SFZJLXM,SFZH,XBM,CSRQ,JGM,CSD,MZM,JKZKM,CJRLX,GJDQM,GATQWM,ZZMMM,XZZ,HKSZD,HKXZM,LDRKZK,RTSJ,RDSJ,FQXM,FQGZDW,FQLXDH,FQZZMM,FQCSNY,FQBZ,MQXM,MQGZDW,MQLXDH,MQZZMM,MQCSNY,MQBZ,JFRXM,JFRGX,JFRLXDH,JFRHKSZD,JFRXZZ,TXDZ,YZBM,ZP,YXXMC,CZXH,LQLB,ZXS,ZDS,SBJD,XJZT,SFZX,PYCC,TC,JTDZ,LXDH,DZXX,YH,THZH,KH,SYJDXZ,BZ,DSZYBZ,SFSGXQJY,SFLSQT,SFXYSQZZ,SFXSYB,SFGE,SFLSHYFZN,SFJCFGRYSQZN,SFYZFGMXW)
+		values
+		(#xh,#xxdm,#userXh,#xjh,#xm,#cym,#xmpy,#rxny,#nj,#rxfs,#bh,#xslbm,#sfzjlxm,#sfzh,#xbm,#csrq,#jgm,#csd,#mzm,#jkzkm,#cjrlx,#gjdqm,#gatqwm,#zzmmm,#xzz,#hkszd,#hkxzm,#ldrkzk,#rtsj,#rdsj,#fqxm,#fqgzdw,#fqlxdh,#fqzzmm,#fqcsny,#fqbz,#mqxm,#mqgzdw,#mqlxdh,#mqzzmm,#mqcsny,#mqbz,#jfrxm,#jfrgx,#jfrlxdh,#jfrhkszd,#jfrxzz,#txdz,#yzbm,#zp,#yxxmc,#czxh,#lqlb,#zxs,#zds,#sbjd,#xjzt,#sfzx,#pycc,#tc,#jtdz,#lxdh,#dzxx,#yh,#thzh,#kh,#syjdxz,#bz,#dszybz,#sfsgxqjy,#sflsqt,#sfxysqzz,#sfxsyb,#sfge,#sflshyfzn,#sfjcfgrysqzn,#sfyzfgmxw);
+	</insert>
+
+	<update id='updateStudent' parameterType="TSsStudent">
+		update ${zhx_conn}.t_ss_student set
+		XXDM=#{xxdm},USER_XH=#{userXh},XJH=#{xjh},XM=#{xm},CYM=#{cym},XMPY=#{xmpy},RXNY=#{rxny},NJ=#{nj},RXFS=#{rxfs},BH=#{bh},XSLBM=#{xslbm},SFZJLXM=#{sfzjlxm},SFZH=#{sfzh},XBM=#{xbm},CSRQ=#{csrq},JGM=#{jgm},CSD=#{csd},MZM=#{mzm},JKZKM=#{jkzkm},CJRLX=#{cjrlx},GJDQM=#{gjdqm},GATQWM=#{gatqwm},ZZMMM=#{zzmmm},XZZ=#{xzz},HKSZD=#{hkszd},HKXZM=#{hkxzm},LDRKZK=#{ldrkzk},RTSJ=#{rtsj},RDSJ=#{rdsj},FQXM=#{fqxm},FQGZDW=#{fqgzdw},FQLXDH=#{fqlxdh},FQZZMM=#{fqzzmm},FQCSNY=#{fqcsny},FQBZ=#{fqbz},MQXM=#{mqxm},MQGZDW=#{mqgzdw},MQLXDH=#{mqlxdh},MQZZMM=#{mqzzmm},MQCSNY=#{mqcsny},MQBZ=#{mqbz},JFRXM=#{jfrxm},JFRGX=#{jfrgx},JFRLXDH=#{jfrlxdh},JFRHKSZD=#{jfrhkszd},JFRXZZ=#{jfrxzz},TXDZ=#{txdz},YZBM=#{yzbm},ZP=#{zp},YXXMC=#{yxxmc},CZXH=#{czxh},LQLB=#{lqlb},ZXS=#{zxs},ZDS=#{zds},SBJD=#{sbjd},XJZT=#{xjzt},SFZX=#{sfzx},PYCC=#{pycc},TC=#{tc},JTDZ=#{jtdz},LXDH=#{lxdh},DZXX=#{dzxx},YH=#{yh},THZH=#{thzh},KH=#{kh},SYJDXZ=#{syjdxz},BZ=#{bz},DSZYBZ=#{dszybz},SFSGXQJY=#{sfsgxqjy},SFLSQT=#{sflsqt},SFXYSQZZ=#{sfxysqzz},SFXSYB=#{sfxsyb},SFGE=#{sfge},SFLSHYFZN=#{sflshyfzn},SFJCFGRYSQZN=#{sfjcfgrysqzn},SFYZFGMXW=#{sfyzfgmxw}
+		where user_XH=#{userXh};
+	</update>
+	<select id="getAllStuXH" parameterType="HashMap"
+		resultType='com.alibaba.fastjson.JSONObject'>
+		SELECT xh as id,xjh ,USER_XH AS xh,sfzh,nj as rxnj,pycc FROM ${zhx_conn}.t_ss_student 
+		where xxdm= #{xxdm} ;
+	</select>
+	<update id="updateStuSta" parameterType="HashMap">
+		update ${zhx_conn}.t_ss_student set sfzx = 0 where xxdm= #{xxdm} and nj=#{nj};
+	</update>
+	<insert id="insertStuList" parameterType="java.util.List">
+		insert into ${zhx_conn}.t_ss_student (XH,bh,nj,pycc,XXDM,USER_XH,XJH,XM,XBM,sfzh,csrq,sfzx,jfrlxdh,parentsysid)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.xh},#{item.bh},#{item.nj},#{item.pycc},#{item.xxdm},#{item.userXh},#{item.xjh},#{item.xm},#{item.xbm},#{item.sfzh},#{item.csrq},#{item.sfzx},#{item.jfrlxdh},#{item.parentsysid})
+		</foreach>
+	</insert>
+	<!-- 批量更新 重复主键法 -->
+	<update id="updateStudentList" parameterType="java.util.List">
+		insert into ${zhx_conn}.t_ss_student
+
+		(XH,bh,nj,pycc,XXDM,USER_XH,XJH,XM,XBM,sfzh,csrq,sfzx,jfrlxdh)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.xh},#{item.bh},#{item.nj},#{item.pycc},#{item.xxdm},#{item.userXh},#{item.xjh},#{item.xm},#{item.xbm},#{item.sfzh},#{item.csrq},#{item.sfzx},#{item.jfrlxdh})
+		</foreach>
+		on DUPLICATE key update sfzx=values(sfzx),user_xh=values(USER_XH),bh=values(bh),nj=values(nj),pycc=values(pycc),
+		XJH=values(XJH),XM=values(XM),XBM=values(XBM),sfzh=values(sfzh),csrq=values(csrq),jfrlxdh=values(jfrlxdh),XXDM=values(XXDM);
+	</update>
+
+	<update id="updateStudentList2" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" open=""
+			close="" separator=";">
+			update ${zhx_conn}.t_ss_student
+			<set>
+				XH=#{item.xh},XXDM=#{item.xxdm},USER_XH=#{item.userXh},XJH=#{item.xjh},XM=#{item.xm}
+				,sfzh=#{item.sfzh},csrq=#{item.csrq},sfzx=#{item.sfzx},jfrlxdh=#{item.jfrlxdh}
+			</set>
+			where XJH=#{item.xjh}
+		</foreach>
+	</update>
+	<!-- 批量更新 批量case法-->
+	<update id="updateStudentList3" parameterType="java.util.List">
+		update ${zhx_conn}.t_ss_student
+		<trim prefix="set" suffixOverrides=",">
+			<trim prefix=" user_xh =case " suffix="end,">
+				<foreach collection="list" item="item" index="index" separator=" ">
+					<if test="item.xh!=null">
+						when xh=#{item.xh} then #{item.userXh}
+					</if>
+				</foreach>
+			</trim>
+			<trim prefix=" xm =case " suffix="end,">
+				<foreach collection="list" item="item" index="index" separator=" ">
+					<if test="item.xh!=null">
+						when xh=#{item.xh} then #{item.xm}
+					</if>
+				</foreach>
+			</trim>
+			<trim prefix=" sfzh =case " suffix="end,">
+				<foreach collection="list" item="item" index="index" separator=" ">
+					<if test="item.xh!=null">
+						when xh=#{item.xh} then #{item.sfzh}
+					</if>
+				</foreach>
+			</trim>
+			<trim prefix=" csrq =case " suffix="end,">
+				<foreach collection="list" item="item" index="index" separator=" ">
+					<if test="item.xh!=null">
+						when xh=#{item.xh} then #{item.csrq}
+					</if>
+				</foreach>
+			</trim>
+			<trim prefix=" sfzx =case " suffix="end,">
+				<foreach collection="list" item="item" index="index" separator=" ">
+					<if test="item.xh!=null">
+						when xh=#{item.xh} then #{item.sfzx}
+					</if>
+				</foreach>
+			</trim>
+		</trim>
+		where xh in 
+		<trim prefix="(" suffix=");">
+		<foreach collection="list" separator="," item="item" index="index">
+			#{item.xh}
+		</foreach>
+		</trim>
+	</update>
+	<!-- 获取班级信息 -->
+	<select id="getAllBjDmNj" parameterType="HashMap" resultType='com.alibaba.fastjson.JSONObject'>
+		select bjmc,synj,bh,nj,pycc,xz from ${zhx_conn}.t_ss_class where xxdm = #{xxdm};
+	</select>
+	
+	<!-- 批量更新或新增学生注册表数据  重复主键法 -->
+	<update id="updateStudentEnrolList" parameterType="java.util.List">
+		insert into ${zhx_conn}.t_ss_studenrol
+
+		(xn,xqm,XXDM,XH,BH,SFZX)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.xn},#{item.xqm},#{item.xxdm},#{item.xh},#{item.bh},#{item.sfzx})
+		</foreach>
+		on DUPLICATE key update sfzx=values(sfzx),xn=values(xn),
+		xqm=values(xqm),xxdm=values(xxdm),xh=values(xh),bh=values(bh);
+	</update>
+	
+	<!-- 批量新增班级表数据   -->
+	<insert id="insertClassList" parameterType="java.util.List">
+		insert into ${zhx_conn}.t_ss_class
+		(xxdm,bh,user_bh,BJMC,xz,BJLXM,SYNJ,SFCX,PYCC,NJ)
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.xxdm},#{item.bh},#{item.userBh},#{item.bjmc},#{item.xz},#{item.bjlxm},#{item.synj},#{item.sfcx},#{item.pycc},#{item.nj})
+		</foreach>
+	</insert>
+	<!-- 批量新增班级注册表数据   -->
+	<insert id="insertClassEnrolList" parameterType="java.util.List">
+		insert into ${zhx_conn}.t_ss_classenrol
+		(xxdm,bh,xn,xqm,BJLXM,SFCX)
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.xxdm},#{item.bh},#{item.xn},#{item.xqm},#{item.bjlxm},#{item.sfcx})
+		</foreach>
+	</insert>
+	<delete id="deleteStuEnrol" parameterType="com.talkweb.student.domain.business.TSsStudenrol">
+		delete from ${zhx_conn}.t_ss_stuenrol where xn=#{xn},xqm=#{xqm},xh=#{xh}
+	</delete>
+</mapper>

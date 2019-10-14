@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report5" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="0e44ad70-65f1-4a13-a2c0-69c91ad0360f">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="742"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="Table Dataset 4" uuid="cdcf1601-5e28-4c31-8919-1a59acef173f">
+		<field name="lessDay" class="java.lang.String"/>
+		<field name="dayOneTeacher" class="java.lang.String"/>
+		<field name="dayOneLess" class="java.lang.String"/>
+		<field name="dayTwoTeacher" class="java.lang.String"/>
+		<field name="dayTwoLess" class="java.lang.String"/>
+		<field name="dayThrTeacher" class="java.lang.String"/>
+		<field name="dayThrLess" class="java.lang.String"/>
+		<field name="dayFourTeacher" class="java.lang.String"/>
+		<field name="dayFourLess" class="java.lang.String"/>
+		<field name="dayFivTeacher" class="java.lang.String"/>
+		<field name="dayFivLess" class="java.lang.String"/>
+		<field name="daySixTeacher" class="java.lang.String"/>
+		<field name="daySixLess" class="java.lang.String"/>
+	</subDataset>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="timedata" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="headTeacher" class="java.lang.String"/>
+	<field name="className" class="java.lang.String"/>
+	<field name="timeTableName" class="java.lang.String"/>
+	<field name="bottomNote1" class="java.lang.String"/>
+	<field name="bottomNote2" class="java.lang.String"/>
+	<field name="bottomNote3" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="541" splitType="Stretch">
+			<componentElement>
+				<reportElement key="table 3" style="table 3" x="25" y="45" width="745" height="416" uuid="ce073e61-6871-484b-9f0e-bb30e9561c11"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Table Dataset 4" uuid="01684f22-ec3d-4485-bc16-0a5550cb0fe4">
+						<dataSourceExpression><![CDATA[$F{timedata}]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="115" uuid="1d486991-104a-4305-a474-28aa8f6944d6">
+						<jr:columnHeader style="table 3_CH" height="32" rowSpan="1">
+							<line>
+								<reportElement x="0" y="0" width="115" height="32" uuid="06da4d3f-a9dd-483f-a517-acc7d1c30431"/>
+							</line>
+							<staticText>
+								<reportElement x="65" y="0" width="30" height="15" uuid="0d22417d-1c30-4121-b495-7567c9d1a987"/>
+								<textElement textAlignment="Right" verticalAlignment="Top">
+									<font fontName="宋体" size="11" isBold="true" isItalic="false" isUnderline="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<text><![CDATA[星期]]></text>
+							</staticText>
+							<staticText>
+								<reportElement x="20" y="16" width="30" height="15" uuid="dd485146-a2a6-4839-ac41-a7ac125f970b"/>
+								<textElement textAlignment="Left" verticalAlignment="Bottom" rotation="None" markup="none">
+									<font fontName="宋体" size="11" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+									<paragraph lineSpacing="Single"/>
+								</textElement>
+								<text><![CDATA[节次]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 3_TD" height="48" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="115" height="48" uuid="6aa2ffa3-0bbe-4144-88cb-87e063969b9d"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="10" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{lessDay}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="105" uuid="b6fa7736-f20e-4d46-b183-be8a064fb177">
+						<jr:columnHeader style="table 3_CH" height="32" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="105" height="32" uuid="f91531d5-0269-4a86-bb44-de94ece6efaf"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<text><![CDATA[星期一]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 3_TD" height="48" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="105" height="48" uuid="11826be8-4c81-40e1-baa8-bc5f139d9092"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="11" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{dayOneLess}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="106" uuid="117d7bab-01c4-4849-bea1-f1dd4a036a2e">
+						<jr:columnHeader style="table 3_CH" height="32" rowSpan="1">
+							<staticText>
+								<reportElement x="1" y="0" width="105" height="32" uuid="05ed9acb-d40b-46b2-8dea-87b0d1e6e961"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<text><![CDATA[星期二]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 3_TD" height="48" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="106" height="48" uuid="07f911f3-bba4-4e3e-b0dd-bb9e74567f8e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="11" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{dayTwoLess}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="105" uuid="13f814a2-6a94-41bb-93d3-e146f09ee379">
+						<jr:columnHeader style="table 3_CH" height="32" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="105" height="32" uuid="5971d570-6b18-4adc-9a1a-3f722a1591ac"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<text><![CDATA[星期三]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 3_TD" height="48" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="105" height="48" uuid="378a911a-3d08-4904-9dc1-03b4e8688099"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="11" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{dayThrLess}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="105" uuid="0ec17989-f9d1-4e87-bd83-c561e9546503">
+						<jr:columnHeader style="table 3_CH" height="32" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="105" height="32" uuid="1f68115c-440c-4606-9fc9-32f8874996b4"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<text><![CDATA[星期四]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 3_TD" height="48" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="105" height="48" uuid="1983d41e-b11c-4a4b-8312-7d73e862ac00"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="11" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{dayFourLess}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="105" uuid="a9eef21b-8057-406d-af49-1ba7cf364fd9">
+						<jr:columnHeader style="table 3_CH" height="32" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="105" height="32" uuid="741666f3-e5e2-49a0-8730-aa740dd9fae7"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<text><![CDATA[星期五]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 3_TD" height="48" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="105" height="48" uuid="8dcf1d83-1446-4568-96bd-afa8a8ebb77a"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="11" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{dayFivLess}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="106" uuid="f68f999a-22dd-4928-b44c-1f805774c07b">
+						<jr:columnHeader style="table 3_CH" height="32" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="106" height="32" uuid="72ce2baf-b104-48f1-979d-7a3d2b9551bd"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<text><![CDATA[星期六]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 3_TD" height="48" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="106" height="48" uuid="80ec504a-c3f3-462c-93eb-a1f9dcf01670"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="11" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{daySixLess}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<textField>
+				<reportElement x="95" y="20" width="120" height="20" uuid="3d95c5ae-6cf6-4871-820d-8eb14dbb0fd5"/>
+				<textElement textAlignment="Justified">
+					<font fontName="宋体" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{className}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="320" y="20" width="120" height="20" uuid="e2ba4c34-59ec-4c8a-a216-c46a00811fb9"/>
+				<textElement textAlignment="Justified" verticalAlignment="Top">
+					<font fontName="宋体" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headTeacher}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="25" y="20" width="70" height="20" uuid="648c8f46-c7ef-47ea-9e2a-f6d9d861cbe6"/>
+				<textElement>
+					<font fontName="宋体" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[班级名称:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="250" y="20" width="70" height="20" uuid="1bba6370-ad57-460d-8128-03a7ca91f857"/>
+				<textElement>
+					<font fontName="宋体" size="11" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[班主任:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="25" y="0" width="745" height="20" uuid="3e6e1cb5-12e4-431a-b25a-1918527781e3"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="宋体" size="16" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+					<paragraph tabStopWidth="60"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{timeTableName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="25" y="490" width="745" height="25" uuid="ea6c932d-683b-4509-b84d-d37a05ca6eee"/>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bottomNote2}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="25" y="465" width="745" height="25" uuid="5de1b69e-2e1a-4b38-8e8c-e5bea478f65c"/>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bottomNote1}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="25" y="515" width="745" height="25" uuid="c396785f-53df-4f5b-89b1-95aed6fd74b9"/>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bottomNote3}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

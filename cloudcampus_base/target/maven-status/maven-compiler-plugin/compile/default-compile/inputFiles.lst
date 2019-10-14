@@ -1,0 +1,14 @@
+C:\Users\changzheng\git\cloudcampus-main\cloudcampus_base\src\main\java\com\talkweb\base\annotation\SystemServiceLog.java
+C:\Users\changzheng\git\cloudcampus-main\cloudcampus_base\src\main\java\com\talkweb\base\dao\impl\MyBatisBaseDaoImpl.java
+C:\Users\changzheng\git\cloudcampus-main\cloudcampus_base\src\main\java\com\talkweb\base\action\ActionResult.java
+C:\Users\changzheng\git\cloudcampus-main\cloudcampus_base\src\main\java\com\talkweb\base\dao\BaseDao.java
+C:\Users\changzheng\git\cloudcampus-main\cloudcampus_base\src\main\java\com\talkweb\base\annotation\SystemDaoLog.java
+C:\Users\changzheng\git\cloudcampus-main\cloudcampus_base\src\main\java\com\talkweb\base\common\CacheExpireTimeValues.java
+C:\Users\changzheng\git\cloudcampus-main\cloudcampus_base\src\main\java\com\talkweb\base\common\OutputMessage.java
+C:\Users\changzheng\git\cloudcampus-main\cloudcampus_base\src\main\java\com\talkweb\base\action\ScoreActionResult.java
+C:\Users\changzheng\git\cloudcampus-main\cloudcampus_base\src\main\java\com\talkweb\base\common\FastJsonHttpMessageConverter.java
+C:\Users\changzheng\git\cloudcampus-main\cloudcampus_base\src\main\java\com\talkweb\base\annotation\RedisCacheable.java
+C:\Users\changzheng\git\cloudcampus-main\cloudcampus_base\src\main\java\com\talkweb\base\annotation\RedisCacheKey.java
+C:\Users\changzheng\git\cloudcampus-main\cloudcampus_base\src\main\java\com\talkweb\base\annotation\SystemControllerLog.java
+C:\Users\changzheng\git\cloudcampus-main\cloudcampus_base\src\main\java\com\talkweb\base\common\PlacementConstant.java
+C:\Users\changzheng\git\cloudcampus-main\cloudcampus_base\src\main\java\com\talkweb\base\common\CacheExpireTime.java

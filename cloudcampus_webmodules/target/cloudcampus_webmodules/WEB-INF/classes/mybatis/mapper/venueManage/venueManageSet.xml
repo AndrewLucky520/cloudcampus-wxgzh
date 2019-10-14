@@ -1,0 +1,623 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.venueManage.dao.VenueManageSetDao">
+<!-- 设备要求及内容  -->
+	<!-- 获取设备要求 -->
+	<select id="getEquipmentRequireList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT requireId,requireName,`type` ,requireContent 
+		FROM ${db_name_venueManage}.t_vu_equipmentrequire 
+		WHERE schoolId=#{schoolId}
+		order by createDate ,`index`
+	</select>
+	<!-- 新增设备要求-->
+    <update id='addEquipmentRequireBatch' parameterType='java.util.List' >
+	 INSERT INTO ${db_name_venueManage}.t_vu_equipmentrequire(schoolId,requireId,requireName,`type`,createDate,`index`,requireContent) 
+	 VALUES
+	  <foreach collection="list" item="item" index="index" separator=",">  
+      (#{item.schoolId},#{item.requireId},#{item.requireName},#{item.type},#{item.createDate},#{item.index},#{item.requireContent})
+     </foreach>
+    </update>
+	 <!-- 删除设备要求内容-->
+    <update id='deleteEquipmentRequireContent' parameterType='com.alibaba.fastjson.JSONObject' >
+	DELETE FROM ${db_name_venueManage}.t_vu_equipmentrequirecontent 
+	WHERE schoolId=#{schoolId}
+	<if test="applyId!=null and applyId!=''">
+		      AND applyId=#{applyId}
+	</if>
+	<if test="applyIds!=null and applyIds!=''">
+        and applyId in
+       <foreach collection="applyIds" index="index" item="item" open="("   separator="," close=")">
+          #{item}
+       </foreach>  
+    </if>
+    </update>
+     <!-- 新增设备要求内容-->
+    <update id='addEquipmentRequireContentBatch' parameterType='java.util.List' >
+	INSERT INTO ${db_name_venueManage}.t_vu_equipmentrequirecontent(schoolId,contentId,applyId,requireId,num,content)
+	VALUES
+ 	 <foreach collection="list" item="item" index="index" separator=",">  
+     (#{item.schoolId},#{item.contentId},#{item.applyId},#{item.requireId},#{item.num},#{item.content} )
+     </foreach>
+    </update>
+    <!-- 获取设备要求内容-->
+	<select id="getEquipmentRequireContentList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT contentId,applyId,requireId,num,content , prepared , teacherId
+		FROM ${db_name_venueManage}.t_vu_equipmentrequirecontent
+		WHERE  schoolId=#{schoolId} AND  applyId=#{applyId} 
+		<if test="requireId!=null and requireId!=''">
+	        and requireId = #{requireId}
+	    </if>
+	</select>
+
+<!-- 场馆设置 -->
+	<!-- 获取场馆类别 -->
+	<select id="getVenueTypeList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT venueTypeId,venueType 
+		FROM ${db_name_venueManage}.t_vu_venuetype 
+		WHERE schoolId=#{schoolId}
+	</select>
+	<!-- 获取场馆设置-->
+	<select id="getVenueSetList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT setId,venueName,venueAddr,venueNum,isNeedExam,`comment`,isImport 
+		FROM ${db_name_venueManage}.t_vu_venueset 
+		WHERE schoolId=#{schoolId}
+	</select>
+	<!-- 获取场馆管理人员-->
+	<select id="getVenueManagerList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT teacherId,teacherName,setId FROM ${db_name_venueManage}.t_vu_manager 
+		WHERE schoolId=#{schoolId} 
+		 <if test="teacherId!=null and teacherId!=''">
+		     AND teacherId=#{teacherId}
+		</if>
+		 <if test="setId!=null and setId!=''">
+		     AND setId=#{setId}
+		</if>
+	</select>
+	<!-- 获取场馆及场馆类型及管理人员-->
+	<select id="getVenueSetAndTypeAndManagerList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT vs.setId,vs.venueName,vs.venueAddr,vs.venueNum,vs.isNeedExam,IFNULL(vs.`comment`,'无')AS `comment`,vs.isImport,vt.venueTypeId,vt.venueType,IFNULL(GROUP_CONCAT(m.teacherId),'') AS teacherIds,IFNULL(GROUP_CONCAT(m.teacherName),'') AS teacherNames
+		FROM ${db_name_venueManage}.t_vu_venueset vs
+		LEFT JOIN ${db_name_venueManage}.t_vu_venuetype vt ON vs.schoolId=vt.schoolId AND  vs.venueTypeId=vt.venueTypeId
+		LEFT JOIN ${db_name_venueManage}.t_vu_manager m ON vs.schoolId=m.schoolId AND m.setId=vs.setId 
+		WHERE vs.schoolId=#{schoolId} 
+		 <if test="venueTypeId!=null and venueTypeId!=''">
+		     AND vt.venueTypeId=#{venueTypeId}
+		</if>
+		 <if test="venueName!=null and venueName!=''">
+		     AND vs.venueName like "%${venueName}%"
+		</if>
+		<if test="setId!=null and setId!=''">
+		     AND vs.setId = #{setId}
+		</if>
+		GROUP BY  m.setId   ORDER BY vs.createDate DESC
+	</select>
+	<!-- 获取场馆设置-->
+	<select id="getVenueSet" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT * FROM ${db_name_venueManage}.t_vu_venueset 
+		 WHERE schoolId=#{schoolId} 
+		 <if test="venueName!=null and venueName!=''">
+		     and venueName in (#{venueName})
+		</if>
+		<if test="venueTypeId!=null and venueTypeId!=''">
+		     and venueTypeId in (#{venueTypeId})
+		</if>
+		<if test="setId!=null and setId!=''">
+		     and setId in (#{setId})
+		</if>
+	</select>
+	<!-- 获取场馆类别-->
+	<select id="getVenueType" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT venueTypeId,venueType FROM ${db_name_venueManage}.t_vu_venuetype 
+		 WHERE schoolId=#{schoolId}
+		 <if test="venueType!=null and venueType!=''">
+		    and venueType in (#{venueType})
+		 </if>
+		 <if test="venueTypeId!=null and venueTypeId!=''">
+		   and venueTypeId=#{venueTypeId} 
+		 </if>
+	</select>
+	<!-- 新增场馆类别-->
+	 <update id='addVenueType' parameterType='com.alibaba.fastjson.JSONObject' >
+	 INSERT INTO ${db_name_venueManage}.t_vu_venuetype(schoolId,venueTypeId,venueType) 
+		 VALUES(#{schoolId},#{venueTypeId},#{venueType})
+    </update>
+    <!-- 删除场馆管理员-->
+	 <update id='deleteManager' parameterType='com.alibaba.fastjson.JSONObject' >
+	 DELETE FROM ${db_name_venueManage}.t_vu_manager 
+	 WHERE  schoolId=#{schoolId} AND setId=#{setId}
+    </update>
+	
+	<!-- 新增管理员-->
+	 <update id='addManagerBatch' parameterType='java.util.List' >
+	 INSERT INTO ${db_name_venueManage}.t_vu_manager(schoolId,setId,teacherId,teacherName)
+ 		VALUES
+ 	 <foreach collection="list" item="item" index="index" separator=",">  
+     	(#{item.schoolId},#{item.setId},#{item.teacherId},#{item.teacherName})
+     </foreach>
+ 		ON DUPLICATE KEY UPDATE teacherName=VALUES(teacherName),teacherId=VALUES(teacherId)
+    </update>
+	<!-- 新增场馆-->
+	 <update id='addVenueSet' parameterType='com.alibaba.fastjson.JSONObject' >
+	  INSERT INTO ${db_name_venueManage}.t_vu_venueset(schoolId,setId,venueName,venueAddr,venueNum,isNeedExam,`comment`,isImport,createDate,venueTypeId )
+		 VALUES (#{schoolId},#{setId},#{venueName},#{venueAddr},#{venueNum},#{isNeedExam},#{comment},#{isImport},#{createDate},#{venueTypeId})
+  		 ON DUPLICATE KEY UPDATE venueTypeId=VALUES(venueTypeId), venueName=VALUES(venueName), venueAddr=VALUES(venueAddr), venueNum=VALUES(venueNum),isNeedExam=VALUES(isNeedExam),`comment`=VALUES(`comment`)
+    </update>
+    
+    <!-- 删除场馆类别-->
+	 <update id='deleteVenueType' parameterType='com.alibaba.fastjson.JSONObject' >
+	  DELETE FROM ${db_name_venueManage}.t_vu_venuetype 
+	  WHERE schoolId=#{schoolId} AND venueTypeId=#{venueTypeId}
+    </update>
+    <!-- 删除场馆-->
+	 <update id='deleteVenueSet' parameterType='com.alibaba.fastjson.JSONObject' >
+	 DELETE FROM ${db_name_venueManage}.t_vu_venueset 
+	 WHERE schoolId=#{schoolId} AND setId=#{setId}
+    </update>
+<!-- 检查项目设置 -->
+	<!-- 检查项目新增-->
+    <update id='addInspectionItemBatch' parameterType='java.util.List' >
+   INSERT INTO ${db_name_venueManage}.t_vu_inspectionitemset(schoolId,inspectionItemId,inspectionItemName,score,orderNum) 
+	VALUES 
+	  <foreach collection="list" item="item" index="index" separator=",">  
+     (#{item.schoolId},#{item.inspectionItemId},#{item.inspectionItemName},#{item.score},#{item.orderNum})
+     </foreach>
+    ON DUPLICATE KEY UPDATE inspectionItemName=VALUES(inspectionItemName),score=VALUES(score),orderNum=VALUES(orderNum)
+    </update> 
+    <!-- 检查备注新增-->
+    <update id='addInspectionItemComment' parameterType='com.alibaba.fastjson.JSONObject' >
+	INSERT INTO ${db_name_venueManage}.t_vu_inspectionitemcomment(schoolId,commentId,content)
+		VALUES (#{schoolId},#{commentId},#{content})
+ 		ON DUPLICATE KEY UPDATE content=VALUES(content)
+    </update>
+      <!-- 检查项目删除-->
+    <update id='deleteInspectionItem' parameterType='com.alibaba.fastjson.JSONObject' >
+	 DELETE FROM ${db_name_venueManage}.t_vu_inspectionitemset 
+	 WHERE schoolId=#{schoolId} 
+	  <if test="inspectionItemId!=null and inspectionItemId!=''">
+		    and inspectionItemId=#{inspectionItemId}
+		</if> 
+    </update>
+  <!-- 获取检查项目-->
+	<select id="getInspectionItemList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT inspectionItemId,inspectionItemName,score,orderNum 
+		FROM   ${db_name_venueManage}.t_vu_inspectionitemset
+		WHERE schoolId=#{schoolId}  ORDER BY orderNum
+	</select>
+	<!-- 获取检查备注-->
+	<select id="getInspectionItemComment" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT commentId,content 
+	FROM   ${db_name_venueManage}.t_vu_inspectionitemcomment
+	WHERE schoolId=#{schoolId} 
+	</select>
+<!-- 申请单 -->
+	<!-- 获取申请单及占用时间-->
+	 
+   <resultMap type="com.alibaba.fastjson.JSONObject" id="applyAndOccupySet">
+        <result column="venueName" property="venueName"/>
+        <result column="isNeedExam" property="isNeedExam"/>
+		<result column="applyId" property="applyId"/>
+		<result column="setId" property="setId"/>
+		<result column="teacherId" property="teacherId"/>
+		<result column="teacherName" property="teacherName"/>
+		<result column="phone" property="phone"/>
+		<result column="applyReason" property="applyReason"/>
+		<result column="memberStructure" property="memberStructure"/>
+		<result column="createDate" property="createDate"/>
+		<result column="applyState" property="applyState"/>
+		<result column="checkState" property="checkState"/>
+		<result column="occupyId" property="occupyId"/>
+		<result column="applyRole" property="applyRole"/>
+		<result column="useStartDate" property="useStartDate"/>
+		<result column="useEndDate" property="useEndDate"/>
+		<result column="useTime" property="useTime"/>
+		<result column="examTeacherId" property="examTeacherId"/>
+		<result column="examTeacherName" property="examTeacherName"/>
+		<result column="equipmentStatus" property="equipmentStatus"/>
+		<result column="examState" property="examState"/>
+		<collection property="manger" javaType="java.util.List" resultMap="mangerMap"/>
+		<collection property="eqManger" javaType="java.util.List" resultMap="eqMangerMap"/>
+  </resultMap> 
+  <resultMap type="com.alibaba.fastjson.JSONObject" id="mangerMap">
+		<result column="mangerId" property="mangerId"/>
+		<result column="mangerName" property="mangerName"/>
+  </resultMap>
+    <resultMap type="com.alibaba.fastjson.JSONObject" id="eqMangerMap">
+		<result column="eqMangerId" property="eqMangerId"/>
+		<result column="eqMangerName" property="eqMangerName"/>
+  </resultMap>
+	 
+	 <select id="getApplyAndOccupyListPlus" parameterType="com.alibaba.fastjson.JSONObject" resultMap="applyAndOccupySet">
+	 	SELECT
+			ar.applyId,
+			ar.setId,
+			ar.teacherId,
+			ar.teacherName,
+			ar.phone,
+			ar.applyReason,
+			ar.memberStructure, 
+			ar.createDate, 
+			ar.applyState,
+			ar.checkState,
+			ar.occupyId,
+			ar.applyRole,
+			o.useStartDate,
+			o.useEndDate,
+			o.useTime,
+			ar.equipmentStatus,
+			exam.examTeacherId,
+			exam.examTeacherName,
+			exam.examState,
+			exam.createDate AS examDate,
+			mg.teacherId AS mangerId,
+			mg.teacherName AS mangerName,
+			eqmg.teacherId AS eqMangerId,
+			eqmg.teacherName AS eqMangerName,
+			venueset.venueName,
+			venueset.isNeedExam
+		FROM
+			${db_name_venueManage}.t_vu_applyrecord ar
+		LEFT JOIN ${db_name_venueManage}.t_vu_occupy o ON o.schoolId = ar.schoolId
+		AND o.applyId = ar.applyId
+		AND o.setId = ar.setId
+		AND o.occupyId = ar.occupyId
+		LEFT JOIN ${db_name_venueManage}.T_VU_MANAGER mg ON (mg.setId = ar.setId)
+		LEFT JOIN ${db_name_venueManage}.T_VU_EQUIPMENT_MANAGER eqmg ON (eqmg.setId = mg.setId)
+		LEFT JOIN ${db_name_venueManage}.t_vu_examapply exam ON (
+			exam.applyId = ar.applyId
+			AND exam.schoolId = ar.schoolId
+		)
+		LEFT JOIN ${db_name_venueManage}.t_vu_venueset venueset on (venueset.setId = ar.setId  )
+		WHERE
+			ar.schoolId = #{schoolId}
+		AND ar.teacherId = #{accountId};
+	 </select>
+	 
+	<select id="getApplyAndOccupyList" parameterType="com.alibaba.fastjson.JSONObject" resultMap="applyAndOccupySet">
+	 SELECT ar.applyId,ar.setId,ar.teacherId,ar.teacherName,ar.phone,ar.applyReason,ar.memberStructure,ar.createDate,ar.applyState,ar.checkState,ar.occupyId,ar.applyRole
+		 ,o.useStartDate,o.useEndDate,o.useTime , ar.equipmentStatus, exam.examTeacherId , exam.examState, mg.teacherId as mangerId  , eqmg.teacherId as eqMangerId
+ 		FROM ${db_name_venueManage}.t_vu_applyrecord ar
+ 		LEFT JOIN ${db_name_venueManage}.t_vu_occupy o ON  o.schoolId=ar.schoolId 
+ 		AND o.applyId=ar.applyId AND o.setId=ar.setId AND o.occupyId=ar.occupyId
+ 		LEFT JOIN  ${db_name_venueManage}.T_VU_MANAGER mg on (mg.setId = ar.setId)
+ 		LEFT JOIN  ${db_name_venueManage}.T_VU_EQUIPMENT_MANAGER eqmg on (eqmg.setId = ar.setId)
+		LEFT JOIN  ${db_name_venueManage}.t_vu_examapply exam on (exam.applyId = ar.applyId and exam.schoolId = ar.schoolId)
+ 		WHERE ar.schoolId=#{schoolId} 
+		<if test="applyId!=null and applyId!=''">
+		    AND ar.applyId=#{applyId}
+		</if> 
+		<if test="applyIdForEdit!=null and applyIdForEdit!=''">
+		    AND ar.applyId!=#{applyIdForEdit}
+		</if> 
+		<if test="createStartDate!=null and createStartDate!=''">
+		   <if test="createEndDate!=null and createEndDate!=''">
+		      AND ar.createDate  between #{createStartDate} and #{createEndDate}
+		   </if> 
+		</if>
+		
+		<if test="useStartDate!=null and useStartDate!=''">
+		   <if test="useEndDate!=null and useEndDate!=''">
+		      AND (o.useStartDate  between #{useStartDate} and #{useEndDate}  or o.useEndDate between #{useStartDate} and #{useEndDate})
+		   </if> 
+		</if>
+		
+		<if test="setId!=null and setId!=''">
+		    AND ar.setId=#{setId}
+		</if> 
+ 
+		 <choose>
+		     <when test='queryType!=null and queryType=="0"'>
+		           AND ar.teacherId=#{teacherId}
+		     </when>
+		    <when test='queryType!=null and queryType=="1"'>
+		           AND ar.applyState = '1'
+				   <if test='role!=null and role=="1"'>
+				       AND mg.teacherId=#{teacherId} 
+				   </if>
+		    </when>
+		 </choose>
+		 <choose>
+		     <when test='prepared!=null and prepared=="1"'>
+		         AND  ar.equipmentStatus = '1'
+		          <if test='role!=null and role=="1"'>
+				       AND eqmg.teacherId=#{teacherId} 
+				  </if>
+		     </when>
+		     <when test='prepared!=null and  prepared =="2" '>
+		        AND  ar.equipmentStatus = '2'
+		         <if test='role!=null and role=="1"'>
+				       AND eqmg.teacherId=#{teacherId} 
+				 </if>
+		     </when>
+		      <when test='prepared!=null and  prepared =="3" '>
+		        AND  ar.equipmentStatus != '0'
+		         <if test='role!=null and role=="1"'>
+				       AND eqmg.teacherId=#{teacherId} 
+				 </if>
+		     </when>
+		 </choose>
+		
+		<if test="orderByUseStartDate!=null and createStartDate!=''">
+		order by  o.useStartDate,ar.createDate ASC
+		</if>
+		<if test="orderByUseStartDate==null">
+		order by  ar.createDate DESC
+		</if>
+	</select>
+	 <!-- 新增申请单-->
+    <update id='addApply' parameterType='com.alibaba.fastjson.JSONObject' >
+	INSERT INTO ${db_name_venueManage}.t_vu_applyrecord(schoolId,applyId,setId,teacherId,teacherName,phone,applyReason,memberStructure,createDate,applyState,checkState,occupyId,applyRole , equipmentStatus)
+     VALUES (#{schoolId},#{applyId},#{setId},#{teacherId},#{teacherName},#{phone},#{applyReason},#{memberStructure},#{createDate},#{applyState},#{checkState},#{occupyId},#{applyRole} , #{equipmentStatus})
+    ON DUPLICATE KEY UPDATE setId=VALUES(setId),teacherId=VALUES(teacherId),teacherName=VALUES(teacherName),phone=VALUES(phone),applyReason=VALUES(applyReason),memberStructure=VALUES(memberStructure),occupyId=VALUES(occupyId)
+    </update>
+     <!-- 新增占用时间-->
+    <update id='addOccupy' parameterType='com.alibaba.fastjson.JSONObject' >
+	INSERT INTO  ${db_name_venueManage}.t_vu_occupy(schoolId,occupyId,setId,applyId,useStartDate,useEndDate,useTime)
+	VALUES (#{schoolId},#{occupyId},#{setId},#{applyId},#{useStartDate},#{useEndDate},#{useTime})
+    </update>
+     <!-- 删除占用时间-->
+    <update id='deleteOccupy' parameterType='com.alibaba.fastjson.JSONObject' >
+		DELETE FROM ${db_name_venueManage}.t_vu_occupy 
+		WHERE schoolId=#{schoolId} 
+		<if test="applyId!=null and applyId!=''">
+		    AND applyId=#{applyId}
+		</if> 
+		<if test="setId!=null and setId!=''">
+		    AND setId=#{setId}
+		</if> 
+    </update>
+     <!-- 删除申请单-->
+    <update id='deleteApply' parameterType='com.alibaba.fastjson.JSONObject' >
+		DELETE FROM ${db_name_venueManage}.t_vu_applyrecord 
+		WHERE schoolId=#{schoolId} 
+		<if test="applyId!=null and applyId!=''">
+		    AND applyId=#{applyId}
+		</if> 
+		<if test="setId!=null and setId!=''">
+		    AND setId=#{setId}
+		</if> 
+    </update>
+      <!-- 修改申请单检查状态-->
+    <update id='updateCheckState' parameterType='com.alibaba.fastjson.JSONObject' >
+ 		UPDATE ${db_name_venueManage}.t_vu_applyrecord SET checkState=2 WHERE schoolId=#{schoolId} AND applyId=#{applyId}
+    </update>
+      <!-- 修改申请单审批状态-->
+    <update id='updateApplyState' parameterType='com.alibaba.fastjson.JSONObject' >
+ 		UPDATE ${db_name_venueManage}.t_vu_applyrecord SET applyState=2 WHERE schoolId=#{schoolId} AND applyId=#{applyId}
+    </update>
+    
+<!-- 审核 -->
+	<!-- 新增审核-->
+    <update id='addExamApply' parameterType='com.alibaba.fastjson.JSONObject' >
+		 INSERT INTO ${db_name_venueManage}.t_vu_examapply(schoolId,examId,applyId,examTeacherId,examState,createDate,disagreeReason,examTeacherName) 
+		 VALUES(#{schoolId},#{examId},#{applyId},#{examTeacherId},#{examState},#{createDate},#{disagreeReason},#{examTeacherName})
+    </update>
+    <!-- 新增检查内容-->
+    <update id='addInspectionApplyBatch' parameterType='java.util.List' >
+ 		INSERT INTO ${db_name_venueManage}.t_vu_inspectionuse(schoolId,inspectionItemId,inspectionId,score,applyId,createDate)
+ 		VALUES
+    	<foreach collection="list" item="item" index="index" separator=",">  
+     		 (#{item.schoolId},#{item.inspectionItemId},#{item.inspectionId},#{item.score},#{item.applyId},#{item.createDate})
+     	</foreach>
+    </update>
+     <!-- 新增检查申请情况-->
+    <update id='addInspectionApply' parameterType='com.alibaba.fastjson.JSONObject' >
+ 		INSERT INTO  ${db_name_venueManage}.t_vu_inspectionapply(schoolId,applyId,inspectionTeacherId,createDate,inspectionApplyId,inspectionTeacherName) 
+		VALUES(#{schoolId},#{applyId},#{inspectionTeacherId},#{createDate},#{inspectionApplyId},#{inspectionTeacherName})
+    </update>
+    <!-- 获取检查-->
+	<select id="getInspectionApplyList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	 SELECT inspectionItemId,inspectionId,score,applyId,createDate FROM ${db_name_venueManage}.t_vu_inspectionuse
+		 WHERE schoolId=#{schoolId}  
+		 <if test="inspectionItemId!=null and inspectionItemId!=''">
+		    AND inspectionItemId=#{inspectionItemId}
+		</if> 
+		<if test="applyId!=null and applyId!=''">
+		     AND applyId=#{applyId} 
+		</if> 
+		 order by createDate DESC
+	</select>
+	<!-- 获取审核-->
+	<select id="getExamApplyList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	 SELECT examId,applyId,examTeacherId,examState,createDate,disagreeReason,examTeacherName
+		 FROM ${db_name_venueManage}.t_vu_examapply 
+ 		WHERE schoolId=#{schoolId}
+ 		 <if test="applyId!=null and applyId!=''">
+		     AND applyId=#{applyId} 
+		</if> 
+ 		 order by createDate DESC
+	</select>
+	<!-- 获取检查申请情况表-->
+	<select id="getInspectionApplyRecordList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	 SELECT  applyId,inspectionTeacherId,createDate,inspectionApplyId,inspectionTeacherName 
+	   FROM ${db_name_venueManage}.t_vu_inspectionapply 
+	   WHERE schoolId=#{schoolId}
+ 		 <if test="applyId!=null and applyId!=''">
+		     AND applyId=#{applyId} 
+		</if> 
+ 		 ORDER BY createDate DESC 
+	</select>
+	<!-- 删除审核-->
+    <update id='deleteExamApply' parameterType='com.alibaba.fastjson.JSONObject' >
+		DELETE  FROM ${db_name_venueManage}.t_vu_examapply WHERE schoolId=#{schoolId} 
+		<if test="applyIds!=null and applyIds!=''">
+        	and applyId in
+       		<foreach collection="applyIds" index="index" item="item" open="("   separator="," close=")">
+          	#{item}
+       		</foreach>  
+    	</if>
+    	 <if test="applyId!=null and applyId!=''">
+		     AND applyId=#{applyId} 
+		</if> 
+    </update>
+    <!-- 删除检查-->
+    <update id='deleteInspectionApply' parameterType='com.alibaba.fastjson.JSONObject' >
+		DELETE FROM ${db_name_venueManage}.t_vu_inspectionuse WHERE schoolId=#{schoolId}
+		<if test="applyIds!=null and applyIds!=''">
+        	and applyId in
+       		<foreach collection="applyIds" index="index" item="item" open="("   separator="," close=")">
+          	#{item}
+       		</foreach>  
+    	</if>
+    	 <if test="applyId!=null and applyId!=''">
+		     AND applyId=#{applyId} 
+		</if> 
+    </update>
+     <!-- 删除检查情况-->
+    <update id='deleteInspectionRecordApply' parameterType='com.alibaba.fastjson.JSONObject' >
+		DELETE FROM ${db_name_venueManage}.t_vu_inspectionapply WHERE schoolId=#{schoolId}
+		<if test="applyIds!=null and applyIds!=''">
+        	and applyId in
+       		<foreach collection="applyIds" index="index" item="item" open="("   separator="," close=")">
+          	#{item}
+       		</foreach>  
+    	</if>
+    	 <if test="applyId!=null and applyId!=''">
+		     AND applyId=#{applyId} 
+		</if> 
+    </update>
+<!-- 统计 -->
+	<!-- 获取场馆申请统计-->
+	<select id="getVenueStaticList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT  a.applyId,a.setId,a.teacherId,a.teacherName,a.phone,a.applyReason,a.memberStructure,a.createDate,a.applyState,a.checkState,
+ 	o.useStartDate,o.useEndDate,o.useTime,o.occupyId ,
+ 	s.venueName,s.venueAddr,s.venueNum,s.isNeedExam,s.`comment`,s.isImport,s.createDate,s.venueTypeId , e.examState
+ 	FROM ${db_name_venueManage}.t_vu_applyrecord a 
+ 	LEFT JOIN ${db_name_venueManage}.t_vu_occupy o ON o.schoolId=a.schoolId AND o.occupyId=a.occupyId AND a.applyId=o.applyId
+ 	LEFT JOIN ${db_name_venueManage}.t_vu_venueset s ON s.schoolId=a.schoolId AND s.setId=a.setId  
+ 	LEFT JOIN ${db_name_venueManage}.t_vu_examapply e on (e.applyId=o.applyId )
+ 	WHERE a.schoolId=#{schoolId}  
+	 	<if test="useStartDate!=null and useStartDate!=''">
+		   <if test="useEndDate!=null and useEndDate!=''">
+		      AND (o.useStartDate  BETWEEN #{useStartDate} and #{useEndDate}  or o.useEndDate  BETWEEN #{useStartDate} and #{useEndDate})
+		   </if> 
+		</if>
+	order by  s.venueName,a.createDate DESC
+	</select>
+	<!-- 获取检查项目统计-->
+	<select id="getInspectionStaticList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT  a.applyId,a.setId,a.teacherId,a.teacherName,a.phone,a.applyReason,a.memberStructure,a.createDate,a.applyState,a.checkState,
+ 		u.inspectionItemId,u.inspectionId,u.score AS getScore,
+ 		i.inspectionItemName,i.score
+ 	FROM ${db_name_venueManage}.t_vu_applyrecord a 
+ 	left JOIN ${db_name_venueManage}.t_vu_inspectionuse u ON u.schoolId=a.schoolId AND  u.applyId=a.applyId
+ 	inner JOIN ${db_name_venueManage}.t_vu_history i ON i.inspectionItemId = u.inspectionItemId AND  i.schoolId=u.schoolId and i.applyId=a.applyId
+ 	WHERE a.schoolId=#{schoolId} AND a.checkState=2
+ 	<if test="applyId!=null and applyId!=''">
+		   AND a.applyId=#{applyId}
+	</if>
+	<if test="createStartDate!=null and createStartDate!=''">
+		   <if test="createEndDate!=null and createEndDate!=''">
+		      AND a.createDate  BETWEEN #{createStartDate} and #{createEndDate}
+		   </if> 
+	</if>
+	order by i.orderNum, u.createDate DESC
+	</select>
+<!-- 历史 -->
+	<!-- 批量新增历史数据-->
+	 <update id='addApplyHistoryBatch' parameterType='java.util.List' >
+	INSERT INTO ${db_name_venueManage}.t_vu_history(historyId,inspectionItemName,score,orderNum,inspectionItemId,applyId,schoolId,createDate) 
+	VALUES
+	  <foreach collection="list" item="item" index="index" separator=",">  
+      (#{item.historyId},#{item.inspectionItemName},#{item.score},#{item.orderNum},#{item.inspectionItemId},#{item.applyId},#{item.schoolId},#{item.createDate})
+     </foreach>
+      ON DUPLICATE KEY UPDATE inspectionItemName=VALUES(inspectionItemName),score=VALUES(score),orderNum=VALUES(orderNum)
+    </update>
+    <!-- 获取历史数据-->
+	<select id="getApplyHistoryList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  SELECT historyId,inspectionItemName,score,orderNum,inspectionItemId,applyId,schoolId,createDate 
+		FROM ${db_name_venueManage}.t_vu_history 
+		WHERE schoolId=#{schoolId} AND applyId=#{applyId}
+		order by orderNum
+	</select>
+	 <!-- 删除历史-->
+    <update id='deleteApplyHistory' parameterType='com.alibaba.fastjson.JSONObject' >
+		DELETE FROM ${db_name_venueManage}.t_vu_history WHERE schoolId=#{schoolId}
+		<if test="applyIds!=null and applyIds!=''">
+        	and applyId in
+       		<foreach collection="applyIds" index="index" item="item" open="("   separator="," close=")">
+          	#{item}
+       		</foreach>  
+    	</if>
+    	 <if test="applyId!=null and applyId!=''">
+		     AND applyId=#{applyId} 
+		</if> 
+    </update>
+    <!-- 批量新增历史数据-->
+	 <update id='updateApplyHistory' parameterType='com.alibaba.fastjson.JSONObject' >
+      	UPDATE ${db_name_venueManage}.t_vu_history SET
+      inspectionItemName=#{inspectionItemName} , score=#{score} where schoolId=#{schoolId} AND inspectionItemId=#{inspectionItemId}
+    </update>
+    
+    <!-- 新增管理员-->
+	 <update id='addEquipmentManagerBatch' parameterType='java.util.List' >
+	 INSERT INTO ${db_name_venueManage}.t_vu_equipment_manager(schoolId,setId,teacherId,teacherName)
+ 		VALUES
+ 	 <foreach collection="list" item="item" index="index" separator=",">  
+     	(#{item.schoolId},#{item.setId},#{item.teacherId},#{item.teacherName})
+     </foreach>
+ 		ON DUPLICATE KEY UPDATE teacherName=VALUES(teacherName),teacherId=VALUES(teacherId)
+    </update>
+	 <update id='deleteEquipmentManager' parameterType='com.alibaba.fastjson.JSONObject' >
+	 DELETE FROM ${db_name_venueManage}.t_vu_equipment_manager 
+	 WHERE  schoolId=#{schoolId} AND setId=#{setId}
+    </update>
+    
+     <update id='updateVenueApplyEquipmentExam' parameterType='com.alibaba.fastjson.JSONObject' >
+	    	UPDATE ${db_name_venueManage}.t_vu_equipmentrequirecontent SET 
+	    	prepared = #{prepared} , teacherId =  #{teacherId}  where applyId = #{applyId} and requireId = #{requireId}
+    </update>
+    
+     <update id='updateApplyEquipmentStatus' parameterType='com.alibaba.fastjson.JSONObject' >
+	    	UPDATE ${db_name_venueManage}.t_vu_applyrecord SET 
+	    	equipmentStatus = #{equipmentStatus}  where applyId = #{applyId} 
+    </update>
+    <select id="getEquipmentManagerList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT teacherId,teacherName, setId FROM ${db_name_venueManage}.t_vu_equipment_manager   
+		WHERE schoolId=#{schoolId} 
+		 <if test="teacherId!=null and teacherId!=''">
+		     AND teacherId=#{teacherId}
+		</if>
+		 <if test="setId!=null and setId!=''">
+		     AND setId=#{setId}
+		</if>
+	</select>
+	
+	 <select id="getEquipmentrequirecontentPrepared" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT distinct applyId  FROM ${db_name_venueManage}.t_vu_equipmentrequirecontent   
+		WHERE schoolId=#{schoolId}  and prepared = '1'
+	</select>
+	
+	<!-- 获取申请场馆信息和审批人 -->
+	<select id="getVenueAndAprovel" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		select t.teacherName,t.applyReason,t.teacherId,t.schoolId,tt.venueName,tt.isNeedExam ,t.setId
+		from ${db_name_venueManage}.t_vu_applyrecord t
+		inner join ${db_name_venueManage}.t_vu_venueset tt on tt.setId = t.setId
+		where t.applyId=#{applyId}
+		  <if test="teacherId!=null and teacherId!=''">
+		     AND teacherId=#{teacherId}
+		</if>  
+	</select>
+    
+    <!-- ZHXY-334 -->
+    <resultMap type="com.alibaba.fastjson.JSONObject" id="applySet">
+        <result column="useDate" property="useDate"/>
+        <result column="useStartTime" property="useStartTime"/>
+		<result column="useEndTime" property="useEndTime"/>
+		<result column="useTime" property="useTime"/>
+		<result column="teacherName" property="useName"/>
+		<result column="phone" property="phone"/>
+  </resultMap> 
+  <select id="getApplyList" parameterType="com.alibaba.fastjson.JSONObject" resultMap="applySet">
+  	SELECT date_format(useStartDate,'%Y-%m-%d') as useDate,teacherName,phone,applyState,
+  		   date_format(useStartDate,'%H:%i') as useStartTime,date_format(useEndDate,'%H:%i') as useEndTime,useTime,
+  		   examState
+  	FROM ${db_name_venueManage}.t_vu_applyrecord a
+  	LEFT JOIN ${db_name_venueManage}.t_vu_occupy o ON o.schoolId=a.schoolId AND o.occupyId=a.occupyId AND a.applyId=o.applyId
+  	LEFT JOIN ${db_name_venueManage}.t_vu_examapply exam on (exam.applyId = a.applyId and exam.schoolId = a.schoolId)
+  	WHERE a.setId=#{setId} AND (applyState = 1 OR examState = 1)
+  	      AND useEndDate &gt; #{currentDate}
+  	ORDER BY useDate
+  </select>
+</mapper>

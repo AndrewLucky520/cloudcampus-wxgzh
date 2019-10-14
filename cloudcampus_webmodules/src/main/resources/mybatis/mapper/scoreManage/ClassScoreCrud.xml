@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.scoreReport.dao.ClassScoreCrudDao">
+	<!-- 获取考试列表 -->
+	<select id="getExamList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT ci.ExamId AS examId, ci.ExamName AS examName, ci.autoIncr, ci.IsImport AS importStatus, ci.isPublic,
+					ci.scoreDataType, ci.CreateTime, ci.examType, ci.scoreDataType
+				FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexaminfo} ci
+			WHERE ci.SchoolId = #{data.schoolId} AND ci.termInfoId = #{data.termInfoId} 
+			<if test="data.isImport != null">
+				AND ci.IsImport = #{data.isImport}
+			</if>
+			<if test="data.isPublic != null">
+				AND ci.isPublic = #{data.isPublic}
+			</if>
+			<if test="data.createUserId != null">
+				AND ci.CreateUserId = #{data.createUserId}
+			</if>
+		ORDER BY ci.CreateTime DESC
+	</select>
+	
+	<select id="ifExistsSameNameInClassExamInfo" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexaminfo}
+			WHERE SchoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId}
+				AND ExamName = #{data.examName}
+			<if test="data.accountId != null">
+				AND CreateUserId = #{data.accountId}
+			</if>
+			<if test="data.examId != null">
+				AND ExamId != #{data.examId}
+			</if>
+				LIMIT 1
+	</select>
+
+	<insert id="createExam" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexaminfo}
+			(ExamId, ExamName, SchoolId, IsImport, CreateUserId, CreateTime, UpdaeTime, isPublic, termInfoId)
+		VALUES
+			(#{data.ExamId}, #{data.examName}, #{data.SchoolId}, 0, #{data.CreateUserId}, #{data.CreateTime},
+				#{data.UpdaeTime}, 0, #{data.termInfoId})
+	</insert>
+	
+	<update id="updateClassExam" parameterType="splitDbAndTableRule">
+		UPDATE ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexaminfo}
+		<set>
+			<if test="data.examName != null">
+				ExamName = #{data.examName},
+			</if>
+			<if test="data.updateTime != null">
+				UpdaeTime = #{data.updateTime},
+			</if>
+			<if test="data.publicTime != null">
+				PublicTime = #{data.publicTime},
+			</if>
+			<if test="data.isPublic != null">
+				isPublic = #{data.isPublic},
+			</if>
+			<if test="data.isImport != null">
+				isImport = #{data.isImport},
+			</if>
+			<if test="data.examType != null">
+				examType = #{data.examType},
+			</if>
+			<if test="data.scoreDataType != null">
+				scoreDataType = #{data.scoreDataType},
+			</if>
+			<if test="data.counter != null">
+				counter = #{data.counter},
+			</if>
+		</set>
+		WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId}
+			AND termInfoId = #{data.termInfoId};
+	</update>
+	
+	<select id="getClassExamInfoById" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.ce.ClassExamInfo">
+		SELECT ExamId, ExamName, autoIncr, SchoolId, IsImport, CreateUserId, CreateTime, UpdaeTime, isPublic, 
+			scoreDataType, examType, PublicTime, termInfoId ,counter
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexaminfo} 
+		WHERE SchoolId = #{data.schoolId} AND ExamId = #{data.examId} AND termInfoId = #{data.termInfoId}
+	</select>
+	
+	<delete id="deleteExam" parameterType="splitDbAndTableRule">
+    	DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexaminfo} 
+    		WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId}
+    			AND termInfoId = #{data.termInfoId}
+	</delete>
+	
+	<!-- 删除班内考试有哪些考试科目 -->
+	<delete id="deleteClassExamSubject" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubject} 
+			WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId}
+				AND termInfoId = #{data.termInfoId}
+	</delete>
+   
+	<!-- 删除班内考试包含哪些班级 -->
+	<delete id="deleteClassExamClassListTwo" parameterType="splitDbAndTableRule">
+	    DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamrelative} 
+	    	WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} 
+	    		AND termInfoId = #{data.termInfoId}
+	</delete>
+   
+	<!-- 删除班内考试单科成绩数据-->
+	<delete id="deleteClassExamSubjectScoreListTwo" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore} 
+			WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} 
+	    		AND termInfoId = #{data.termInfoId}
+	</delete>
+	
+	<!-- 删除班内考试班级成绩数据-->
+	<delete id="deleteClassExamClassTotalScoreListTwo" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classtotalscorestatistics} 
+			WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} 
+	    		AND termInfoId = #{data.termInfoId}
+	</delete>
+	
+	<!-- 删除班内考试学生总分成绩数据-->
+	<delete id="deleteClassExamStudentTotalScoreListTwo" parameterType="map">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_studenttotalscorestatistics} 
+			WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} 
+	    		AND termInfoId = #{data.termInfoId}
+	</delete>
+	
+	<select id="getInfoFromClassExamSubjectScore" parameterType="splitDbAndTableRule"  resultType="com.talkweb.scoreManage.po.ce.ClassExamSubjectScore">
+		SELECT StudentId, SubjectId, ClassId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore} 
+		WHERE SchoolId = #{data.schoolId} AND ExamId = #{data.examId} AND termInfoId = #{data.termInfoId}
+	</select>
+	
+	<select id="getCustomScoreInfo" parameterType="splitDbAndTableRule"  resultType="java.lang.Long">
+		SELECT DISTINCT StudentId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscoreinfo} 
+		WHERE SchoolId = #{data.schoolId} AND ExamId = #{data.examId} AND termInfoId = #{data.termInfoId}
+	</select>
+
+	<delete id="deleteCustomScore" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscore} 
+			WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId}
+				AND termInfoId = #{data.termInfoId}
+	</delete>
+	
+	<delete id="deleteCustomScoreInfo" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscoreinfo} 
+			WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId}
+				AND termInfoId = #{data.termInfoId}
+	</delete>
+	
+	<!-- 添加自定义成绩项目明显-->
+	<insert id="insertCustomScoreInfo" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscoreinfo}
+			(ExamId, SchoolId, ProjectId, StudentId, ClassId, Score, InputTime, termInfoId)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.ExamId}, #{item.SchoolId}, #{item.ProjectId}, #{item.StudentId}, #{item.ClassId},
+				#{item.Score}, #{item.InputTime}, #{item.termInfoId})
+		</foreach>
+		ON DUPLICATE KEY UPDATE Score = VALUES(Score), InputTime = VALUES(InputTime);
+	</insert>
+	
+   <!-- 添加自定义成绩项目-->
+   <insert id="insertCustomScore" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscore} 
+			(ExamId, SchoolId, ProjectId, ProjectName, ParentProjectId, RowSpan, ColSpan, `Row`, 
+				Col, TitleCount, InputTime, termInfoId) 
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.ExamId}, #{item.SchoolId}, #{item.ProjectId}, #{item.ProjectName}, #{item.ParentProjectId}, 
+				#{item.RowSpan}, #{item.ColSpan}, #{item.Row}, #{item.Col}, #{item.TitleCount}, #{item.InputTime},
+					#{item.termInfoId})
+		</foreach>
+		ON DUPLICATE KEY UPDATE ProjectId = VALUES(ProjectId), ProjectName = VALUES(ProjectName),
+			ParentProjectId = VALUES(ParentProjectId), RowSpan = VALUES(RowSpan), ColSpan = VALUES(ColSpan),
+			Row = VALUES(Row), Col = VALUES(Col), TitleCount = VALUES(TitleCount), InputTime = VALUES(InputTime);
+	</insert>
+	
+	<!-- 添加校内考试班级-->
+	<insert id="insertClassExamRelative" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamrelative}
+			(ExamId, ClassId, SchoolId, InputTime, termInfoId)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.ExamId}, #{item.ClassId}, #{item.SchoolId}, #{item.InputTime}, #{item.termInfoId})
+		</foreach>
+		ON DUPLICATE KEY UPDATE classId = VALUES(classId);
+	</insert>
+	
+	<!-- 插入更新班级成绩 -->
+    <update id="updateClassExamScore2"  parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore}
+			(ExamId, StudentId, SubjectId, ClassId, SchoolId, Score, inputTime, termInfoId)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.ExamId}, #{item.StudentId}, #{item.SubjectId}, #{item.ClassId}, #{item.SchoolId}, 
+				#{item.Score}, #{item.inputTime}, #{item.termInfoId})
+		</foreach>
+		ON DUPLICATE KEY UPDATE Score = VALUES(Score);
+	 </update>
+	 
+	 <!-- 插入更新班级成绩 -->
+    <update id="updateClassExamScore3"  parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore}
+			(ExamId, StudentId, SubjectId, ClassId, SchoolId, Score2, inputTime, termInfoId)
+		values
+		<foreach collection="data" item="item" index="index" separator=",">
+			(#{item.ExamId}, #{item.StudentId}, #{item.SubjectId}, #{item.ClassId}, #{item.SchoolId}, 
+				#{item.Score2}, #{item.inputTime}, #{item.termInfoId})
+		</foreach>
+		ON DUPLICATE KEY UPDATE Score2 = VALUES(Score2);
+	 </update>
+	 
+	<!-- 删除班内考试有哪些考试科目 -->
+	<delete id="deleteClassExamSubjectList2" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubject} 
+			WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId}
+	</delete>
+	 
+	<!-- 删除班内考试包含哪些班级 -->
+	<delete id="deleteClassExamClassList2" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamrelative}
+			WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId}
+	</delete>
+	
+	<insert id="addClassExamSubjectList2" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubject} 
+			(ExamId, SubjectId, SchoolId, InputTime, termInfoId)
+		SELECT DISTINCT ExamId, SubjectId, SchoolId, #{data.inputTime}, termInfoId
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore} 
+		WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId};
+	</insert>
+	  
+	<insert id="addClassExamClassList2" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamrelative} 
+			(ExamId, ClassId, SchoolId, InputTime, termInfoId)
+	    SELECT DISTINCT ExamId, ClassId, SchoolId, #{data.inputTime}, termInfoId
+	    	FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore} 
+	    WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId};
+	</insert>
+	
+	<!-- 获取学生单科成绩列表 -->
+	<select id="selectClassExamSubjectScore2" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.ce.StudentTotalScoreStatistics">
+		SELECT ExamId, SchoolId, StudentId, SUM(Score) AS TotalScore, ClassId, termInfoId
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore}
+		WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId}
+			GROUP BY StudentId 
+			ORDER BY TotalScore DESC;
+	</select>
+	
+	<!-- 批量添加学生总分成绩 -->
+	<insert id="addClassExamStudentTotalScore2" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_ce_studenttotalscorestatistics} 
+			(ExamId, StudentId, ClassId, SchoolId, TotalScore, TotalScoreRank, surpassRatio, ClassStudentNum, 
+				inputTime, termInfoId)
+		VALUES
+		<foreach collection="data" item="item" index="index" separator=",">
+			(#{item.ExamId}, #{item.StudentId}, #{item.ClassId}, #{item.SchoolId}, #{item.TotalScore}, #{item.TotalScoreRank}, 
+				#{item.surpassRatio}, #{item.ClassStudentNum}, #{item.inputTime}, #{item.termInfoId})
+		</foreach>
+		ON DUPLICATE KEY UPDATE totalScore = VALUES(totalScore), totalScoreRank = VALUES(totalScoreRank),
+			surpassRatio = VALUES(surpassRatio), classStudentNum = VALUES(classStudentNum), inputTime = VALUES(inputTime);
+	</insert>
+	
+	<!-- 批量添加班级总分统计结果成绩 -->
+	<insert id="addClassExamClassTotalScore2" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classtotalscorestatistics}  
+			(ExamId, ClassId, SchoolId, ClassStudentNum, ClassTotalScoreAverScore, ClassTopTotalScore, TopOneScore, 
+				TopTwoScore, TopThreeScore, inputTime, termInfoId)
+		VALUES
+		<foreach collection="data" item="item" index="index" separator=",">
+			(#{item.ExamId}, #{item.ClassId}, #{item.SchoolId}, #{item.ClassStudentNum}, #{item.ClassTotalScoreAverScore}, 
+				#{item.ClassTopTotalScore}, #{item.TopOneScore}, #{item.TopTwoScore}, #{item.TopThreeScore}, 
+					#{item.inputTime}, #{item.termInfoId})
+		</foreach>
+		ON DUPLICATE KEY UPDATE ClassStudentNum = VALUES(ClassStudentNum), TopOneScore = VALUES(TopOneScore),
+			ClassTotalScoreAverScore = VALUES(ClassTotalScoreAverScore), ClassTopTotalScore = VALUES(ClassTopTotalScore),
+			TopTwoScore = VALUES(TopTwoScore), TopThreeScore = VALUES(TopThreeScore), inputTime = VALUES(inputTime);
+	</insert>
+	
+	<!-- 获取班内测试班级列表 -->
+	<select id="selectClassExamClassIdList2" parameterType="splitDbAndTableRule" resultType="Long">
+		SELECT ClassId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamrelative} 
+		WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId}
+	</select>
+	
+	<!-- 获取班内测试科目列表 -->
+	<select id="selectClassExamSubjectIdList2" parameterType="splitDbAndTableRule" resultType="Long">
+		SELECT SubjectId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubject} 
+		WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId}
+	</select>
+	
+	<!-- 获取学生总分成绩列表 -->
+	<select id="selectClassExamTotalScore2" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.ce.StudentTotalScoreStatistics">
+		SELECT ExamId, SchoolId, StudentId, TotalScore, ClassId
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_studenttotalscorestatistics} 
+		WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId}
+			ORDER BY totalScore DESC;
+	</select>
+	  
+	<!-- 获取学生单科成绩列表 -->
+	<select id="selectClassExamEverSubjectScore2" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.ce.ClassExamSubjectScore">
+		SELECT ExamId, SchoolId, StudentId, Score, ClassId, SubjectId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore}
+		WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId}
+	</select>
+</mapper>

@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.systemManager.dao.SystemMaintainDao">
+
+	<cache eviction="FIFO" flushInterval="60000" size="1024"
+		readOnly="true" />
+
+	
+	<select id="getSchoolList" parameterType="hashmap" resultType="hashmap">
+	  SELECT 
+	  a.XXDM AS xxdm,
+	  a.XXMC AS xxmc,
+	  d.mc AS xxlb,
+	  GROUP_CONCAT(f.mc ORDER BY f.dm) AS pycc,
+	  c.UserID AS userId,
+	  c.OriPassWord AS oriPassword,
+      e.mc,
+      g.vermc AS dmid
+	  FROM ${zhx_conn}.t_tr_school a
+	  LEFT JOIN ${zhx_conn}.t_tr_school_pycc b ON a.XXDM = b.XXDM
+	  LEFT JOIN ${zhx_conn}.t_uc_user c ON a.XXDM = c.UserSysId
+	  LEFT JOIN ${zhx_conn}.t_dm_xxlb d ON a.XXBXLXM = d.dm
+	  INNER JOIN ${zhx_conn}.t_dm_jg e ON a.XZQHM = e.dm
+	  INNER JOIN ${zhx_conn}.t_dm_pycc f ON b.PYCC = f.dm
+	  LEFT JOIN ${zhx_conn}.t_uc_operasysver g ON a.dmid = g.verid
+	  WHERE 1=1
+	  <if test="xzqhm!='allarea'">
+	    AND a.XZQHM LIKE '${xzqhm}%'
+	  </if>
+	  <!--
+	  WHERE a.XZQHM LIKE '${xzqhm}%'  
+	  <if test="xxmc!=null and xxmc!=''">
+	  AND a.XXMC IN
+	  <foreach collection="xxmc" item="xxmclist" open="(" close=")" separator=",">
+	  #{xxmclist}
+	  </foreach>
+	  -->
+	  <if test="xxmc!=null or xxmc!=''">
+		 AND a.XXMC LIKE '%${xxmc}%' 	    
+	  </if>
+	  GROUP BY a.XZQHM,a.XXDM
+	</select>
+	
+	<insert id="insertSchool" parameterType="hashmap">
+	  INSERT INTO ${zhx_conn}.t_tr_school(XZQHM,XXDM,XXMC,XXBXLXM,dmid) VALUES(#{xzqhm},#{xxdm},#{xxmc},#{xxbxlxm},#{dmid})
+	</insert>
+	
+	<insert id="insertSchoolPycc" parameterType="hashmap">
+	  INSERT INTO ${zhx_conn}.t_tr_school_pycc(XXDM,PYCC) VALUES
+	  <foreach collection="pycc" item="ss" separator=",">
+	     (#{xxdm},#{ss})
+	  </foreach>  
+	</insert>
+	
+	<insert id="insertSchoolUser" parameterType="hashmap">
+	  INSERT INTO ${zhx_conn}.t_uc_user(UserSysId,UserID,`PassWord`,OriPassWord,pwdStatus,SF,SSDW) VALUES(#{xxdm},#{userId},#{password},#{oriPassWord},#{pwdStatus},#{sf},#{ssdw})
+	</insert>
+	
+	<delete id="deleteSchool" parameterType="list">
+	  DELETE FROM ${zhx_conn}.t_tr_school WHERE XXDM IN
+	  <foreach collection="list" open="(" close=")" item="schoolList" separator=",">
+	  #{schoolList}
+	  </foreach>
+	</delete>
+	
+	<delete id="deleteSchoolPycc" parameterType="list">
+	  DELETE FROM ${zhx_conn}.t_tr_school_pycc WHERE XXDM IN 
+	 <foreach collection="list" open="(" close=")" item="schoolList" separator=",">
+	  #{schoolList}
+	  </foreach>
+	</delete>
+	
+	<delete id="deleteSchoolUser" parameterType="list">
+	  DELETE FROM ${zhx_conn}.t_uc_user WHERE UserSysId IN
+	  <foreach collection="list" open="(" close=")" item="schoolList" separator=",">
+	  #{schoolList}
+	  </foreach>
+	</delete>
+	
+
+	<select id="getBuTeacherAccountList" parameterType="hashmap" resultType="hashmap">
+	  SELECT 
+	  e.xzqhm,
+	  b.XXDM AS xxdm,
+	  b.XXMC AS xxmc,
+	  a.ZGH AS zgh,
+	  a.XM AS xm,
+	  a.LXDH AS lxdh,
+	  c.userID AS userID,
+	  c.oriPassWord AS oriPassWord,
+	  c.pwdStatus
+	  FROM ${zhx_conn}.t_hr_teacher a
+	  LEFT JOIN ${zhx_conn}.t_tr_school b ON a.XXDM = b.XXDM
+	  LEFT JOIN ${zhx_conn}.t_uc_user c ON a.ZGH = c.UserSysId
+	  LEFT JOIN (SELECT #{xzqhm} AS dm,userDm,GROUP_CONCAT(mc SEPARATOR '-') AS xzqhm FROM ${zhx_conn}.t_dm_jg WHERE dm= #{sxzqhm} OR dm = #{shxzqhm} OR dm=#{xzqhm}) e ON b.XZQHM =e.dm
+	  WHERE a.XXDM = #{xxdm} 
+	  <if test="zghxm!=null and zghxm!=''">
+	  AND a.ZGH LIKE '%${zghxm}%' OR a.XM LIKE '%${zghxm}%'
+	  </if>
+	</select>
+
+	<select id="getBuStudentAccountList" parameterType="hashmap" resultType="hashmap">
+	  SELECT
+	  f.xzqhm,
+	  e.XXDM AS xxdm,
+	  e.XXMC AS xxmc,
+      a.XH AS userXh,
+      a.USER_XH AS xh,
+	  a.XM AS xm,
+	  c.BJMC AS bjmc,
+	  a.FQLXDH AS fqlxdh,
+	  a.MQLXDH AS mqlxdh,
+	  d.UserID AS userID,
+	  d.OriPassWord AS oriPassWord,
+	  d.pwdStatus AS pwdStatus,
+	  d.UserSysId AS userSysId
+	  FROM ${zhx_conn}.t_ss_student a
+	  LEFT JOIN ${zhx_conn}.t_ss_studenrol b on a.XH=b.XH
+      LEFT JOIN ${zhx_conn}.t_ss_class c on b.BH=c.BH
+      LEFT JOIN ${zhx_conn}.t_uc_user d on a.XH = d.UserSysId
+      LEFT JOIN ${zhx_conn}.t_tr_school e ON a.XXDM = e.XXDM
+	  LEFT JOIN (SELECT #{xzqhm} AS dm,userDm,GROUP_CONCAT(mc SEPARATOR '-') AS xzqhm FROM ${zhx_conn}.t_dm_jg WHERE dm= #{sxzqhm} OR dm = #{shxzqhm} OR dm=#{xzqhm}) f ON e.XZQHM =f.dm
+	  WHERE  b.sfzx='1' AND a.XXDM = #{xxdm}
+	  <if test="xn!=null">
+	  	AND b.XN = #{xn}
+	  </if>
+	  <if test="xqm!=null">
+	  	AND b.XQM = #{xqm}
+	  </if>  
+	  <if test="synj!=null">
+	  	AND c.SYNJ IN 
+	  	<foreach collection="synj" item="synjlist" open="(" close=")" separator=",">
+	  	#{synjlist}
+	    </foreach>
+	  </if>
+	  <if test="bjmc!=null">
+	  	AND b.BH IN
+	  	<foreach collection="bjmc" item="bjmclist" open="(" close=")" separator=",">
+	  	#{bjmclist}
+	    </foreach>
+	  </if>
+	  <if test="xjhxm!=null and xjhxm!=''">
+	    AND (a.XH like '%${xjhxm}%' OR a.XM like '%${xjhxm}%')
+	  </if>
+	</select>
+
+    <select id="getBuParentAccountList" parameterType="hashmap" resultType="hashmap">
+      SELECT
+	  f.xzqhm,
+	  e.XXDM AS xxdm,
+	  e.XXMC AS xxmc,
+	  a.XH as userXh,
+	  a.USER_XH AS xh,
+	  a.XM AS xm,
+	  c.BJMC AS bjmc,
+	  a.FQLXDH AS fqlxdh,
+	  a.MQLXDH AS mqlxdh,
+	  d.UserID AS userID,
+	  d.OriPassWord AS oriPassWord,
+	  d.pwdStatus,
+	  d.UserSysId AS userSysId
+	  FROM ${zhx_conn}.t_ss_student a
+	  LEFT JOIN ${zhx_conn}.t_ss_studenrol b on a.XH=b.XH
+      LEFT JOIN ${zhx_conn}.t_ss_class c on b.BH=c.BH
+      LEFT JOIN ${zhx_conn}.t_uc_user d on a.parentsysid = d.UserSysId
+      LEFT JOIN ${zhx_conn}.t_tr_school e ON a.XXDM = e.XXDM
+      LEFT JOIN (SELECT #{xzqhm} AS dm,userDm,GROUP_CONCAT(mc SEPARATOR '-') AS xzqhm FROM ${zhx_conn}.t_dm_jg WHERE dm= #{sxzqhm} OR dm = #{shxzqhm} OR dm=#{xzqhm}) f ON e.XZQHM =f.dm
+	  WHERE b.sfzx='1' AND a.XXDM = #{xxdm}
+      <if test="xn!=null">
+	  	AND b.XN = #{xn}
+	  </if>
+	  <if test="xqm!=null">
+	  	AND b.XQM = #{xqm}
+	  </if>  
+	  <if test="synj!=null">
+	  	AND c.SYNJ IN 
+	  	<foreach collection="synj" item="synjlist" open="(" close=")" separator=",">
+	  	#{synjlist}
+	    </foreach>
+	  </if>
+	  <if test="bjmc!=null">
+	  	AND b.BH IN
+	  	<foreach collection="bjmc" item="bjmclist" open="(" close=")" separator=",">
+	  	#{bjmclist}
+	    </foreach>
+	  </if>
+	  <if test="xjhxm!=null and xjhxm!=''">
+	    AND a.XH like '%${xjhxm}%' OR a.XM like '%${xjhxm}%'
+	  </if>
+    </select>
+	
+	
+	
+	<!-- 指定密码或者随机生成 -->
+	<update id="updateBuPwds" parameterType="hashmap">
+	  UPDATE ${zhx_conn}.t_uc_user SET OriPassWord = #{oriPassWord},`PassWord`= #{passWord},pwdStatus = '0' WHERE UserSysId IN
+	  <foreach collection="zgh" item="zghlist" open="(" close=")" separator=",">
+	  	#{zghlist}
+	  </foreach>
+	</update>
+	
+	
+	<!-- 密码与账号相同 -->
+	<update id="updateBuPwdsEqualsAccount" parameterType="hashmap">
+	  UPDATE ${zhx_conn}.t_uc_user SET OriPassWord = #{oriPassWord},`PassWord`= #{passWord},pwdStatus = '0' WHERE UserSysId = #{zgh}
+	</update>
+
+	<select id="getNumOfTeacherFromSchool" parameterType="string" resultType="int">
+	  SELECT COUNT(*)
+      FROM ${zhx_conn}.t_tr_school a
+	  INNER JOIN ${zhx_conn}.t_hr_teacher b ON a.XXDM = b.XXDM
+	  WHERE a.XXDM = #{xxdm}
+	</select>
+
+	<select id="getNumOfClassFromSchool" parameterType="string" resultType="int">
+	  SELECT COUNT(*)
+      FROM ${zhx_conn}.t_tr_school a
+	  INNER JOIN ${zhx_conn}.t_ss_class  b ON a.XXDM = b.XXDM
+	  WHERE a.XXDM = #{xxdm}
+	</select>
+	
+	<select id="getNumOfStudentFromSchool" parameterType="string" resultType="int">
+	  SELECT COUNT(*)
+	  FROM ${zhx_conn}.t_tr_school a
+	  INNER JOIN ${zhx_conn}.t_ss_student b ON a.XXDM = b.XXDM
+	  WHERE a.XXDM = #{xxdm}
+	</select>
+	
+	<select id="getSchoolNameByCode" parameterType="string" resultType="string">
+	  SELECT XXMC
+	  FROM ${zhx_conn}.t_tr_school 
+	  WHERE XXDM = #{xxdm}
+	</select>
+	
+	<select id="getSchoolByAreaCode" parameterType="hashmap" resultType="hashmap">
+	  SELECT
+	  a.XXDM AS value,
+	  a.XXMC AS text
+	  FROM
+	  ${zhx_conn}.t_tr_school a LEFT JOIN ${zhx_conn}.t_dm_jg b ON a.XZQHM = b.dm
+	  WHERE a.XZQHM LIKE '${xzqhm}%'
+	</select>
+	
+	<!-- 通过学校代码以及学年学期获得使用年级 -->
+	<select id="getNJByXXXNXQ" parameterType="hashmap" resultType="hashmap">	  		
+	  SELECT GROUP_CONCAT((2014-CONVERT(b.dm, SIGNED)) SEPARATOR ',') AS value,
+	  '全部' AS text,
+	  '99' AS userDm
+	  FROM ${zhx_conn}.t_tr_school_pycc a
+	  INNER JOIN ${zhx_conn}.t_dm_nj b ON a.pycc=b.pycc
+	  INNER JOIN ${zhx_conn}.t_dm_pycc c ON a.pycc=c.dm
+	  WHERE a.xxdm=#{xxdm}
+	  UNION 
+	  SELECT (#{xn}-CONVERT(b.dm, SIGNED)) AS value,
+	  CONCAT('[',#{xn}-CAST(b.dm AS SIGNED)+ CAST(c.qsnj AS SIGNED),']',b.mc) AS text,
+      b.userDm
+	  FROM ${zhx_conn}.t_tr_school_pycc a
+	  INNER JOIN ${zhx_conn}.t_dm_nj b ON a.pycc=b.pycc
+	  INNER JOIN ${zhx_conn}.t_dm_pycc c ON a.pycc=c.dm
+	  WHERE a.xxdm=#{xxdm}
+	  ORDER BY userDm desc
+	</select>
+	
+	
+	<!-- 通过年级获得班级 -->
+	<select id="getClassByNJXXDM" parameterType="hashmap" resultType="hashmap">
+	  SELECT DISTINCT
+      GROUP_CONCAT(DISTINCT a.BH SEPARATOR ',') AS value,
+      '全部' AS text
+      FROM ${zhx_conn}.t_ss_class a
+	  INNER JOIN ${zhx_conn}.t_ss_classenrol b ON a.XXDM = b.XXDM AND a.BH = b.BH
+ 	  WHERE a.xxdm = #{xxdm} AND b.XN = #{xn} AND b.XQM = #{xqm}
+ 	  <if test="synj!=null and synj!=''">
+	  	AND a.SYNJ IN
+	  	<foreach collection="synj" item="synjlist" open="(" close=")" separator=",">
+	  	  #{synjlist}
+	  	</foreach>
+	  </if> 
+      UNION 
+	  SELECT
+	  DISTINCT
+	  a.BH AS  value,
+	  a.BJMC AS text
+	  FROM ${zhx_conn}.t_ss_class a 
+	  INNER JOIN ${zhx_conn}.t_ss_classenrol b ON a.XXDM = b.XXDM AND a.BH = b.BH
+	  WHERE a.xxdm = #{xxdm} AND b.XN = #{xn} AND b.XQM = #{xqm} 
+	  <if test="synj!=null and synj!=''">
+	  	AND a.SYNJ IN
+	  	<foreach collection="synj" item="synjlist" open="(" close=")" separator=",">
+	  	  #{synjlist}
+	  	</foreach>
+	  </if> 
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+</mapper>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-4.0.xsd  
+            http://www.springframework.org/schema/context  
+            http://www.springframework.org/schema/context/spring-context-4.0.xsd  
+            http://www.springframework.org/schema/mvc   
+            http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd 
+            http://www.springframework.org/schema/aop 
+    		http://www.springframework.org/schema/aop/spring-aop-4.0.xsd 
+            http://www.springframework.org/schema/tx 
+            http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+            http://www.springframework.org/schema/util
+            http://www.springframework.org/schema/util/spring-util-4.0.xsd
+            http://www.springframework.org/schema/data/mongo
+            http://www.springframework.org/schema/data/mongo/spring-mongo.xsd"
+	default-lazy-init="false">
+	
+    <!-- <context:property-placeholder location="classpath:config/mongo.properties" ignore-unresolvable="true" /> -->
+    
+    <!-- Factory bean that creates the Mongo instance -->
+    <!-- 
+    <bean id="mongo" class="org.springframework.data.mongodb.core.MongoFactoryBean">
+        <property name="host" value="${mongo.host}" />
+        <property name="port" value="${mongo.port}" />
+    </bean>
+      -->
+    <!-- MongoTemplate for connecting and quering the documents in the database -->
+    <!-- 
+    <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+        <constructor-arg name="mongo" ref="mongo" />
+        <constructor-arg name="databaseName" value="CloudCampusLog" />
+    </bean>
+     -->
+    
+    <bean id="mongo" class="org.springframework.data.mongodb.core.MongoFactoryBean">
+        <property name="host" value="${mongo.host}" />
+        <property name="port" value="${mongo.port}" />
+    </bean>
+    <!-- 
+    <mongo:mongo id="mongo" host="${mongo.host}" port="${mongo.port}" class="org.springframework.data.mongodb.core.MongoFactoryBean">
+        <mongo:options connections-per-host="${mongo.connectionsPerHost}" 
+            threads-allowed-to-block-for-connection-multiplier="${mongo.threadsAllowedToBlockForConnectionMultiplier}" 
+            connect-timeout="${mongo.connectTimeout}" 
+            max-wait-time="${mongo.maxWaitTime}" 
+            auto-connect-retry="${mongo.autoConnectRetry}" 
+            socket-keep-alive="${mongo.socketKeepAlive}" 
+            socket-timeout="${mongo.socketTimeout}" 
+            slave-ok="${mongo.slaveOk}" 
+            write-number="1" 
+            write-timeout="0" 
+            write-fsync="true"/>
+    </mongo:mongo>
+     -->
+    <bean id="userCredentials" class="org.springframework.data.authentication.UserCredentials">
+        <description>认证口令</description>
+        <constructor-arg name="username" value="${mongo.username}"/>
+        <constructor-arg name="password" value="${mongo.password}"/>
+    </bean>
+    <bean name="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+        <constructor-arg name="mongo" ref="mongo"/>
+        <constructor-arg name="userCredentials" ref="userCredentials"/>
+        <constructor-arg name="databaseName" value="${mongo.dbname}"/>
+    </bean>
+    
+    <!-- Default bean name is 'mongo' -->
+    <!--  
+    <mongo:mongo host="192.168.140.226" port="27017"/>
+    -->
+    <!-- Offers convenience methods and automatic mapping between MongoDB JSON documents and your domain classes. -->
+    <!--
+    <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+        <constructor-arg ref="mongo"/>     
+        <constructor-arg name="databaseName" value="zhxlog"/>     
+        <constructor-arg name="defaultCollectionName" value="zhx" />  
+    </bean>
+    -->
+</beans>

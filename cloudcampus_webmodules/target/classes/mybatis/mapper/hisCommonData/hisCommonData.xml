@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.commondata.dao.HisCommonDataDao">
+ <select id="getSchoolById1" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  	SELECT * FROM ${db_name_hisCommonData}${termInfoId}.t_school s 
+  	WHERE s.id=#{schoolId}
+  </select>
+  <select id="getAreaCode" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+     SELECT s.`areaCode` FROM ${db_name_hisCommonData}${termInfoId}.`t_school` s WHERE s.`id`=#{schoolId};
+  </select>
+  <select id="getSchoolById" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT GROUP_CONCAT(a.id)AS ids,u.`role` FROM 
+	(SELECT t.teacherId FROM  ${db_name_hisCommonData}${termInfoId}.t_teacher t WHERE t.`schoolId`=#{schoolId}
+	UNION SELECT t.managerId AS teacherId FROM  ${db_name_hisCommonData}${termInfoId}.`t_schoolmanager` t WHERE t.`schoolId`=#{schoolId}
+	UNION SELECT t.staffId AS teacherId FROM  ${db_name_hisCommonData}${termInfoId}.`t_sstaff` t WHERE t.`schoolId`=#{schoolId}
+	)t
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_user` u ON  t.`teacherId`=u.`id`
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_account` a ON u.accountId=a.id 
+	WHERE a.`status`='1'
+	GROUP BY u.role
+	UNION ALL  
+	SELECT 
+	GROUP_CONCAT(g.id)AS ids,99 AS role FROM ${db_name_hisCommonData}${termInfoId}.`t_grade` g  
+	WHERE g.`schoolId`=#{schoolId} AND g.`status`='1' ;
+  </select>
+  <select id="getAllClass" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  	SELECT t0.id,t0.className,t0.classType,t0.gradeId FROM ${db_name_hisCommonData}${termInfoId}.t_class t0
+  	<where>
+  	<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+		 t0.gradeId IN
+		<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+	 			#{item}
+		</foreach>  
+    </if>
+    </where>
+  </select>
+  
+  <select id="getTeacherRole" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  	 SELECT * FROM (SELECT b.teacherId,GROUP_CONCAT(b.classId) AS classIds,GROUP_CONCAT(b.lessonId) AS lessonIds
+	 FROM ${db_name_hisCommonData}${termInfoId}.t_teacher_course b WHERE b.teacherId = #{id}) AS b
+	 left JOIN(SELECT m.userId, GROUP_CONCAT(m.orgId) as orgIds FROM ${db_name_hisCommonData}${termInfoId}.t_org_member m
+	 WHERE m.userId = #{id}) AS a ON b.teacherId = a.userId
+   </select>
+  <select id="getBaseAccountUserIds" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  		SELECT t0.id,t0.accountName,t0.idNumber,t0.accountStatus,t0.name,t0.mobilePhone
+  		FROM ${db_name_hisCommonData}${termInfoId}.t_account t0 WHERE t0.id=#{accountId} AND t0.status='1'
+  </select>
+  <select id="getUserIdsAndRole" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT `id`,`role` FROM ${db_name_hisCommonData}${termInfoId}.t_user WHERE accountId=#{id} 
+  </select>
+  <select id="getStaffRole" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  		SELECT t0.staffId,t0.jobType,GROUP_CONCAT(t1.orgId) orgIds,t2.jobTypeName,t0.schoolId FROM ${db_name_hisCommonData}${termInfoId}.t_sstaff t0
+ 		INNER JOIN ${db_name_hisCommonData}${termInfoId}.t_org_member t1 ON t0.staffId=t1.userId
+ 		INNER JOIN ${db_name_hisCommonData}${termInfoId}.t_jobtype t2 ON t0.jobType = t2.id
+		WHERE t0.staffId = #{id} GROUP BY t0.staffId,t0.jobType,t2.jobTypeName,t0.schoolId
+  </select>
+  <select id="getSchoolManagerPartRole" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  		select schoolId,managerId from ${db_name_hisCommonData}${termInfoId}.T_SchoolManager where managerId=#{id}
+  </select>
+  <select id="getAccountById" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT t0.idNumber,t0.id,t0.accountName,t0.accountStatus,t0.name,t0.gender,t0.extId FROM 
+	${db_name_hisCommonData}${termInfoId}.t_account t0 WHERE t0.id=#{accountId} AND t0.status ='1'
+  </select>
+  <select id="getTeacherDeanOfClassIds" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+ 	 SELECT c.`id` AS classId,c.`headTeacherId`,c.`schoolId` FROM ${db_name_hisCommonData}${termInfoId}.t_class c 
+ 		LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_teacher t ON t.`schoolId`=c.`schoolId` AND t.`teacherId`=#{userId}
+			WHERE  c.`headTeacherId` =#{userId} AND c.`status`=1;
+  </select>
+  <select id="getSchoolTermIds" parameterType="com.alibaba.fastjson.JSONObject" resultType="Long">
+     SELECT t.`id` FROM ${db_name_hisCommonData}${termInfoId}.`t_terminfo` t 
+     	WHERE t.`schoolId`=#{schoolId} AND t.`status`=1;
+  </select>
+</mapper>

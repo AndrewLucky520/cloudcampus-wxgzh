@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.student.dao.ClassDao">
+	<!-- 例子 -->
+	<cache eviction="FIFO" flushInterval="60000" size="1024"
+		readOnly="true" />
+	<parameterMap type="com.talkweb.student.domain.business.TSsClass"
+		id="ClasssParam">
+	</parameterMap>
+	<resultMap type="com.talkweb.student.domain.business.TSsClass"
+		id="ClassMap">
+	</resultMap>
+	<select id="queryClassList" parameterType="hashmap" resultType="HashMap">
+		SELECT
+		a.BH as bh,
+		a.BJMC as bjmc,
+		CONCAT(a.NJ,"[",c.mc,"]") AS rxnd,
+		b.mc AS bjlxm,
+		d.XM AS bzrzgh,
+		f.jgmc AS njz,
+		COUNT(s.BH) AS bjrs
+		FROM
+		${zhx_conn}.t_ss_class a
+		INNER JOIN ${zhx_conn}.t_ss_classenrol x ON
+		a.BH=x.BH AND CONCAT(x.XN,x.XQM)=#{xnxq}
+		LEFT JOIN
+		${zhx_conn}.t_dm_bjlx b ON a.BJLXM=b.dm
+		LEFT JOIN ${zhx_conn}.t_dm_nj c
+		ON c.dm=left(#{xnxq},4)-a.SYNJ
+		LEFT JOIN ${zhx_conn}.t_tr_bmxx_nj e ON
+		e.NJ=c.dm AND e.XXDM=a.XXDM
+		LEFT JOIN ${zhx_conn}.t_tr_bmxx f ON
+		f.jgh=e.JGH
+		LEFT JOIN ${zhx_conn}.t_hr_teacher d ON d.ZGH=x.BZRZGH
+		LEFT
+		JOIN ${zhx_conn}.t_ss_studenrol s ON s.BH=a.BH AND s.SFZX='1' AND
+		s.XN=x.XN AND
+		s.XQM=x.XQM
+		<where>
+			1=1
+			<if test="bjmc!=null">
+				and a.BJMC LIKE CONCAT('%',CONCAT(#{bjmc},'%'))
+			</if>
+			<if test="sql!=null">
+				and (1=1 ${sql})
+			</if>
+			GROUP BY
+			a.BH,a.BJMC,b.mc,d.XM,f.jgjc
+		</where>
+		ORDER BY a.BJMC
+	</select>
+	<select id="queryOne" parameterType="HashMap" resultType="HashMap">
+		SELECT
+		a.SYNJ AS nj,
+		a.BJMC AS bjmc,
+		a.BJLXM AS bjlxm,
+		a.BZRZGH AS bzrzgh
+		FROM
+		${zhx_conn}.t_ss_class a
+		INNER JOIN ${zhx_conn}.t_ss_classenrol b ON
+		a.BH=b.BH AND
+		CONCAT(b.XN,b.XQM)=#{xnxq}
+		WHERE a.BH=#{bh}
+	</select>
+	<insert id="addClass" parameterType="hashmap">
+		INSERT INTO
+		${zhx_conn}.t_ss_class
+		(XXDM,BH,USER_BH,BJMC,XZ,BJLXM,BZRZGH,SYNJ,SFCX,PYCC,NJ)
+		VALUES
+		(#{xxdm},#{bh},#{bjmc},#{bjmc},#{xz},#{bjlxm},#{bzrzgh},#{synj},'0',#{pycc},#{nj})
+	</insert>
+	<insert id="addClassMany" parameterType="java.util.List">
+		INSERT INTO
+		${zhx_conn}.t_ss_class
+		(XXDM,BH,USER_BH,BJMC,XZ,BJLXM,SYNJ,SFCX,PYCC,NJ)
+		values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.xxdm},#{item.bh},#{item.bjmc},#{item.bjmc},#{item.xz},#{item.bjlxm},#{item.synj},'0',#{item.pycc},#{item.nj})
+		</foreach>
+	</insert>
+	<update id="updateClass" parameterType="hashmap">
+		UPDATE
+		${zhx_conn}.t_ss_class a
+		INNER JOIN ${zhx_conn}.t_ss_classenrol x ON
+		a.BH=x.BH AND CONCAT(x.XN,x.XQM)=#{xnxq}
+		SET
+		a.BJMC=#{bjmc},
+		a.BJLXM=#{bjlxm},
+		a.BZRZGH=#{bzrzgh},
+		x.BZRZGH=#{bzrzgh}
+		WHERE a.BH=#{bh}
+	</update>
+	<delete id="deleteClass" parameterType="list">
+		delete from
+		${zhx_conn}.t_ss_class where BH in(
+		<foreach collection="list" item="BHList" separator=",">
+			#{BHList}
+		</foreach>
+		)
+	</delete>
+	<delete id="deleteClass2" parameterType="list">
+		delete from
+		${zhx_conn}.t_ss_classenrol where BH in(
+		<foreach collection="list" item="BHList" separator=",">
+			#{BHList}
+		</foreach>
+		)
+	</delete>
+</mapper>

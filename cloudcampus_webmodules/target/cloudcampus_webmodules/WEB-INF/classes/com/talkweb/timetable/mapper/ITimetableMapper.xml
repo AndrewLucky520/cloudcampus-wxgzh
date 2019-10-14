@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.timetable.mapper.ITimetableMapper">
+	 
+    <resultMap id="TimetableGradeSetResultMap" type="com.talkweb.timetable.bo.TimetableGradeSetBO">
+        <id column="timetableId" property="timetableId" />
+        <result column="timetableName" property="timetableName" />
+        <result column="maxDaysForWeek" property="maxDaysForWeek" />
+        <collection property="gradeSets" resultMap="gradeSetResultMap"/>
+    </resultMap>
+    
+    <resultMap id="gradeSetResultMap" type="com.talkweb.timetable.bo.GradeSetBo">
+        <result column="g_gradeId" property="gradeId" />
+        <result column="g_am_lesson_num" property="amLessonNum" />
+        <result column="g_pm_lesson_num" property="pmLessonNum" />
+        <result column="g_generated" property="generated" />
+    </resultMap>
+    
+    
+    <resultMap id="TaskTeacherSetBoResultMap" type="com.talkweb.timetable.bo.TaskTeacherSetBo">
+        <result column="taskId" property="taskId" />
+        <result column="teacherId" property="teacherId" />
+    </resultMap>
+    
+    <resultMap id="TimetableBoResultMap" type="com.talkweb.timetable.bo.TimetableBo">
+        <result column="TimetableId" property="timetableId" />
+        <result column="TimetableName" property="timetableName" />
+    </resultMap>
+    
+    
+	<select id="getTimetableGradeSetById" resultMap="TimetableGradeSetResultMap">
+		SELECT
+			t.TimetableId,
+			t.TimetableName,
+			t.MaxDaysForWeek,
+			g.GradeId as g_gradeId,
+			g.AMLessonNum as g_am_lesson_num,
+			g.PMLessonNum as g_pm_lesson_num,
+			g.Generated as g_generated
+		FROM
+			cc_timetable.`t_crca_timetable` t
+			left join cc_timetable.t_crca_gradeset g on g.TimetableId = t.TimetableId
+		WHERE
+			t.TimetableId = #{id} 
+	</select>
+	
+	
+	<select id="listTaskTeacherByTimetableId" resultMap="TaskTeacherSetBoResultMap">
+		SELECT
+			*
+		FROM
+			${db_name_timetable}.t_crca_task_teacherset 
+		WHERE
+			taskId IN ( SELECT taskId FROM ${db_name_timetable}.t_crca_task WHERE timetableId = #{timetableId} )
+	</select>
+	
+	
+    <select id="listPublishedTimetable"  resultMap="TimetableBoResultMap">
+		<bind name="schoolYear" value="termInfo.substring(0,4)" />
+		<bind name="termName" value="termInfo.substring(4,5)" />
+    	SELECT * FROM ${db_name_timetable}.t_crca_timetable
+		WHERE SchoolId=#{schoolId} 
+			AND TermName=#{termName} AND SchoolYear=#{schoolYear} AND Published='2'
+    </select>
+    
+    
+	<select id="getLastPublishedTimetableByClassId" resultMap="TimetableBoResultMap">
+		<bind name="schoolYear" value="termInfo.substring(0,4)" />
+		<bind name="termName" value="termInfo.substring(4,5)" />
+		SELECT
+			tb.timetableId,
+			tb.TimetableName
+		FROM
+			cc_timetable.t_crca_timetable tb 
+		WHERE
+			tb.schoolId = #{schoolId} 
+			AND tb.TermName = #{termName} 
+			AND tb.SchoolYear = #{schoolYear} 
+			AND tb.Published = '2' 
+			AND EXISTS (
+		SELECT
+			1
+		FROM
+			cc_timetable.T_CRCA_Task task 
+		WHERE
+			task.schoolId = tb.schoolId 
+			AND task.classId = #{classId} 
+			AND task.timetableId = tb.timetableId 
+			) 
+		ORDER BY
+			tb.CreateTime DESC
+			LIMIT 1
+	</select>
+  
+</mapper>

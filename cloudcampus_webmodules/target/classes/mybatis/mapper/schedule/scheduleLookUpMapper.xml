@@ -1,0 +1,758 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <!-- 课表下可公用mybatis 不可通用的写到自己文件 -->
+<mapper namespace="com.talkweb.schedule.dao.ScheduleLookUpDao">
+
+	<select id="getSchedule" parameterType="hashmap" resultType="JSONObject">
+		SELECT scheduleId AS scheduleId,scheduleName AS scheduleName,DATE_FORMAT(createTime,'%Y-%m-%d') 
+		AS createTime,createTime AS sort, published AS published ,maxDaysForWeek ,dayOfStart FROM ${db_name_schedule}.t_sch_scheduleinfo 
+		WHERE schoolId = #{schoolId} AND CONCAT(schoolYear,termInfoId) = #{termInfo}
+		<if test="published!=null and published!=''">
+			AND published = #{published}
+		</if>
+		<if test="scheduleId!=null and scheduleId!=''">
+			AND scheduleId = #{scheduleId}
+		</if>	
+		ORDER BY sort DESC
+	</select>
+  
+	<insert id="addSchedule" parameterType="hashmap">
+	   INSERT INTO ${db_name_schedule}.t_sch_scheduleinfo (scheduleId,schoolId,schoolYear,
+	   termInfoId,scheduleName,published,createTime) VALUES (#{scheduleId}, #{schoolId}, 
+	   #{schoolYear}, #{termName}, #{scheduleName}, #{published}, #{createTime})
+	</insert>
+
+	<delete id="deleteSchedule" parameterType="JSONObject" statementType="CALLABLE">
+	   call ${db_name_schedule}.proc_delete_allScheduleInfo(#{schoolId},#{scheduleId});
+	</delete> 
+  
+	<update id="updateSchedule" parameterType="JSONObject">
+	   UPDATE ${db_name_schedule}.t_sch_scheduleinfo
+			<set>
+				<if test="scheduleName!=null and scheduleName!=''">
+					scheduleName = #{scheduleName},
+				</if>
+				<if test="sameForAll!=null and sameForAll!=''">
+					sameForAll = #{sameForAll},
+				</if>
+				<if test="halfAtLastDay!=null and halfAtLastDay!=''">
+					halfAtLastDay = #{halfAtLastDay},
+				</if>
+				<if test="published!=null and published!=''">
+					published = #{published},
+				</if>
+				<if test="dayOfStart!=null and dayOfStart!=''">
+					dayOfStart = #{dayOfStart},
+				</if>
+				<if test="maxDaysForWeek!=null and maxDaysForWeek!=''">
+					maxDaysForWeek = #{maxDaysForWeek}
+				</if>			
+			</set>		
+			WHERE schoolId = #{schoolId} AND scheduleId = #{scheduleId}
+	</update> 
+ 	
+    <!-- 查询班级课表 -->
+    <select id="getClassTb" parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">
+        SELECT
+	a.subjectId,
+	a.dayOfWeek,
+	a.lessonOfDay,
+	a.courseType,
+	'0' AS isGoClass,
+	d.scheduleName,
+	d.maxDaysForWeek AS totalMaxDays,
+	c.amLessonNum,
+	c.pmLessonNum,
+	c.amLessonNum+c.pmLessonNum as totalMaxLessons,
+	c.placementType,
+	c.gradeId,
+	b.tclassId,
+	e.groundId,
+	f.groundName,
+	b.type
+	FROM
+	${db_name_schedule}.t_sch_tclass_schedulelist a
+	LEFT JOIN ${db_name_schedule}.t_sch_task e on a.scheduleId=e.scheduleId
+	and a.schoolId=e.schoolId and a.subjectId=e.subjectId
+	and a.tclassId=e.tclassId
+	LEFT JOIN ${db_name_schedule}.t_sch_tclass b ON a.schoolId = b.schoolId
+	AND a.scheduleId = b.scheduleId
+	AND a.tclassId = b.tclassId and b.gradeId=e.gradeId
+	LEFT JOIN ${db_name_schedule}.t_sch_schedule_gradeset c ON a.scheduleId = c.scheduleId
+	AND a.schoolId = c.schoolId
+	AND b.schoolYear = c.schoolYear
+	AND b.termInfoId = c.termInfoId
+	and b.gradeId=c.gradeId
+	LEFT JOIN ${db_name_schedule}.t_sch_scheduleinfo d ON d.schoolYear = c.schoolYear
+	AND d.termInfoId = c.termInfoId
+	AND a.scheduleId = d.scheduleId
+	AND a.schoolId = d.schoolId
+	LEFT JOIN ${db_name_schedule}.t_sch_groundInfo f on a.schoolId=f.schoolId and a.scheduleId=f.scheduleId and f.groundId=e.groundId
+	WHERE
+		b.tclassId in
+		<foreach collection="tClassId" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach>
+	AND c.gradeId in
+	<foreach collection="gradeId" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach>
+	<!-- and b.type in
+			<foreach collection="type" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach> -->
+	and a.schoolId=#{schoolId}
+	AND a.scheduleId = #{scheduleId}
+	and concat(d.schoolYear,d.termInfoId)=#{xnxq} 
+	AND d.published <![CDATA[>=1 ]]>
+    </select>
+     <!-- 查询班级课表  老师 -->
+    <select id="getClassTbTeachers" parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">
+    	      select * from ${db_name_schedule}.t_sch_task_teacherset where schoolId=#{schoolId} and scheduleId=#{scheduleId}
+    	      <if test="tClassId!=null and tClassId!=''">
+    	      and tclassId in
+    	      <foreach collection="tClassId" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach>
+			</if>
+     </select>
+      <!-- 查询班级课表  走班 -->
+     <select id="getClassTbZOU" parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">
+    	      SELECT
+	'' as subjectId,
+	a.dayOfWeek,
+	a.lessonOfDay,
+	'' as courseType,
+	'1' AS isGoClass,
+	c.scheduleName,
+	c.maxDaysForWeek AS totalMaxDays,
+	b.amLessonNum,
+	b.pmLessonNum,
+	b.amLessonNum+b.pmLessonNum as totalMaxLessons,
+	b.placementType,
+	b.gradeId,
+	'' as tclassId,
+	'' as groundId,
+	'' as groundName,
+	'' as type
+	 from ${db_name_schedule}.t_sch_tclass_GradeGoClassTime a LEFT JOIN ${db_name_schedule}.t_sch_schedule_gradeset b on a.scheduleId=b.scheduleId
+	and a.schoolId=b.schoolId and a.gradeId=b.gradeId LEFT JOIN ${db_name_schedule}.t_sch_scheduleinfo c on a.scheduleId=c.scheduleId
+	and a.schoolId=c.schoolId where 
+	a.gradeId in
+	<foreach collection="gradeId" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach>
+	AND a.scheduleId = #{scheduleId}
+	and a.schoolId=#{schoolId}
+	and concat(c.schoolYear,c.termInfoId)=#{xnxq} 
+	AND c.published <![CDATA[>=1 ]]>
+	and a.isGoClass='1'
+     </select>
+     
+       <!-- 查询班级课表  定二走一 -->
+     <select id="getClassTbZOU1" parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">
+    	      SELECT
+	'' as subjectId,
+	a.dayOfWeek,
+	a.lessonOfDay,
+	'' as courseType,
+	'1' AS isGoClass,
+	c.scheduleName,
+	c.maxDaysForWeek AS totalMaxDays,
+	b.amLessonNum,
+	b.pmLessonNum,
+	b.amLessonNum+b.pmLessonNum as totalMaxLessons,
+	b.placementType,
+	b.gradeId,
+	a.tclassId,
+	'' as groundId,
+	'' as groundName,
+	'' as type
+	 from ${db_name_schedule}.t_sch_tclass_tclassGoClassTime a LEFT JOIN ${db_name_schedule}.t_sch_schedule_gradeset b on a.scheduleId=b.scheduleId
+	and a.schoolId=b.schoolId and a.gradeId=b.gradeId LEFT JOIN ${db_name_schedule}.t_sch_scheduleinfo c on a.scheduleId=c.scheduleId
+	and a.schoolId=c.schoolId where 
+	a.gradeId in
+	<foreach collection="gradeId" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach>
+	AND a.scheduleId = #{scheduleId}
+	and a.schoolId=#{schoolId}
+	and concat(c.schoolYear,c.termInfoId)=#{xnxq} 
+	AND c.published <![CDATA[>=1 ]]>
+	and a.isGoClass <![CDATA[>0 ]]>
+     </select>
+     
+     
+       <!-- 查询老师课表-->
+     <select id="getTeacherTb" parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">
+         SELECT 
+			b.subjectId,
+			b.dayOfWeek,
+			b.lessonOfDay,
+			b.courseType,
+			b.tclassId,
+			g.scheduleName,
+			g.maxDaysForWeek AS totalMaxDays,
+			f.amLessonNum,
+			f.pmLessonNum,
+			f.amLessonNum + f.pmLessonNum AS totalMaxLessons,
+			f.gradeId,
+			a.teacherId,
+			c.groundId,
+			d.groundName,
+			e.type,
+			e.placementType,
+			g.dayOfStart
+	from  ${db_name_schedule}.t_sch_task_teacherset a
+	INNER JOIN  ${db_name_schedule}.t_sch_tclass_schedulelist b on (
+		a.schoolId=#{schoolId} 
+		and a.scheduleId = #{scheduleId}
+		and a.subjectId=b.subjectId
+		and a.tclassId=b.tclassId
+		and b.scheduleId = #{scheduleId}  
+		and b.schoolId = #{schoolId})
+	INNER JOIN ${db_name_schedule}.t_sch_task c on (
+		c.scheduleId = #{scheduleId}
+		and c.schoolId = #{schoolId}
+		and c.subjectId = a.subjectId
+		and c.tclassId = a.tclassId 
+		and c.gradeId = a.gradeId )
+	LEFT JOIN ${db_name_schedule}.t_sch_groundInfo d on ( 
+		d.schoolId = #{schoolId}
+		and d.scheduleId = #{scheduleId} 
+		and d.groundId = c.groundId
+		<!-- and d.schoolYear = #{xn} -->
+		<!-- and d.termInfoId = #{xq} -->
+		)
+	INNER JOIN ${db_name_schedule}.t_sch_tclass e on (
+		e.scheduleId = #{scheduleId}  
+		and e.schoolId = #{schoolId} 
+		and e.tclassId = a.tclassId
+		and e.gradeId=c.gradeId
+		<!-- and e.schoolYear=#{xn} -->
+		<!-- and e.termInfoId=#{xq} --> )
+	INNER JOIN ${db_name_schedule}.t_sch_schedule_gradeset f on ( 
+		f.scheduleId = #{scheduleId} 
+		and f.schoolId = #{schoolId}
+		 <!-- and f.schoolYear=#{xn} -->
+		 <!-- and f.termInfoId=#{xq} -->
+		and f.gradeId=c.gradeId)
+	INNER JOIN ${db_name_schedule}.t_sch_scheduleinfo g on ( 
+		g.scheduleId = #{scheduleId} 
+		and g.schoolId= #{schoolId}
+		and g.schoolYear=#{xn}
+	 	and g.termInfoId=#{xq}
+		 )
+	where  a.teacherId in
+	<foreach collection="teacherId" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach>
+	<if test='gradeId!=null and gradeId.size()>0'>
+		and f.gradeId in
+		<foreach collection="gradeId" item="item" open="(" close=")"
+					separator=",">
+					#{item}
+				</foreach>
+	 </if>
+		and	g.published in (1,2)
+     </select>
+    
+     <select id="getnewStudentTb"  parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">       
+      SELECT 
+			c.subjectId,
+			c.dayOfWeek,
+			c.lessonOfDay,
+			c.courseType,
+			c.tclassId,
+			g.scheduleName,
+			g.maxDaysForWeek AS totalMaxDays,
+			g.dayOfStart,
+			f.amLessonNum,
+			f.pmLessonNum,
+			f.amLessonNum + f.pmLessonNum AS totalMaxLessons,
+			f.gradeId,
+			a.studentId,
+			d.groundId,
+			e.groundName,
+			b.type,
+			b.placementType
+	FROM
+	${db_name_schedule}.t_sch_student_tclass_relationship a
+	INNER JOIN ${db_name_schedule}.t_sch_tclass_schedulelist c on (
+	 	a.scheduleId = #{scheduleId}
+	 	and a.schoolId=#{schoolId}
+	 <!--	and CONCAT(a.schoolYear,a.termInfoId)=#{xnxq}   -->
+		and c.scheduleId = #{scheduleId}
+		and c.schoolId = #{schoolId}
+		and a.tclassId=c.tclassId)
+	INNER JOIN ${db_name_schedule}.t_sch_scheduleinfo g on (
+		g.scheduleId = #{scheduleId}
+		and g.schoolId = #{schoolId}
+		and g.schoolYear=#{xn} 
+		and g.termInfoId=#{xq}
+	 )
+	INNER JOIN ${db_name_schedule}.t_sch_tclass b on (
+		b.scheduleId = #{scheduleId}
+		and b.schoolId = #{schoolId}
+	 <!--	and b.schoolYear=#{xn}  -->
+	<!--	and b.termInfoId=#{xq}  -->
+		and a.gradeId=b.gradeId
+		and a.tclassId=b.tclassId )
+	INNER JOIN ${db_name_schedule}.t_sch_task d on (
+		d.scheduleId = #{scheduleId}
+		and d.schoolId = #{schoolId}
+		and a.gradeId=d.gradeId
+		and a.tclassId=d.tclassId
+		and c.subjectId=d.subjectId )
+	LEFT JOIN ${db_name_schedule}.t_sch_groundInfo e on (
+		e.scheduleId = #{scheduleId}
+		and e.schoolId = #{schoolId}
+	 <!--	and e.schoolYear=#{xn}  -->
+	 <!--	and e.termInfoId=#{xq}  -->
+		and d.groundId=e.groundId)
+	LEFT JOIN ${db_name_schedule}.t_sch_schedule_gradeset f on (
+		f.scheduleId = #{scheduleId}
+		and f.schoolId = #{schoolId}
+	 <!--	and f.schoolYear=#{xn} -->
+	<!--	and f.termInfoId=#{xq} -->
+		and a.gradeId=f.gradeId )
+	<where>
+	<if test="studentId != null and studentId.size() > 0 ">
+		  a.studentId in 
+		<foreach collection="studentId" item="item" open="(" close=")"
+					separator=",">
+					#{item}
+		</foreach>
+	</if>
+	and a.gradeId in 
+	<foreach collection="gradeId" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach>
+	</where>
+	AND g.published in (1,2)     
+     </select>
+     
+     <select id="getnewStudentTbForApp"  parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">       
+	      SELECT 
+	      		c.tclassId,
+				c.subjectId,
+				c.dayOfWeek,
+				c.lessonOfDay,
+				c.courseType,
+				g.scheduleName,
+				g.maxDaysForWeek AS totalMaxDays,
+				g.dayOfStart,
+				b.type,
+				b.placementType,
+				group_concat(d.teacherId) teacherIds
+		FROM
+			${db_name_schedule}.t_sch_student_tclass_relationship a
+		INNER JOIN ${db_name_schedule}.t_sch_tclass_schedulelist c on (
+		 	a.scheduleId = #{scheduleId}
+		 	and a.schoolId=#{schoolId}
+		 	and a.gradeId = #{gradeId}
+		 	and a.studentId =  #{studentId}
+		 <!--	and CONCAT(a.schoolYear,a.termInfoId)=#{xnxq}   -->
+			and c.scheduleId = #{scheduleId}
+			and c.schoolId = #{schoolId}
+			and a.tclassId=c.tclassId)
+		INNER JOIN ${db_name_schedule}.t_sch_scheduleinfo g on (
+			g.scheduleId = #{scheduleId}
+			and g.schoolId = #{schoolId}
+			and g.schoolYear=#{xn} 
+			and g.termInfoId=#{xq}
+			and g.published in (1,2)
+		 )
+		LEFT JOIN ${db_name_schedule}.t_sch_tclass b on (
+			b.scheduleId = #{scheduleId}
+			and b.schoolId = #{schoolId}
+		 <!--	and b.schoolYear=#{xn}  -->
+		<!--	and b.termInfoId=#{xq}  -->
+			and a.gradeId=b.gradeId
+			and a.tclassId=b.tclassId )
+		LEFT JOIN ${db_name_schedule}.t_sch_task_teacherset d on (
+			d.scheduleId = #{scheduleId}
+			and d.schoolId = #{schoolId}
+			and d.gradeId = a.gradeId
+			and d.tclassId = a.tclassId
+			and d.subjectId = c.subjectId)   
+		group by  c.tclassId,c.subjectId,c.dayOfWeek,c.lessonOfDay
+     </select>
+     
+     <select id="getGroundTb" parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">
+         
+          SELECT 
+	c.subjectId,
+	c.dayOfWeek,
+	c.lessonOfDay,
+	c.courseType,
+	c.tclassId,
+	g.scheduleName,
+	g.maxDaysForWeek AS totalMaxDays,
+	f.amLessonNum,
+	f.pmLessonNum,
+	f.amLessonNum + f.pmLessonNum AS totalMaxLessons,
+	f.gradeId,
+	a.groundId,
+	a.groundName,
+	d.type
+	FROM
+	${db_name_schedule}.t_sch_groundInfo a
+	LEFT JOIN ${db_name_schedule}.t_sch_task b on a.scheduleId=b.scheduleId
+	and a.schoolId=b.schoolId 
+	and a.groundId=b.groundId
+	INNER JOIN ${db_name_schedule}.t_sch_tclass_schedulelist c on a.scheduleId=c.scheduleId
+	and a.schoolId=c.schoolId and b.tclassId=c.tclassId 
+	and b.subjectId=c.subjectId
+	LEFT JOIN ${db_name_schedule}.t_sch_tclass d on a.scheduleId=d.scheduleId
+	and a.schoolId=d.schoolId and b.gradeId=d.gradeId
+	and b.tclassId=d.tclassId 
+	LEFT JOIN ${db_name_schedule}.t_sch_schedule_gradeset f on a.scheduleId=f.scheduleId
+	and a.schoolId=f.schoolId and a.schoolYear=f.schoolYear
+	and a.termInfoId=f.termInfoId and b.gradeId=f.gradeId
+	LEFT JOIN ${db_name_schedule}.t_sch_scheduleinfo g on a.scheduleId=g.scheduleId
+	and a.schoolId=g.schoolId and a.schoolYear=g.schoolYear
+	and a.termInfoId=g.termInfoId
+	where CONCAT(a.schoolYear,a.termInfoId)=#{xnxq} and a.schoolId=#{schoolId}
+	and a.scheduleId = #{scheduleId}
+	and f.gradeId in 
+	<foreach collection="gradeId" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach>
+	and a.groundId in
+	<foreach collection="groundId" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach>
+	AND g.published <![CDATA[>=1 ]]>
+     </select>
+     
+       <select id="getGradeTbs" parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">
+           SELECT 
+	c.subjectId,
+	c.dayOfWeek,
+	c.lessonOfDay,
+	c.courseType,
+	'0' AS isGoClass,
+	e.scheduleName,
+	e.maxDaysForWeek AS totalMaxDays,
+	a.amLessonNum,
+	a.pmLessonNum,
+	a.amLessonNum+a.pmLessonNum as totalMaxLessons,
+	a.placementType,
+	a.gradeId,
+	d.tclassId,
+	b.groundId,
+	f.groundName,
+	d.type
+	 FROM
+	${db_name_schedule}.t_sch_schedule_gradeset a
+	LEFT JOIN ${db_name_schedule}.t_sch_task b on a.scheduleId=b.scheduleId
+	and a.schoolId=b.schoolId and a.gradeId=b.gradeId
+	INNER JOIN ${db_name_schedule}.t_sch_tclass_schedulelist c on a.scheduleId=c.scheduleId
+	and a.schoolId=c.schoolId and b.tclassId=c.tclassId
+	and b.subjectId=c.subjectId
+	LEFT JOIN ${db_name_schedule}.t_sch_tclass d on a.scheduleId=d.scheduleId
+	and a.schoolId=d.schoolId and a.gradeId=d.gradeId
+	and b.tclassId=d.tclassId
+	LEFT JOIN ${db_name_schedule}.t_sch_scheduleinfo e on a.scheduleId=e.scheduleId
+	and a.schoolId=e.schoolId and a.schoolYear=e.schoolYear
+	and a.termInfoId=e.termInfoId
+	LEFT JOIN ${db_name_schedule}.t_sch_groundInfo f on a.scheduleId=f.scheduleId
+	and a.schoolId=f.schoolId and a.schoolYear=f.schoolYear
+	and a.termInfoId=f.termInfoId and b.groundId=f.groundId
+	where CONCAT(a.schoolYear,a.termInfoId)=#{xnxq} and a.schoolId=#{schoolId}
+	and a.scheduleId = #{scheduleId} and b.gradeId in
+	<foreach collection="gradeId" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach>
+        <if test="viewType!=null and viewType!='' and viewType==1">
+    	    and  ( d.type='1' or d.type='2' or d.type='5'or d.type='6' )
+			</if>
+			
+         <if test="viewType!=null and viewType!='' and viewType==2">
+    	  and  (d.type='3' or d.type='4' or d.type='7' )
+			</if>
+        </select>
+        
+       
+       <select id="getStudentClassTbs" parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">
+           SELECT 
+		a.tclassId,
+		a.studentId,
+		c.subjectGroupName
+		 FROM
+		${db_name_schedule}.t_sch_student_tclass_relationship a
+		LEFT JOIN ${db_name_schedule}.t_sch_tclass b on a.scheduleId=b.scheduleId
+		and a.schoolId=b.schoolId and a.schoolYear=b.schoolYear
+		and a.termInfoId=b.termInfoId and a.gradeId=b.gradeId
+		and a.tclassId=b.tclassId
+		LEFT JOIN ${db_name_schedule}.t_sch_subjectGroup c on a.scheduleId=c.scheduleId
+		and a.schoolId=c.schoolId and a.schoolYear=c.schoolYear
+		and a.termInfoId=c.termInfoId and a.gradeId=c.gradeId
+		and b.subjectGroupId=c.subjectGroupId
+		LEFT JOIN ${db_name_schedule}.t_sch_scheduleinfo d on a.scheduleId=d.scheduleId
+		and a.schoolId=d.schoolId and a.schoolYear=d.schoolYear
+		and a.termInfoId=d.termInfoId
+		where CONCAT(a.schoolYear,a.termInfoId)=#{xnxq} and a.schoolId=#{schoolId}
+			and a.scheduleId = #{scheduleId} 
+		and a.gradeId in
+		<foreach collection="gradeId" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach>
+		and a.tclassId in 
+		<foreach collection="tClassId" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach>	
+		and b.subjectGroupId in 
+		<foreach collection="subjectGroupId" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach>
+		AND d.published <![CDATA[>=1 ]]>
+       </select>
+       
+       
+       <select id="getNewTimetablePrintSet" parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">
+           
+           select * from ${db_name_schedule}.t_sch_printset  a where a.schoolId=#{schoolId}
+			and a.scheduleId = #{scheduleId} and a.type=#{type}
+           
+       </select>
+       
+        <select id="getScheduleTimetableById" parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">
+           
+           select * from ${db_name_schedule}.t_sch_scheduleinfo  a where a.schoolId=#{schoolId}
+			and a.scheduleId = #{scheduleId} and CONCAT(a.schoolYear,a.termInfoId)=#{xnxq}
+           
+       </select>
+       
+       
+       <update id="updateNewTimetablePrintSet"  parameterType="Map">
+		    update ${db_name_schedule}.t_sch_printset a
+		    <set>
+		       <if test="title!=null">a.title=#{title},</if>
+		       <if test="bottomNote1!=null">a.bottomNote1=#{bottomNote1},</if>
+		        <if test="bottomNote2!=null">a.bottomNote2=#{bottomNote2},</if>
+		       <if test="bottomNote3!=null">a.bottomNote3=#{bottomNote3},</if>
+		        <if test="printStyle!=null">a.printStyle=#{printStyle}</if>
+		     </set>
+		     where a.schoolId=#{schoolId} and a.scheduleId=#{scheduleId} and a.type=#{type};
+  </update>
+  
+       
+       <insert id="insertNewTimetablePrintSet" parameterType="Map">
+           
+              insert into ${db_name_schedule}.t_sch_printset
+    (schoolId,scheduleId,type,title,bottomNote1,bottomNote2,bottomNote3,
+     printStyle)
+     values(#{schoolId},#{scheduleId},#{type},#{title},#{bottomNote1},#{bottomNote2},
+    #{bottomNote3},#{printStyle})
+           
+       </insert>
+       
+       <select id="queryStuScheduleList" parameterType="JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+       		SELECT DISTINCT(a.scheduleId),scheduleName,left(b.createTime ,10) as createTime
+       		FROM  ${db_name_schedule}.t_sch_scheduleinfo b LEFT JOIN ${db_name_schedule}.t_sch_student_tclass_relationship a 
+				ON a.schoolId=b.schoolId AND a.scheduleId=b.scheduleId AND b.termInfoId=#{termInfoId} AND b.schoolYear=#{schoolYear}
+			WHERE a.schoolId=#{schoolId} 	
+			<if test="studentId!=null">
+					and a.studentId=#{studentId}
+			</if>
+			<if test="subjectIdList!=null and subjectIdList.size()>0">
+				and a.subjectId in
+				<foreach collection="subjectIdList" item="item" open="(" close=")" separator=",">
+						'${item}'
+				</foreach>
+			</if>	
+			AND b.published='2'
+			order by b.createTime desc
+       </select>
+       
+       <!-- 查询学生主课表 -->
+       <select id="queryStudentSelfMainTimetable" parameterType="JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+       		SELECT a.subjectId,a.tclassId, dayOfWeek,lessonOfDay,courseType,CONCAT(a.subjectId,a.tclassId) as identity
+			FROM  ${db_name_schedule}.t_sch_student_tclass_relationship a LEFT JOIN ${db_name_schedule}.t_sch_tclass_schedulelist b
+				ON a.schoolId=b.schoolId AND a.scheduleId=b.scheduleId AND a.tclassId=b.tclassId
+			WHERE a.schoolId=#{schoolId} AND a.scheduleId=#{scheduleId} AND b.studentId=#{studentId}
+				 AND a.schoolYear=#{schoolYear} AND a.termInfoId=#{termInfoId}
+       </select>
+       <!-- 查询学生课表延伸字段(开班类型和场地) -->
+        <select id="queryStudentSelfExt1Timetable" parameterType="JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+       		SELECT DISTINCT a.type,b.subjectId,b.tclassId,b.groundId,c.groundName
+			FROM (t_sch_tclass a LEFT JOIN t_sch_task b 
+				ON a.schoolId=b.schoolId AND a.scheduleId=b.scheduleId AND a.gradeId=b.gradeId AND a.tclassId=b.tclassId),t_sch_groundinfo c
+			WHERE b.schoolId = c.schoolId AND b.scheduleId = c.scheduleId AND b.groundId=c.groundId 
+				AND a.schoolId=#{schoolId} AND a.scheduleId=#{scheduleId} AND a.schoolYear=#{schoolYear} AND a.termInfoId=#{termInfoId} 
+				<if test="subjectIdTclassIdMapList!=null">
+					AND CONCAT(b.subjectId,b.tclassId) in
+					<foreach collection="subjectIdTclassIdMapList" item="item" open="(" close=")" separator=",">
+						'${item}'
+					</foreach>
+				</if>
+		</select>
+        <!-- 查询学生课表延伸字段(老师) -->
+        <select id="queryStudentSelfExt2Timetable" parameterType="JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+        	
+        </select>
+        
+        
+    <!-- 新高考成绩 -->
+	<select id="queryStuInTclass" parameterType="JSONObject" resultType="JSONObject">
+		SELECT a.gradeId,a.subjectId,a.studentId,a.tclassId,b.tclassName,b.tclassNum,b.tclassLevel
+		FROM
+		(
+			SELECT gradeId,subjectId,studentId,tclassId
+			FROM cc_schedule.t_sch_student_tclass_relationship
+			WHERE scheduleId= #{scheduleId} AND schoolId=#{schoolId}  AND schoolYear=#{schoolYear} AND termInfoId=#{termInfoId} 
+			<if test="gIdList!=null and gIdList.size>0">
+				AND gradeId IN 		
+				<foreach collection="gIdList" item="item" open="(" close=")" separator=",">
+					#{item}
+				</foreach>	
+			</if>
+			<if test="subIdList!=null and subIdList.size>0">
+				AND subjectId IN 
+				<foreach collection="subIdList" item="item" open="(" close=")" separator=",">
+					#{item}
+				</foreach>	
+			</if>
+			<if test="stuIdList!=null and stuIdList.size>0">
+				AND studentId IN
+				<foreach collection="stuIdList" item="item" open="(" close=")" separator=",">
+					#{item}
+				</foreach>	
+			</if>
+			<if test="tclassIdList!=null and tclassIdList.size>0">
+				AND tclassId IN 	
+				<foreach collection="tclassIdList" item="item" open="(" close=")" separator=",">
+					#{item}
+				</foreach>	
+			</if>
+		)a LEFT JOIN
+		(
+			SELECT tclassId,tclassName,tclassLevel,tclassNum
+			FROM cc_placementtask_${xnxq}.t_pl_dezy_class
+			WHERE placementId=#{placementId} AND schoolId=#{schoolId}
+		)b ON a.tclassId = b.tclassId
+	</select>
+	
+	<!-- 新高考教学考评 -->
+	<select id="evalOfSubInSchedule"  parameterType="JSONObject" resultType="JSONObject">
+		SELECT s.scheduleId,s.scheduleName,s.gradeId,t.subjectId,s.placementId
+		FROM
+		(
+			SELECT a.scheduleId,a.scheduleName,b.gradeId,b.placementId
+			FROM cc_schedule.t_sch_scheduleinfo a
+				INNER JOIN cc_schedule.t_sch_schedule_gradeset b ON a.scheduleId=b.scheduleId AND a.schoolId = b.schoolId
+					AND a.schoolYear=#{schoolYear} AND a.termInfoId=#{termInfoId} 
+					AND a.schoolId=#{schoolId} AND a.isArrange='1' AND b.placementType&gt;0 
+		) s
+		LEFT JOIN 
+		(
+			SELECT scheduleId,gradeId,subjectId
+			FROM cc_schedule.t_sch_task
+			WHERE schoolId=#{schoolId}
+			GROUP BY scheduleId,gradeId,subjectId
+		) t
+		ON s.scheduleId=t.scheduleId AND s.gradeId=t.gradeId
+	</select>
+	
+	<select id="getTeacherLessonsStatistics"  parameterType="JSONObject" resultType="JSONObject">
+		select tmp_class_count.teacherId,tmp_class_count.gradeId,tmp_class_count.tclassId,tmp_class_count.subjectId,tmp_class_count.lessons,tmp_all_count.totalLessons
+		from (
+			select 
+				t_s_t_t.teacherId,
+				t_s_t_t.tclassId,
+				t_s_t_t.gradeId,
+				t_s_t_t.subjectId,
+				${singleWeekCount}*sum(case when t_s_t_s.courseType in (0,1) then 1 else 0 end) +
+				${doubleWeekCount}*sum(case when t_s_t_s.courseType in (0,2) then 1 else 0 end)
+				<if test="singleWeekDays.size() != 0 ">
+						+ sum(case when t_s_t_s.courseType in (0,1) and t_s_t_s.dayOfWeek in 
+							<foreach collection="singleWeekDays" item="item" open="(" close=")" separator=",">${item-1}</foreach>
+							 then 1 else 0 end)
+				</if>
+				<if test="doubleWeekDays.size() != 0 ">
+						+ sum(case when t_s_t_s.courseType in (0,2) and t_s_t_s.dayOfWeek in 
+						<foreach collection="doubleWeekDays" item="item" open="(" close=")" separator=",">${item-1}</foreach>
+						 then 1 else 0 end)
+				</if> lessons
+			from ${db_name_schedule}.t_sch_task_teacherset t_s_t_t inner join ${db_name_schedule}.t_sch_task t_s_t on ( 
+				t_s_t_t.scheduleId = #{scheduleId}
+				<if test="gradeId != null and gradeId != ''" >
+				and t_s_t_t.gradeId = #{gradeId}
+				</if>
+				<if test="subjectIds != null and subjectIds != ''">
+				and t_s_t_t.subjectId in (${subjectIds})
+				</if>
+				<if test="teacherIds != null and teacherIds.size() != 0 ">
+				and t_s_t_t.teacherId in
+					<foreach collection="teacherIds" item="teacherId" open="(" close=")" separator=",">#{teacherId}</foreach>
+				</if>
+				and t_s_t.scheduleId = #{scheduleId}
+				and t_s_t_t.gradeId = t_s_t.gradeId
+				and t_s_t_t.tclassId = t_s_t.tclassId
+				and t_s_t_t.subjectId = t_s_t.subjectId
+			) inner join ${db_name_schedule}.t_sch_tclass_schedulelist t_s_t_s  on (
+				t_s_t_s.scheduleId = #{scheduleId}
+				and t_s_t_t.tclassId = t_s_t_s.tclassId
+				and t_s_t_t.subjectId = t_s_t_s.subjectId )
+			group by t_s_t_t.teacherId,t_s_t_t.tclassId,t_s_t_t.subjectId) tmp_class_count
+		inner join (
+			select 
+				t_s_t_t.teacherId,
+				${singleWeekCount}*sum(case when t_s_t_s.courseType in (0,1) then 1 else 0 end) 
+				+ ${doubleWeekCount}*sum(case when t_s_t_s.courseType in (0,2) then 1 else 0 end) 
+				<if test="singleWeekDays.size() != 0 ">
+					+ sum(case when t_s_t_s.courseType in (0,1) and t_s_t_s.dayOfWeek in 
+					<foreach collection="singleWeekDays" item="item" open="(" close=")" separator=",">${item-1}</foreach>
+					 then 1 else 0 end)
+				</if>
+				<if test="doubleWeekDays.size() != 0 ">
+					+ sum(case when t_s_t_s.courseType in (0,2) and t_s_t_s.dayOfWeek in 
+					<foreach collection="doubleWeekDays" item="item" open="(" close=")" separator=",">${item-1}</foreach>
+					 then 1 else 0 end)
+				</if> totalLessons
+			from ${db_name_schedule}.t_sch_task_teacherset t_s_t_t inner join ${db_name_schedule}.t_sch_task t_s_t on ( 
+				t_s_t_t.scheduleId = #{scheduleId}
+				<if test="gradeId != null and gradeId != ''" >
+				and t_s_t_t.gradeId = #{gradeId}
+				</if>
+				<if test="subjectIds != null and subjectIds != ''">
+				and t_s_t_t.subjectId in (${subjectIds})
+				</if>
+				<if test="teacherIds != null and teacherIds.size() != 0 ">
+				and t_s_t_t.teacherId in
+					<foreach collection="teacherIds" item="teacherId" open="(" close=")" separator=",">#{teacherId}</foreach>
+				</if>
+				and t_s_t.scheduleId = #{scheduleId}
+				and t_s_t_t.gradeId = t_s_t.gradeId
+				and t_s_t_t.tclassId = t_s_t.tclassId
+				and t_s_t_t.subjectId = t_s_t.subjectId
+			) inner join ${db_name_schedule}.t_sch_tclass_schedulelist t_s_t_s  on (
+				t_s_t_s.scheduleId = #{scheduleId}
+				and t_s_t_t.tclassId = t_s_t_s.tclassId
+				and t_s_t_t.subjectId = t_s_t_s.subjectId )
+			group by t_s_t_t.teacherId) tmp_all_count on ( tmp_all_count.teacherId = tmp_class_count.teacherId )
+		where tmp_class_count.lessons != 0 and tmp_all_count.totalLessons != 0
+		order by tmp_class_count.teacherId,tmp_class_count.gradeId,tmp_class_count.subjectId,tmp_class_count.tclassId
+	</select>
+	
+	
+	
+</mapper>

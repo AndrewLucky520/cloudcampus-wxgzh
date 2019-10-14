@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.commondata.dao.AdminManageDao">
+<!-- 机构 -->
+   <select id="getAdministratorSelectListADMIN"  parameterType="JSONObject" resultType="JSONObject">
+		SELECT  IFNULL(a.name,"") AS administratorName,a.id AS administratorId  
+		 FROM ${db_name_csCurCommonData}${termInfoId}.t_teacher t 
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.status=1 AND u.id=t.teacherId
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_account a ON a.status=1 AND a.id=u.accountId
+		WHERE t.schoolId=#{schoolId} 
+		<if test="noAccountId!=null and noAccountId!=''">
+			AND a.id != #{noAccountId}
+		</if>
+		  AND a.id NOT IN 
+		(
+			SELECT a1.id FROM ${db_name_csCurCommonData}${termInfoId}.t_schoolmanager sm 
+			INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u1 ON u1.status=1 AND u1.id=sm.managerId
+			INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_account a1 ON a1.status=1 AND a1.id=u1.accountId
+			WHERE sm.schoolId=#{schoolId} 
+			<if test="noAccountId!=null and noAccountId!=''">
+				AND a1.id!=#{noAccountId}
+			</if>
+		) 
+		 ORDER BY a.id;
+    </select>
+    <select id="getAdministratorSelectListByTeacherPermissionADMIN" parameterType="JSONObject" resultType="JSONObject">
+    SELECT  IFNULL(a.name,"") AS administratorName,a.id AS administratorId  
+		 FROM ${db_name_csCurCommonData}${termInfoId}.t_teacher t 
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.status=1 AND u.id=t.teacherId
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_account a ON a.status=1 AND a.id=u.accountId
+		WHERE t.schoolId=#{schoolId} 
+		<if test="noAccountId!=null and noAccountId!=''">
+			AND a.id != #{noAccountId}
+		</if>
+		  AND a.id NOT IN 
+		(
+			 SELECT a1.id FROM  ${db_name_csCurCommonData}${termInfoId}.t_teacher t 
+			INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_user u1 ON u1.status=1 AND u1.id=t.`teacherId`
+			INNER JOIN   ${db_name_csCurCommonData}${termInfoId}.t_account a1 ON a1.status=1 AND a1.id=u1.accountId
+			WHERE t.schoolId=#{schoolId} AND t.`teacherId` IN  (SELECT DISTINCT tt.teacherId FROM   ${db_name_csCurCommonData}${termInfoId}.t_teacher tt INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_user_permissionspc` up ON tt.`teacherId`=up.userId WHERE tt.schoolId=#{schoolId} ) 
+			<if test="noAccountId!=null and noAccountId!=''">
+				AND a1.id!=#{noAccountId}
+			</if>
+		) 
+		 ORDER BY a.id;
+    </select>
+    
+    <select id="getAdministratorListTeacherADMIN" parameterType="JSONObject" resultType="JSONObject">
+	    	 SELECT   0 AS hasAllRight,u.id AS userId,a.id AS administratorId,IFNULL(a.name,"") AS administratorName,a.accountStatus,IFNULL(a.accountName,"") AS accountName 
+	     FROM  ${db_name_csCurCommonData}${termInfoId}.t_teacher  t 
+		INNER JOIN   ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.id=t.teacherId AND u.status=1 
+		INNER JOIN   ${db_name_csCurCommonData}${termInfoId}.t_account a ON a.id=u.accountId AND a.status=1 AND u.status=1 
+		WHERE t.schoolId =#{schoolId} AND u.role=#{role}
+		<if test="condition!=null and condition!=''">
+		AND (  
+		a.name LIKE  '%${condition}%'
+		OR 
+		a.mobilePhone LIKE '%${condition}%'
+		OR 
+		a.accountName  LIKE '%${condition}%'
+		)
+		</if>
+		ORDER BY a.autoCreateTime ASC;
+    </select>
+    <select id="getAllUserTeacherListADMIN" parameterType="JSONObject" resultType="String">
+    SELECT DISTINCT tt.teacherId FROM   ${db_name_csCurCommonData}${termInfoId}.t_teacher tt INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_user_permissionspc` up ON tt.`teacherId`=up.userId WHERE tt.schoolId=#{schoolId}
+    </select>
+    <select id="getAdministratorListADMIN"  parameterType="JSONObject" resultType="JSONObject">
+    SELECT sm.hasAllRight,u.id AS userId,a.id AS administratorId,IFNULL(a.name,"") AS administratorName,a.accountStatus,IFNULL(a.accountName,"") as accountName 
+     FROM  ${db_name_csCurCommonData}${termInfoId}.t_schoolmanager sm  
+	INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.id=sm.managerId AND u.status=1 
+	INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_account a ON a.id=u.accountId AND a.status=1 AND u.status=1 
+	WHERE sm.schoolId =#{schoolId} AND u.role=#{role}
+	<if test="condition!=null and condition!=''">
+	AND (  
+	a.name LIKE  '%${condition}%'
+	OR 
+	a.mobilePhone LIKE '%${condition}%'
+	OR 
+	a.accountName  LIKE '%${condition}%'
+	)
+	</if>
+	ORDER BY sm.autoCreateTime ASC
+    </select>
+    <select id="getUserPermissonListADMIN"  parameterType="JSONObject" resultType="JSONObject">
+	    SELECT IFNULL(d.name,"") as name,spc.userid AS userId,spc.permissionid FROM ${db_name_csCurCommonData}${termInfoId}.t_user_permissionspc spc 
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_permissionpc_type t ON t.permissionid=spc.permissionid
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_dic_permissiontype d ON d.type = t.permissiontype
+	<where>
+	<if test="ids!=null and ids!='' and ids.size()>0">
+          spc.userid in
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+       <if test="userId!=null and userId!=''">
+       		spc.userid=#{userId}
+       </if>
+     </where>
+     ORDER BY  spc.permissionid ASC
+    </select>
+    <select id="getAllUserManagerListADMIN"  parameterType="JSONObject" resultType="String">
+    SELECT sm.managerId AS userId FROM ${db_name_csCurCommonData}${termInfoId}.t_schoolmanager sm 
+    WHERE sm.schoolId=#{schoolId}
+    </select>
+    <select id="getNavListADMIN"  parameterType="JSONObject" resultType="JSONObject">
+    	SELECT * FROM ${db_name_csCurCommonData}${termInfoId}.t_nav_info n  
+    	WHERE n.navType=#{navType} ORDER BY n.sort  ASC 
+    </select>
+    <select id="getNewEntranceSchoolADMIN" parameterType="JSONObject" resultType="JSONObject">
+		SELECT * FROM ${db_name_auth}.`t_nav_newentranceschool` nes WHERE nes.`ruleId`=#{schoolId};
+	</select>
+	<select id="getPermissonspcListADMIN" parameterType="JSONObject" resultType="JSONObject">
+		SELECT * FROM ${db_name_csCurCommonData}${termInfoId}.t_user_permissionspc psp 
+		<where>
+		    <if test="userId!=null and userId!='' ">
+		 		psp.userid=#{userId}
+		 	</if>
+		 	<if test="userIds!=null and userIds!='' and userIds.size()>0">
+	          psp.userid IN
+	          <foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       		</if>
+		 </where>
+	</select>
+	<update id="deleteSchoolManagerADMIN" parameterType="com.alibaba.fastjson.JSONObject" >
+		DELETE  FROM ${db_name_csCurCommonData}${termInfoId}.t_schoolmanager
+		<where>
+		 <if test="userId!=null and userId!='' ">
+		    managerId=#{userId}
+		 </if>
+		 <if test="userIds!=null and userIds!='' and userIds.size()>0">
+	         	 managerId IN
+	          <foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       		</if>
+       	</where>
+	</update>
+	<update id="deleteSchoolManagerUserADMIN" parameterType="com.alibaba.fastjson.JSONObject" >
+		DELETE FROM ${db_name_csCurCommonData}${termInfoId}.t_user 
+		<where>
+		 <if test="userId!=null and userId!='' ">
+			id=#{userId}
+		</if>
+		 <if test="userIds!=null and userIds!='' and userIds.size()>0">
+	         	 id IN
+	          <foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       		</if>
+       		</where>
+	</update>
+	<update id="deletePermissonspcADMIN" parameterType="com.alibaba.fastjson.JSONObject" >
+		DELETE FROM ${db_name_csCurCommonData}${termInfoId}.t_user_permissionspc  
+		<where> 
+			<if test="userId!=null and userId!='' ">
+				userid=#{userId}
+			</if>
+		 	<if test="userIds!=null and userIds!='' and userIds.size()>0">
+	         	 userid IN
+	          <foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       		</if>
+       		</where>
+	</update>
+	<!-- <update id="deletePermissontypeADMIN" parameterType="com.alibaba.fastjson.JSONObject" >
+		DELETE FROM ${db_name_csCurCommonData}${termInfoId}.t_permissionpc_type 
+		<where>
+		<if test="ids!=null and ids!='' and ids.size()>0">
+          permissionid IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+       </where>
+	</update> -->
+	<select id="getUserByAccountIdADMIN" parameterType="JSONObject" resultType="JSONObject">
+		SELECT u.id AS userId,a.id AS accountId FROM ${db_name_csCurCommonData}${termInfoId}.t_account a 
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON a.id=u.accountId AND u.status=1 AND a.status=1 
+			AND u.role=#{role} 
+		<if test="isNotQuerySchoolManager==null or isNotQuerySchoolManager=='' ">
+			INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_schoolmanager  sm ON sm.managerId=u.id AND sm.schoolId=#{schoolId} 
+		</if>
+		<if test="isNotQuerySchoolManager==1 ">
+			INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_teacher  t ON t.teacherId=u.id AND t.schoolId=#{schoolId} 
+		</if>
+		<where>
+			<if test="accountId!=null and accountId!='' ">
+				a.id=#{accountId}
+			</if>
+			<if test="ids!=null and ids!='' and ids.size()>0">
+	         	 a.id IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       		</if>
+       	</where>
+	</select>
+	<update id="resetAdminPasswordADMIN" parameterType="JSONObject">
+		UPDATE ${db_name_csCurCommonData}${termInfoId}.t_account SET pwd=#{pwd} ,autoUpdateTime=NOW()
+			WHERE id=#{accountId} AND `status` =1;
+	</update>
+	<select id="getAccountObjADMIN" parameterType="JSONObject" resultType="JSONObject">
+		SELECT id,IFNULL(accountName,"") AS accountName FROM ${db_name_csCurCommonData}${termInfoId}.t_account a  
+		WHERE  a.id=#{accountId} AND a.status=1 ;
+	</select>
+	<update id="insertPermissionspcBatchADMIN" parameterType="JSONObject">
+		insert into ${db_name_csCurCommonData}${termInfoId}.t_user_permissionspc(userid,permissionid)
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+		(#{item.userId},#{item.navId})
+        </foreach>
+	</update>
+	<!-- <update id="insertPermissiontypeBatchADMIN" parameterType="java.util.List">
+		INSERT INTO ${db_name_csCurCommonData}${termInfoId}.t_permissionpc_type(permissionid,permissiontype)
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+		(#{item.navId},#{item.permissiontype})
+        </foreach>
+	</update> -->
+	<update id="insertSchoolManagerADMIN" parameterType="JSONObject">
+		INSERT INTO ${db_name_csCurCommonData}${termInfoId}.t_schoolmanager(managerId,schoolId,hasAllRight)
+		VALUES 
+		(#{userId},#{schoolId},#{hasAllRight})
+	</update>
+	<update id="insertUserADMIN" parameterType="JSONObject" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO  ${db_name_csCurCommonData}${termInfoId}.t_user(`uuid`,role,createTime,accountId)
+		VALUES(#{uuid},#{role},UNIX_TIMESTAMP(),#{accountId})
+	</update>
+	<select id="getSchoolManagerADMIN"  parameterType="JSONObject"  resultType="JSONObject">
+		SELECT * FROM  ${db_name_csCurCommonData}${termInfoId}.t_schoolmanager sm 
+		WHERE sm.managerId=#{userId} AND sm.schoolId=#{schoolId}
+	</select>
+	<update id="updateSchoolManagerADMIN" parameterType="JSONObject">
+		UPDATE  ${db_name_csCurCommonData}${termInfoId}.t_schoolmanager 
+		SET autoUpdateTime=NOW() WHERE managerId=#{userId}
+	</update>
+</mapper>

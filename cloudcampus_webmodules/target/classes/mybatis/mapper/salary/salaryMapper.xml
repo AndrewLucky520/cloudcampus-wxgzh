@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.salary.dao.SalaryDao">
+	
+	<select id="getSalaryList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT SalaryId salaryId,SalaryName salaryName,Month month,IsImported isImported,IsPublished isPublished 
+		FROM ${db_name_salary}.t_lm_degree WHERE Year = #{year} and SchoolId = #{schoolId} ORDER BY CreateDate DESC
+	</select>
+	
+	<insert id="addSalary" parameterType="com.alibaba.fastjson.JSONObject">
+		INSERT INTO ${db_name_salary}.t_lm_degree VALUES 
+		(#{salaryId},#{salaryName},#{schoolId},#{year},#{month},#{createDate},#{isImported},#{isPublished})
+	</insert>
+	
+	<update id="updateSalary" parameterType="com.alibaba.fastjson.JSONObject">
+		UPDATE ${db_name_salary}.t_lm_degree SET SalaryName = #{salaryName} ,Month = #{month}
+		WHERE SalaryId = #{salaryId}
+	</update>
+	
+	<update id="updateSalaryImported" parameterType="java.lang.String">
+		UPDATE ${db_name_salary}.t_lm_degree SET IsImported = 1 
+		WHERE SalaryId = #{salaryId}
+	</update>
+	
+	<delete id="deleteSalary" parameterType="com.alibaba.fastjson.JSONObject">
+		DELETE FROM ${db_name_salary}.t_lm_degree WHERE SalaryId = #{salaryId}
+	</delete>
+	<delete id="deleteSalaryDetail" parameterType="com.alibaba.fastjson.JSONObject">
+		DELETE FROM ${db_name_salary}.t_lm_list WHERE SalaryId = #{salaryId}
+	</delete>
+	<delete id="deleteSalaryExcel" parameterType="com.alibaba.fastjson.JSONObject">
+		DELETE FROM ${db_name_salary}.t_lm_itemname WHERE SalaryId = #{salaryId}
+	</delete>
+	
+	
+	<select id="getSalaryId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT * FROM ${db_name_salary}.t_lm_degree WHERE Year = #{year} AND Month = #{month} AND SchoolId = #{schoolId} AND IsPublished = 1
+	</select>
+	<select id="getSalaryIdMax" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT * FROM ${db_name_salary}.t_lm_degree t WHERE createDate = (SELECT MAX(t0.createDate) FROM ${db_name_salary}.t_lm_degree t0,${db_name_salary}.t_lm_list t1 WHERE t0.IsPublished ='1' 
+		AND t0.SchoolId = #{schoolId} AND t0.SalaryId = t1.SalaryId AND t1.TeacherId = #{teacherId})
+	</select>
+	
+	<select id="getMaxYearMonth" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT * FROM ${db_name_salary}.t_lm_degree t WHERE createDate = (SELECT MAX(t0.createDate) FROM ${db_name_salary}.t_lm_degree t0,${db_name_salary}.t_lm_list t1 WHERE t0.IsPublished ='1' 
+		AND t0.SchoolId = #{schoolId} AND t0.SalaryId = t1.SalaryId AND t1.TeacherId = #{teacherId})
+		LIMIT 1
+	</select>
+	
+	<select id="getSalaryNameById" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT SalaryName FROM ${db_name_salary}.t_lm_degree WHERE SalaryId = #{salaryId}
+	</select>
+	
+	<select id="getSalaryDetail" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT TeacherId teacherId,SalComponentId salComponentId,SalaryNum salaryNum FROM ${db_name_salary}.t_lm_list 
+		WHERE SalaryId = #{salaryId} AND TeacherId = #{teacherId}
+	</select>
+	
+	<select id="getSalaryExcel" parameterType="java.lang.String" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT SalComponentId salComponentId, SalComponentName salComponentName, Rowspan rowspan,
+		Colspan colspan,RowNum rowNum,ColNum colNum, headRowNum FROM ${db_name_salary}.t_lm_itemname WHERE SalaryId = #{salaryId} 
+		ORDER BY ColNum,RowNum
+	</select>
+	
+	<select id="getAllSalaryExcel" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT SalComponentId,SalComponentName,Rowspan,Colspan,RowNum,ColNum,headRowNum FROM 
+		${db_name_salary}.t_lm_itemname WHERE SalaryId = #{salaryId} ORDER BY RowNum,ColNum
+	</select>
+	<select id="getAllSalaryDetail" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT TeacherId,SalComponentId,SalaryNum FROM ${db_name_salary}.t_lm_list WHERE SalaryId = #{salaryId}
+		 <choose>
+			<when test="teacherId != null">
+				AND TeacherId IN
+				<foreach collection="teacherId" item="item" index="index" open ="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</when>
+			<when test="groupIds !=null">
+				AND TeacherId IN 
+				<foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+				#{item}
+				</foreach>
+			</when>
+		</choose>
+	</select>
+	
+	
+	<update id="updateSalaryPublished" parameterType="com.alibaba.fastjson.JSONObject">
+		UPDATE ${db_name_salary}.t_lm_degree
+		<set>
+		<if test="isPublished != null">IsPublished = #{isPublished}</if>
+		</set>
+		WHERE SalaryId =#{salaryId}
+	</update>
+	
+	<insert id="insertSalExcel" parameterType="java.util.List">
+		INSERT INTO ${db_name_salary}.t_lm_itemname (SalaryId,SchoolId,SalComponentId,SalComponentName,PsalComponentId,Rowspan,Colspan,Rownum,ColNum,headRowNum) VALUES
+		<foreach collection="list" index="index" item="item" separator=",">
+		(#{item.salaryId},#{item.schoolId},#{item.en_sal},#{item.zh_sal},#{item.pen_sal},#{item.rowspan},#{item.colspan},#{item.in_rowNum},#{item.in_colNum},#{item.head_rowNum})
+		</foreach>
+	</insert>
+	
+	<insert id="insertSalDetail" parameterType="java.util.List">
+		INSERT INTO ${db_name_salary}.t_lm_list (SalaryId,SchoolId,TeacherId,SalComponentId,SalaryNum)VALUES
+		<foreach collection="list" index="index" item="item" separator=",">
+		(#{item.salaryId},#{item.schoolId},#{item.teacherId},#{item.salComponentId},#{item.salaryNum})
+		</foreach>
+	</insert>
+	
+ 
+	
+	<select id="getCjSalaryAccount" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT schoolId , teacherId , adminAccount , adminPass , bankAccount , bankPass , digitalAccount , digitalPass
+		FROM ${db_name_salary}.t_lm_cjsalary WHERE schoolId = #{schoolId} and teacherId = #{teacherId}
+	</select>
+	<insert id="insertCjSalaryAccount" parameterType="com.alibaba.fastjson.JSONObject">
+		INSERT INTO ${db_name_salary}.t_lm_cjsalary (schoolId , teacherId , adminAccount , adminPass , bankAccount , bankPass , digitalAccount , digitalPass)VALUES
+		<if test='DropDownList1 == "0"'>
+		     (#{schoolId},#{teacherId},'','' , #{passid} ,  #{password} , '','' )
+        </if> 
+        <if test='DropDownList1 == "1"'>
+            (#{schoolId},#{teacherId},'','', '','' , #{passid} ,  #{password}  )
+        </if>
+        <if test='DropDownList1 == "2"'>
+            (#{schoolId},#{teacherId}, #{passid} ,  #{password} ,'','', '',''   )
+        </if>
+	</insert>
+	
+	<update id="updateCjSalaryAccount" parameterType="com.alibaba.fastjson.JSONObject">
+		UPDATE ${db_name_salary}.t_lm_cjsalary
+		<if test='DropDownList1 == "0"'>
+		    set bankAccount =  #{passid} , bankPass =  #{password} 
+        </if> 
+        <if test='DropDownList1 == "1"'>
+            set digitalAccount =  #{passid} , digitalPass =  #{password} 
+        </if>
+        <if test='DropDownList1 == "2"'>
+            set adminAccount =  #{passid} , adminPass =  #{password} 
+        </if>
+		WHERE teacherId =#{teacherId} and schoolId = #{schoolId}
+	</update>
+	
+	<select id="getCjSchool" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT schoolId  FROM ${db_name_salary}.t_lm_school WHERE schoolId = #{schoolId}  
+	</select>
+	
+	<select id="getTeacherBySalaryId"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" >
+	    SELECT  DISTINCT a.TeacherId  , b.SalaryName , b.Year , b.Month  FROM
+		${db_name_salary}.t_lm_list  a 
+		LEFT JOIN ${db_name_salary}.t_lm_degree b 
+		on (a.SalaryId = b.SalaryId
+			<if test="schoolId!=null and schoolId!=''">
+				AND b.schoolId=#{schoolId}
+			</if>
+		)
+		where a.SalaryId = #{salaryId}
+	</select>
+	
+</mapper>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.talkweb.commondata.dao.TETestDao">  
+
+	<select id="test1" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			SELECT * FROM ${db_name_teacherEvaluation}.`t_te_evaluateteacherrecord` et
+	 WHERE CONCAT(et.`schoolYear`,et.`term`)="20171" AND et.`schoolId`="1002" 
+	 AND et.`targetId`="a6d7ebbf-88e9-4cb8-8763-b1ebff426cb6"
+	 AND et.`evaluateId`="10938d3d-9120-4447-b749-badc0bc6f817"
+	 AND et.`evaluateGroupId`="5b3ec1fb-427f-490d-ab8b-7204e71b1f33" 
+	 AND et.`evaluatedGroupId`="25ab1e6e-8306-488c-ade5-33c9669516fc";
+	</select>
+	<select id="test2" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT * FROM ${db_name_teacherEvaluation}.`t_te_evaluateteacherrecord` et
+	 WHERE CONCAT(et.`schoolYear`,et.`term`)="20161" AND et.`schoolId`="1082" 
+	 AND et.`targetId`="a6d7ebbf-88e9-4cb8-8763-b1ebff426cb6"
+	 AND et.`evaluateId`="10938d3d-9120-4447-b749-badc0bc6f817"
+	 AND et.`evaluateGroupId`="5b3ec1fb-427f-490d-ab8b-7204e71b1f33" 
+	 AND et.`evaluatedGroupId`="25ab1e6e-8306-488c-ade5-33c9669516fc";
+	</select>
+	<select id="test3" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT * FROM ${db_name_teacherEvaluation}.`t_te_evaluateteacherrecord` et
+		 WHERE CONCAT(et.`schoolYear`,et.`term`)="20161" AND et.`schoolId`="1082" 
+		 AND et.`targetId`="a6d7ebbf-88e9-4cb8-8763-b1ebff426cb6"
+		 AND et.`evaluateId`="10938d3d-9120-4447-b749-badc0bc6f817"
+		 AND et.`evaluateGroupId`="5b3ec1fb-427f-490d-ab8b-7204e71b1f33";
+	</select>
+	<select id="getTarget" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" >
+	 SELECT * FROM ${db_name_teacherEvaluation}.`t_te_targetinfo` t 
+		 LEFT JOIN ${db_name_teacherEvaluation}.`t_te_targetandgrade` tg ON t.`targetId`=tg.`targetId`
+		 WHERE t.`targetId`="a6d7ebbf-88e9-4cb8-8763-b1ebff426cb6"
+		 GROUP BY tg.`levelNum`;
+	</select>
+	<!-- 基础数据长沙测试数据库添加44898为长沙学校 -->
+	<update id="insertSchoolTEST" parameterType="com.alibaba.fastjson.JSONObject">
+	   INSERT INTO ${db_name_auth}.`t_school_plate`(`schoolId`) 
+	   VALUES (44898);
+	</update>
+	<update id="deleteSchoolTEST" parameterType="com.alibaba.fastjson.JSONObject">
+	  delete from  ${db_name_auth}.`t_school_plate` where schoolId=44898;
+	</update>
+	<select id="selectSchoolTEST" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT * FROM  ${db_name_auth}.`t_school_plate` WHERE schoolId=44898;
+	</select>
+</mapper>

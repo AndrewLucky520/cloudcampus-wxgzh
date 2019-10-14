@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.scoreReport.dao.ScoreDistributionReportDao">
+
+	<!--总分分数段分布报表 得到 该年级的各个班级统计分数区间、班级代码、分布代码、人数、年级 -->
+	<select id="getScoreClassDistributeList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.bh AS bhs, a.dm, a.fbdm, a.rs, a.ljrs, #{data.xn} AS nj
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassdistribute} a
+				INNER JOIN (
+					SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+					WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+						AND m.lb = '01'
+				) d ON a.xnxq = d.xnxq AND a.kslc = d.kslc AND a.xxdm = d.xxdm AND a.bh = d.bh
+		WHERE a.xnxq = #{data.xnxq} AND a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND d.bmfz = #{data.bmfz}
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<!--总分分数段分布报表 得到班主任姓名、最高分、参考人数、班级名次、班级代码、年级 -->
+	<select id="getScoreClassStatisticsList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.bh AS bhs, a.zgf, a.ckrs, #{data.xn} AS nj 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} a
+				INNER JOIN (
+					SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+					WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+						AND m.lb = '01'
+				) e ON a.xnxq = e.xnxq AND a.kslc = e.kslc AND a.xxdm = e.xxdm AND a.bh = e.bh
+		WHERE a.xnxq = #{data.xnxq} AND a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND e.bmfz = #{data.bmfz}
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<!--总分分数段分布报表 得到总分满分 -->
+	<select id="getTotalScoreList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.dm, b.fbdm, b.fbsx, b.fbxx 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_zfmfqj} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoredistribute} b 
+					ON a.kslc = b.kslc AND a.xxdm = b.xxdm AND a.xnxq = b.xnxq AND a.dm = b.dm
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.nj = #{data.nj} AND a.fzdm = #{data.bmfz}
+			ORDER BY b.fbdm
+	</select>
+	
+	<!-- 单科分数段报表 所有科目代码，科目名称，班级代码，分布种类代码，分布代码，区间人数 -->
+	<select id="getKMScoreDistributeNumList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.kmdm, a.bh AS bhs, a.dm, a.fbdm, a.ljrs, a.rs 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassdistribute_mk} a
+				INNER JOIN (
+					SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+					WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+						AND m.lb = '01'
+				) d ON a.xnxq = d.xnxq AND a.kslc = d.kslc AND a.xxdm = d.xxdm AND a.bh = d.bh 
+			WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} AND	d.bmfz = #{data.bmfz}
+		<if test="data.kmdmList != null">
+			AND a.kmdm IN
+			<foreach collection="data.kmdmList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		ORDER BY a.bh, CAST(a.kmdm AS UNSIGNED) ASC
+	</select>
+
+	<!-- 单科分数段报表 所有科目代码，科目名称，班级代码，班级名称，最高分，参考人数，平均分，年级，教师姓名 -->
+	<select id="getKMScoreClassStatisticList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.kmdm, a.bh AS bhs, a.zgf, a.ckrs, a.pjf, #{data.xn} AS nj 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics_mk} a
+				INNER JOIN (
+					SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+					WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+						AND m.lb = '01'
+				) e ON a.xnxq = e.xnxq AND a.xxdm = e.xxdm AND a.kslc = e.kslc AND a.bh = e.bh 
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} AND e.bmfz = #{data.bmfz}
+		<if test="data.kmdmList != null">
+			AND a.kmdm IN
+			<foreach collection="data.kmdmList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		ORDER BY a.bh ASC
+	</select>
+	
+	<!-- 单科分数段分布报表 单科成绩分布种类 代码，分布代码，分数上限，分数下限 -->
+	<select id="getKMScoreDistributeList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.dm, b.fbdm, b.fbsx, b.fbxx 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_kmmfqj} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoredistribute_km} b 
+					ON a.kslc = b.kslc AND a.xxdm = b.xxdm AND a.xnxq = b.xnxq AND a.dm = b.dm
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} AND a.nj = #{data.nj} 
+			AND a.fzdm = #{data.bmfz}
+		<if test="data.dm != null">
+			AND a.dm = #{data.dm}
+		</if>
+		ORDER BY a.dm, b.fbdm
+	</select>
+
+
+	<!-- 年级分组单科成绩  平均分 -->
+	<select id="getScoreGroupStatisticsList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT * 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoregroupstatistics_mk} a 
+				LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} b
+					ON a.xnxq = b.xnxq AND a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.fzdm = b.bmfz
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq}
+			AND a.fzdm = #{data.bmfz} AND b.nj = #{data.nj}
+	</select>
+	
+	<!-- 名次段分布报表 得到分布区间 -->
+	<select id="getScoreRankStatisticsList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.bh AS bhs, a.pmfbdm, a.ljrs, a.rs, #{data.nj} AS nj 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankstatistics} a
+				INNER JOIN (
+					SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+					WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+						AND m.lb = '01'
+				) d on a.xnxq = d.xnxq AND a.kslc = d.kslc AND a.xxdm = d.xxdm AND a.bh = d.bh 
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} AND d.bmfz = #{data.bmfz}
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+			AND 'totalScore' = #{data.kmdm}
+		UNION ALL
+		SELECT a.bh AS bhs, a.pmfbdm, a.ljrs, a.rs, #{data.xn} AS nj 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankstatistics_mk} a
+				INNER JOIN (
+					SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+					WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+						AND m.lb = '01'
+				) d ON a.xnxq = d.xnxq AND a.kslc = d.kslc AND a.xxdm = d.xxdm AND a.bh = d.bh
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} AND d.bmfz = #{data.bmfz}
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+			AND a.kmdm = #{data.kmdm}
+	</select>
+	
+	<select id="getRangeNumList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT c.fzmc AS groupName, a.bh AS bhs, '' AS className, a.ckrs AS referenceNum, #{data.xn} AS nj 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} c1 
+					ON a.kslc = c1.kslc AND a.xnxq = c1.xnxq AND a.xxdm = c1.xxdm AND a.bh = c1.bh
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} c 
+					ON c1.xnxq = c.xnxq AND	c1.xxdm = c.xxdm AND c1.kslc = c.kslc AND c1.bmfz = c.bmfz 
+						AND c.lb = '01'
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}
+			AND c.nj = #{data.nj} AND c.bmfz = #{data.bmfz}
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<select id="getScoreRankDistributeList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.pmfbdm, a.pmfbsx, a.pmfbxx 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankdistribute} a
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} AND a.nj = #{data.nj}
+			AND a.fzdm = #{data.bmfz}
+	</select>
+</mapper>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:jaxws="http://cxf.apache.org/jaxws"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:util="http://www.springframework.org/schema/util" 
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context-4.0.xsd
+            http://www.springframework.org/schema/mvc
+            http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+            http://www.springframework.org/schema/aop
+    		http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+            http://www.springframework.org/schema/tx
+            http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+            http://www.springframework.org/schema/util
+            http://www.springframework.org/schema/util/spring-util-4.0.xsd
+            http://cxf.apache.org/jaxws 
+            http://cxf.apache.org/schemas/jaxws.xsd"
+            default-lazy-init="false" default-autowire="byName">
+	 <!-- 
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="ignoreResourceNotFound" value="true" />
+        <property name="locations" value="classpath*:/*.properties"/>
+    </bean>
+    -->
+    
+    <context:property-placeholder location="classpath*:config/*.properties" ignore-unresolvable="true" />
+    <util:properties id="configProperties" location="classpath*:config/*.properties"/> 
+    <util:properties id="settings" location="classpath:constant/*.properties"></util:properties>	
+	 
+    <util:properties id="splitTableRuleProperties" location="classpath*:splitTableRule/*.properties" />
+    <util:properties id="dbNameProperties" location="classpath*:config/dbname.properties" />
+    <context:component-scan base-package="com.talkweb.common.splitDbAndTable"/>
+	<!-- 激活spring的注解 -->
+    <context:annotation-config />
+
+    <aop:aspectj-autoproxy/>
+    
+    <import resource="spring-redis-all.xml"/>
+    
+    <context:component-scan base-package="com.talkweb.commondata.dao.impl"/>
+
+    <context:component-scan base-package="com.talkweb.common.utils"/>
+
+    <context:component-scan base-package="com.talkweb.base.common"/>
+    
+    <context:component-scan base-package="com.talkweb.aspect.cache"/>
+    
+    <context:component-scan base-package="com.talkweb.common.filemanager"/>
+
+	<!-- <import resource="spring-mongodb.xml"/> -->
+
+	<import resource="spring-dbtransaction.xml"/>
+	
+	<import resource="spring-sqlsession.xml"/>
+
+	<import resource="spring-dao.xml"/>
+
+	<!--   <import resource="spring-servlet.xml"/> -->
+	<import resource="spring-service.xml"/>
+
+	<import resource="spring-druid.xml"/>
+
+	
+</beans>

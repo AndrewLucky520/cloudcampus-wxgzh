@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.onecard.dao.OneCardDao">
+
+	<select id="queryOneCardByUserId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT *
+		FROM  ${db_name_oneCard}.t_o_onecard_${tableName}
+		WHERE schoolId = #{schoolId} and userId=#{userId} 
+		<if test="date != null and date != ''">
+			AND DATE_FORMAT(swingCardTime, '%Y%m%d') = #{date}
+		</if>
+			ORDER BY swingCardTime ASC
+	</select>
+	
+	<select id="queryOneCardByXnxqOfUserId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		select * from (select statisticsId,schoolId,userId,accountId,swingCardTime,attendanceType,attendanceFlag,classId,className,userName
+		from ${db_name_oneCard}.t_o_onecard_statistics_desc 
+		where schoolId = #{schoolId} and userId = #{userId} AND 
+		createDate BETWEEN #{startDate} AND #{endDate}
+		UNION ALL
+		select oneCardId,schoolId,userId,accountId,swingCardTime,attendanceType,attendanceFlag,classId,className,userName 
+		from ${db_name_oneCard}.${tableName} 
+		where schoolId = #{schoolId} and userId = #{userId}
+		<if test="date != null and date != ''">
+			AND DATE_FORMAT(swingCardTime, '%Y%m%d') = #{date}
+		</if>
+		) 
+		as a ORDER BY swingCardTime ASC
+	</select>
+	
+	<select id="queryOneCardByTeacher" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT *
+		FROM  ${db_name_oneCard}.t_o_onecard_${tableName}
+		WHERE schoolId = #{schoolId}
+		<if test="date != null and date != ''">
+			AND DATE_FORMAT(swingCardTime, '%Y%m%d') = #{date}
+		</if>
+		<if test="accountIds != null and accountIds != '' and accountIds.size() > 0">
+			and accountId in 
+     	  	<foreach collection="accountIds" item="item" index="index" open="(" separator="," close=")">
+     	  	 	#{item}
+     		</foreach>
+	    </if>
+		 ORDER BY swingCardTime ASC
+	</select>
+	
+	<select id="queryOneCardByWeekOfTeacher" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		select * from (select statisticsId,schoolId,userId,accountId,swingCardTime,attendanceType,attendanceFlag,classId,className,userName
+		from ${db_name_oneCard}.t_o_onecard_statistics_desc 
+		where schoolId = #{schoolId}
+		<if test="accountIds != null and accountIds != '' and accountIds.size() > 0">
+			and accountId in 
+     	  	<foreach collection="accountIds" item="item" index="index" open="(" separator="," close=")">
+     	  	 	#{item}
+     		</foreach>
+	    </if>
+		and createDate BETWEEN date_format(#{startDate},'%Y-%m-%d') AND date_format(#{endDate},'%Y-%m-%d')
+		UNION ALL
+		select oneCardId,schoolId,userId,accountId,swingCardTime,attendanceType,attendanceFlag,classId,className,userName 
+		from ${db_name_oneCard}.${tableName} 
+		where schoolId = #{schoolId}
+		<if test="date != null and date != ''">
+			AND DATE_FORMAT(swingCardTime, '%Y%m%d') = #{date}
+		</if>
+		<if test="accountIds != null and accountIds != '' and accountIds.size() > 0">
+			and accountId in 
+     	  	<foreach collection="accountIds" item="item" index="index" open="(" separator="," close=")">
+     	  	 	#{item}
+     		</foreach>
+	    </if>
+	    ) 
+		as a ORDER BY swingCardTime ASC
+	</select>
+</mapper>

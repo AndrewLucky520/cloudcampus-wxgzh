@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <!-- 课表下可公用mybatis 不可通用的写到自己文件 -->
+<mapper namespace="com.talkweb.schedule.dao.ScheduleExternalDao">
+ 	
+	<resultMap type="JSONObject" id="TeachingResult">			
+		<result column="tclassId" property="tclassId"/>
+		<result column="subjectId" property="subjectId"/>
+		<result column="weekNum" property="weekNum"/>
+		<result column="nearNum" property="nearNum"/>
+		<result column="groundId" property="groundId"/>
+		<result column="identity" property="identity"/>
+    </resultMap> 
+  	
+  	<resultMap type="JSONObject" id="teacherSet">
+		<result column="teacherId" property="teacherId"/>
+  	</resultMap>
+  	<!-- 查询课表对应的教学任务 -->
+ 	<select id="queryTeachingTask2" parameterType="JSONObject" resultMap="TeachingResult">
+ 		SELECT tclassId,subjectId,weekNum,nearNum,groundId,CONCAT(scheduleId,gradeId,subjectId,tclassId) as identity
+		FROM ${db_name_schedule}.t_sch_task 
+		WHERE scheduleId=#{scheduleId} AND schoolId=#{schoolId} AND gradeId=#{gradeId}
+ 		<if test="subjectIdList!=null and subjectIdList.size()>0">
+				AND subjectId in
+				<foreach collection="subjectIdList" index="index" item="item" open="(" separator="," close=")">
+					${item}
+				</foreach>
+		</if> 
+ 		<if test="tclassIdList!=null and tclassIdList.size()>0">
+ 			AND tclassId in
+ 			<foreach collection="tclassIdList" open="(" close=")" separator="," item="item">
+ 				${item}
+ 			</foreach>
+ 		</if>
+ 		 ORDER BY cast(subjectId as SIGNED INTEGER)
+ 	</select>
+ 	
+ 	<resultMap type="JSONObject" id="SubjectsForExam">
+		<result column="subjectId" property="subjectId"/>
+		<collection property="tclassLayCodeAndType" javaType="java.util.List" resultMap="TclassLayCodeAndType"/>
+  	</resultMap>
+  	<resultMap type="JSONObject" id="TclassLayCodeAndType">
+		<result column="layCode" property="layCode"/>
+		<result column="type" property="type"/>
+		<collection property="tclassList" javaType="java.util.List" resultMap="TclassList"/>
+  	</resultMap>
+  	<resultMap type="JSONObject" id="TclassList">
+		<result column="tclassId" property="tclassId"/>
+	</resultMap>
+ 	<select id="getSubjectForExam" resultMap="SubjectsForExam" parameterType="JSONObject">
+ 		SELECT  DISTINCT a.subjectId,a.tclassId,b.type,b.layCode
+		FROM ${db_name_schedule}.t_sch_task a left JOIN ${db_name_schedule}.t_sch_tclass b
+			ON a.schoolId=b.schoolId AND a.scheduleId=b.scheduleId AND a.gradeId=b.gradeId AND a.tclassId=b.tclassId
+		WHERE b.schoolYear=#{schoolYear} AND b.termInfoId=#{termInfoId} AND a.schoolId=#{schoolId} AND a.scheduleId=#{scheduleId}
+		<if test="gradeId!=null">
+			AND a.gradeId=#{gradeId}
+		</if>
+		<if test="tClassId!=null">
+			AND a.tclassId=#{tClassId}
+		</if>	
+		
+		ORDER BY cast(subjectId as SIGNED)
+ 	</select>
+ 	
+ 	
+ 	<resultMap type="JSONObject" id="TClassLevelMap">
+		<result column="studentId" property="studentId"/>
+		<collection property="subjectAndLevelMap" javaType="java.util.List" resultMap="SubjectAndLevelMap"/>
+  	</resultMap>
+  	<resultMap type="JSONObject" id="SubjectAndLevelMap">
+		<result column="subjectId" property="subjectId"/>
+		<result column="subjectLevel" property="subjectLevel"/>
+		<result column="groupFromSubs" property="groupFromSubs"/>
+		<result column="tclassId" property="tclassId"/>
+  	</resultMap>
+ 	<select id="getTclassForExam"  resultMap="TClassLevelMap" parameterType="JSONObject">
+ 		SELECT subjectId,subjectLevel,studentId,c.groupFromSubs,a.tclassId
+		FROM (cc_schedule.t_sch_student_tclass_relationship a LEFT JOIN cc_schedule.t_sch_tclass b
+			ON a.schoolId=b.schoolId AND a.scheduleId=b.scheduleId AND a.gradeId=b.gradeId AND a.tclassId=b.tclassId AND a.schoolYear=b.schoolYear AND a.termInfoId=b.termInfoId) 
+		LEFT JOIN cc_schedule.t_sch_subjectgroup c 
+			ON a.schoolId=c.schoolId AND a.scheduleId=c.scheduleId AND a.gradeId=c.gradeId AND a.schoolYear=c.schoolYear AND a.termInfoId=c.termInfoId AND b.subjectGroupId=c.subjectGroupId	
+		WHERE a.schoolId=#{schoolId} AND a.scheduleId=#{scheduleId} AND a.gradeId=#{gradeId} AND a.schoolYear=#{schoolYear} AND a.termInfoId=#{termInfoId}
+		ORDER BY cast(subjectId as SIGNED); 
+ 	</select>
+ 	
+ 	
+	<resultMap type="JSONObject" id="ScheduleForExamList">
+		<result column="scheduleId" property="scheduleId"/>
+		<result column="scheduleName" property="scheduleName"/>
+		<collection property="tclassIdList" javaType="java.util.List" resultMap="TclassIdList"/>
+  	</resultMap>
+  	<resultMap type="JSONObject" id="TclassIdList">
+		<result column="tclassId" property="tclassId"/>
+  	</resultMap>
+ 	<select id="getScheduleForExamManager" resultMap="ScheduleForExamList" parameterType="JSONObject">
+ 		SELECT a.scheduleId,b.scheduleName,c.tclassId
+		FROM ${db_name_schedule}.t_sch_schedule_gradeset a, ${db_name_schedule}.t_sch_scheduleinfo b,${db_name_schedule}.t_sch_tclass c
+		WHERE a.termInfoId=b.termInfoId AND a.schoolYear=b.schoolYear AND a.scheduleId=b.scheduleId AND a.schoolId=b.schoolId 
+			AND a.schoolId=c.schoolId AND a.scheduleId=c.scheduleId	AND a.termInfoId=c.termInfoId AND a.schoolYear=c.schoolYear
+			AND a.schoolId=#{schoolId} AND a.schoolYear=#{schoolYear} AND a.termInfoId=#{termInfoId} AND a.gradeId=#{gradeId} 
+			and b.isArrange=1 
+			ORDER BY b.createTime DESC
+ 	</select>
+ 	
+ 	<resultMap type="JSONObject" id="TclassSubMap">
+		<result column="tclassId" property="tclassId"/>	
+		<collection property="subjectIdList" javaType="java.util.List" resultMap="SubjectIdList"/>
+  	</resultMap>
+  	<resultMap type="JSONObject" id="SubjectIdList">
+		<result column="subjectId" property="subjectId"/>
+  	</resultMap>
+ 	<select id="getExamTclassSubMap" parameterType="JSONObject" resultMap="TclassSubMap">
+ 		SELECT DISTINCT tclassId,subjectId
+		FROM ${db_name_schedule}.t_sch_task
+		WHERE schoolId=#{schoolId} AND scheduleId=#{scheduleId} AND gradeId=#{gradeId}
+ 	</select>
+ 	
+ 	
+ 	
+ 	
+ 	
+ 	
+ 	
+ 	
+ 	<!-- ************************************************************************************** -->
+ 	<select id="querySubjLevelAndIdInClass" parameterType="JSONObject" resultType="JSONObject">
+ 		SELECT DISTINCT c.type * 10 + c.layCode AS subjectLevel, g.groupFromSubs 
+ 			FROM ${db_name_schedule}.t_sch_tclass c, ${db_name_schedule}.t_sch_subjectgroup g 
+			WHERE c.schoolYear = g.schoolYear
+				AND c.termInfoId = g.termInfoId AND c.schoolId = g.schoolId AND c.scheduleId = g.scheduleId 
+				AND c.gradeId = g.gradeId AND c.subjectGroupId = g.subjectGroupId
+				AND c.schoolYear = #{schoolYear} AND c.termInfoId = #{termInfoId}
+				AND c.schoolId = #{schoolId} AND c.scheduleId = #{scheduleId}
+				AND c.gradeId = #{usedGrade}
+				AND c.type IN (1, 7)
+ 	</select>
+ 	
+ 	<select id="querySubjIdInTSchTask" parameterType="JSONObject" resultType="java.lang.Long">
+ 		SELECT DISTINCT subjectId FROM ${db_name_schedule}.t_sch_task 
+ 			WHERE schoolId = #{schoolId} AND scheduleId = #{scheduleId}
+ 			AND gradeId = #{usedGrade}
+ 	</select>
+ 	
+ 	<select id="queryPlacementInfoByGrade" parameterType="JSONObject" resultType="com.talkweb.schedule.entity.TSchScheduleGradeset">
+ 		SELECT placementId, placementTermInfo FROM ${db_name_schedule}.t_sch_schedule_gradeset
+ 			WHERE schoolYear = #{schoolYear} AND termInfoId = #{termInfoId}
+				AND schoolId = #{schoolId} AND scheduleId = #{scheduleId}
+				AND gradeId = #{usedGrade}
+			LIMIT 1
+ 	</select>
+ 	
+ 	<select id="queryTSchTask" parameterType="JSONObject" resultType="com.talkweb.schedule.entity.TSchTask">
+ 		SELECT tclassId, subjectId FROM ${db_name_schedule}.t_sch_task 
+ 			WHERE schoolId = #{schoolId} AND scheduleId = #{scheduleId}
+ 			AND gradeId = #{usedGrade}
+ 		<if test="tclassIds != null">
+			AND tclassId IN
+			<foreach collection="tclassIds" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+ 	</select>
+ 	
+ 	<select id="queryTClassInfoList" parameterType="JSONObject" resultType="JSONObject">
+ 		SELECT c.tclassId, c.placementType, c.type, c.layCode, g.groupFromSubs 
+ 			FROM ${db_name_schedule}.t_sch_tclass c, ${db_name_schedule}.t_sch_subjectgroup g 
+			WHERE c.schoolYear = g.schoolYear
+				AND c.termInfoId = g.termInfoId AND c.schoolId = g.schoolId AND c.scheduleId = g.scheduleId 
+				AND c.gradeId = g.gradeId AND c.subjectGroupId = g.subjectGroupId
+				AND c.schoolYear = #{schoolYear} AND c.termInfoId = #{termInfoId}
+				AND c.schoolId = #{schoolId} AND c.scheduleId = #{scheduleId}
+				AND c.gradeId = #{usedGrade}
+			<if test="tclassIds != null">
+				AND c.tclassId IN
+				<foreach collection="tclassIds" open="(" separator="," close=")" item="item">
+					#{item}
+				</foreach>
+			</if>
+ 	</select>
+ 	
+ 	<select id="queryStudentInfoList" parameterType="JSONObject" resultType="com.talkweb.schedule.entity.TSchStudentTclassRelationship">
+ 		SELECT studentId, tclassId FROM ${db_name_schedule}.t_sch_student_tclass_relationship 
+ 			WHERE schoolYear = #{schoolYear} AND termInfoId = #{termInfoId}
+				AND schoolId = #{schoolId} AND scheduleId = #{scheduleId}
+				AND gradeId = #{usedGrade} AND inTclassState = 1 LIMIT 100000
+ 	</select>
+ 	
+ 	<select id="queryTclassList" parameterType="JSONObject" resultType="com.talkweb.schedule.entity.TSchTclass">
+		SELECT * FROM ${db_name_schedule}.t_sch_tclass WHERE 
+		scheduleId=#{scheduleId}
+	</select>
+</mapper>

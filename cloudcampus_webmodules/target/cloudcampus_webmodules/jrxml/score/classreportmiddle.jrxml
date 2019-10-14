@@ -1,0 +1,783 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="classScoreOne" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="4ec54c23-55b5-4fa5-a9ed-a481114829ec">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="288"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 4">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 4_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 4_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 4_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 5">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 5_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 5_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 5_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="lessonDataset" uuid="dfa8a582-63f5-4892-8ae4-7390ec0b1dff">
+		<field name="studentNameOne" class="java.lang.String"/>
+		<field name="studentRankOne" class="java.lang.String"/>
+		<field name="tableHead" class="java.lang.String"/>
+		<field name="studentNameTwo" class="java.lang.String"/>
+		<field name="studentRankTwo" class="java.lang.String"/>
+		<field name="studentNameThree" class="java.lang.String"/>
+		<field name="studentRankThree" class="java.lang.String"/>
+		<field name="studentNameFour" class="java.lang.String"/>
+		<field name="studentRankFour" class="java.lang.String"/>
+	</subDataset>
+	<field name="lessonFirstItem" class="java.lang.String"/>
+	<field name="lessonUpFirstName" class="java.lang.String"/>
+	<field name="lessonDownFirstName" class="java.lang.String"/>
+	<field name="lessonUpFirst" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="lessonDownFirst" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="lessonSecondItem" class="java.lang.String"/>
+	<field name="lessonUpSecondName" class="java.lang.String"/>
+	<field name="lessonDownSecondName" class="java.lang.String"/>
+	<field name="lessonUpSecond" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="lessonDownSecond" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="lessonThirdItem" class="java.lang.String"/>
+	<field name="lessonUpThirdName" class="java.lang.String"/>
+	<field name="lessonDownThirdName" class="java.lang.String"/>
+	<field name="lessonUpThird" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="lessonDownThird" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="798" splitType="Stretch">
+			<textField>
+				<reportElement x="250" y="0" width="55" height="30" uuid="903ae459-b965-4023-a5cd-6a462f43244e"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lessonFirstItem}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="150" y="15" width="100" height="1" uuid="b64cb067-cd72-48bd-917a-cef958ad8676">
+					<printWhenExpression><![CDATA[!$F{lessonFirstItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="305" y="15" width="100" height="1" uuid="3a6395cc-44ee-4a3f-a1e2-b6c800e299d9">
+					<printWhenExpression><![CDATA[!$F{lessonFirstItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="278" y="40" width="1" height="220" uuid="20d31715-f61b-45c8-b18b-5af4c0dadb75">
+					<printWhenExpression><![CDATA[!$F{lessonFirstItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</line>
+			<rectangle>
+				<reportElement mode="Transparent" x="0" y="40" width="260" height="220" uuid="c8ebb67c-4773-4995-8302-c8fbce839e04">
+					<printWhenExpression><![CDATA[!$F{lessonFirstItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Transparent" x="295" y="40" width="260" height="220" uuid="93517e31-a5af-44b0-b525-bba08ea27564">
+					<printWhenExpression><![CDATA[!$F{lessonFirstItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<componentElement>
+				<reportElement x="0" y="40" width="260" height="220" uuid="4f03ac67-8382-4b30-a75f-bf6b3863dde0">
+					<printWhenExpression><![CDATA[!$F{lessonFirstItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="lessonDataset" uuid="dbc078f3-113d-40a2-abde-3ae39a7e943c">
+						<dataSourceExpression><![CDATA[$F{lessonUpFirst}]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="260" uuid="b6fa7736-f20e-4d46-b183-be8a064fb177">
+						<jr:columnHeader height="20" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="260" height="20" uuid="4545e343-50cb-4466-a348-704ee640871b"/>
+								<textElement textAlignment="Center" verticalAlignment="Bottom">
+									<font fontName="宋体" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{tableHead}]]></textFieldExpression>
+							</textField>
+						</jr:columnHeader>
+						<jr:detailCell height="20" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="45" height="20" uuid="147de3ad-cf6b-4532-9cb6-45f99b006af2"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameOne}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="45" y="0" width="20" height="20" uuid="f90a29c7-4f97-40d1-ba60-a4628958cd97"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankOne}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="65" y="0" width="45" height="20" uuid="147de3ad-cf6b-4532-9cb6-45f99b006af2"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameTwo}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="110" y="0" width="20" height="20" uuid="f90a29c7-4f97-40d1-ba60-a4628958cd97"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankTwo}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="130" y="0" width="45" height="20" uuid="147de3ad-cf6b-4532-9cb6-45f99b006af2"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameThree}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="175" y="0" width="20" height="20" uuid="f90a29c7-4f97-40d1-ba60-a4628958cd97"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankThree}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="195" y="0" width="45" height="20" uuid="147de3ad-cf6b-4532-9cb6-45f99b006af2"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameFour}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="240" y="0" width="20" height="20" uuid="f90a29c7-4f97-40d1-ba60-a4628958cd97"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankFour}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<componentElement>
+				<reportElement x="295" y="40" width="260" height="220" uuid="fa5ced19-13ae-40a8-8a87-46440591bf41">
+					<printWhenExpression><![CDATA[!$F{lessonFirstItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="lessonDataset" uuid="9f4ee3e2-2f8f-49f7-98d6-924764b28eb2">
+						<dataSourceExpression><![CDATA[$F{lessonDownFirst}]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="260" uuid="deeb2552-1bec-4295-86d6-ae02b51413e3">
+						<jr:columnHeader height="20" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="260" height="20" uuid="aaec4a06-d4ca-420f-a0df-bd7b96acd4e0"/>
+								<textElement textAlignment="Center" verticalAlignment="Bottom">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{tableHead}]]></textFieldExpression>
+							</textField>
+						</jr:columnHeader>
+						<jr:detailCell height="20" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="45" height="20" uuid="53415c2d-2bd7-4e50-a577-3362fe7c8d86"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameOne}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="45" y="0" width="20" height="20" uuid="d3434680-5152-47b8-8470-fb04696927d3"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankOne}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="65" y="0" width="45" height="20" uuid="565774da-187e-497c-91b5-6059d8b8e87f"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameTwo}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="110" y="0" width="20" height="20" uuid="7ecb1831-b788-4c09-bba6-d5651f7e2ccf"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankTwo}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="130" y="0" width="45" height="20" uuid="4f4027f2-1733-4f50-aa1b-ad6e09774809"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameThree}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="175" y="0" width="20" height="20" uuid="da871d88-49da-438d-8cdc-233f61c3b1ce"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankThree}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="195" y="0" width="45" height="20" uuid="47c22011-b544-4f66-9737-0ca84398c0d1"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameFour}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="240" y="0" width="20" height="20" uuid="50c2b94f-3bfe-40ea-bdfa-9558aeee4375"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankFour}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<textField>
+				<reportElement mode="Opaque" x="100" y="30" width="60" height="20" uuid="d7c50127-5912-4413-a72a-70cea0b3316b">
+					<printWhenExpression><![CDATA[!$F{lessonFirstItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lessonUpFirstName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="395" y="30" width="60" height="20" uuid="9ef00094-5920-45ab-8c31-f520d121acc3">
+					<printWhenExpression><![CDATA[!$F{lessonFirstItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lessonDownFirstName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="250" y="265" width="55" height="30" uuid="1e7d31f7-2406-4204-aa75-eafbbfd02a1d"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lessonSecondItem}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="150" y="280" width="100" height="1" uuid="8c652dda-b457-4bef-afc0-79367ef5dfa1">
+					<printWhenExpression><![CDATA[!$F{lessonSecondItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="305" y="280" width="100" height="1" uuid="d43085c2-5de0-4b9b-a0ac-6138a8c94351">
+					<printWhenExpression><![CDATA[!$F{lessonSecondItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="278" y="305" width="1" height="220" uuid="a295540f-d307-47d4-959b-0497ac02e637">
+					<printWhenExpression><![CDATA[!$F{lessonSecondItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</line>
+			<rectangle>
+				<reportElement mode="Transparent" x="0" y="305" width="260" height="220" uuid="28936247-2f92-46c7-8909-5f57d93a1851">
+					<printWhenExpression><![CDATA[!$F{lessonSecondItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Transparent" x="295" y="305" width="260" height="220" uuid="dd4671ce-c903-4ad2-950f-2264c31a7ccf">
+					<printWhenExpression><![CDATA[!$F{lessonSecondItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<componentElement>
+				<reportElement x="295" y="305" width="260" height="220" uuid="7fd6cb0f-1d73-484c-adb8-017accc518e1">
+					<printWhenExpression><![CDATA[!$F{lessonSecondItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="lessonDataset" uuid="bfb95533-570a-4f0f-93e1-41e78f8bf1af">
+						<dataSourceExpression><![CDATA[$F{lessonDownSecond}]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="260" uuid="16f94909-faee-435e-ab09-c9fa3accf949">
+						<jr:columnHeader height="20" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="260" height="20" uuid="7a84e6c7-99c9-488f-b247-ae1b265c4cb6"/>
+								<textElement textAlignment="Center" verticalAlignment="Bottom">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{tableHead}]]></textFieldExpression>
+							</textField>
+						</jr:columnHeader>
+						<jr:detailCell height="20" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="45" height="20" uuid="57f0f0a9-e133-4546-ab72-c49e1ae6e29b"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameOne}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="45" y="0" width="20" height="20" uuid="8bf5d481-fcc9-4b04-9f00-f50c9efd0e3e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankOne}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="65" y="0" width="45" height="20" uuid="36322ace-cb2f-4af9-967d-45b4f549a5bf"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameTwo}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="110" y="0" width="20" height="20" uuid="7b6c528b-b9d5-411f-b91c-48c238df634e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankTwo}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="130" y="0" width="45" height="20" uuid="787ad621-066d-4162-8ffc-bfe85cb1cc6b"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameThree}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="175" y="0" width="20" height="20" uuid="fb11db90-3a86-4c65-9fc3-021f78e5ca15"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankThree}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="195" y="0" width="45" height="20" uuid="8fd2f4d0-4645-4250-9002-a41ff872ab7e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameFour}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="240" y="0" width="20" height="20" uuid="e5916453-81b9-4a9f-88af-6faf84c157ee"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankFour}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<componentElement>
+				<reportElement x="0" y="305" width="260" height="220" uuid="99162dbd-780a-4289-8f47-1c7173854113">
+					<printWhenExpression><![CDATA[!$F{lessonSecondItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="lessonDataset" uuid="97d49ae6-2b51-4be0-8af0-584552356ab0">
+						<dataSourceExpression><![CDATA[$F{lessonUpSecond}]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="260" uuid="955c5081-b851-4774-8186-ee013b7880cd">
+						<jr:columnHeader height="20" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="260" height="20" uuid="1ee48c01-10e4-4345-96de-ee1615953ea4"/>
+								<textElement textAlignment="Center" verticalAlignment="Bottom">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{tableHead}]]></textFieldExpression>
+							</textField>
+						</jr:columnHeader>
+						<jr:detailCell height="20" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="45" height="20" uuid="130a94a7-8462-4e8b-a5df-8cc180f74f47"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameOne}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="45" y="0" width="20" height="20" uuid="7d116da6-2687-4d95-9a76-5272ccc9b4d6"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankOne}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="65" y="0" width="45" height="20" uuid="741f587d-2339-4fd9-9658-d257c00cd815"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameTwo}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="110" y="0" width="20" height="20" uuid="d1c44fb3-f63f-4808-85e7-a93144618344"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankOne}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="130" y="0" width="45" height="20" uuid="4eca89df-c184-4efc-ab59-67c51998a207"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameThree}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="175" y="0" width="20" height="20" uuid="f25fd60b-577f-4656-85b2-361c22bb833b"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankThree}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="195" y="0" width="45" height="20" uuid="1eb45a96-0326-4fb7-af5a-7f916bcc12e6"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameFour}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="240" y="0" width="20" height="20" uuid="7f7ecc77-d3b7-4cde-a210-36374372faa2"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankFour}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<textField>
+				<reportElement mode="Opaque" x="100" y="295" width="60" height="20" uuid="2fcf9974-6cc1-4509-a56b-06a162666122">
+					<printWhenExpression><![CDATA[!$F{lessonSecondItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lessonUpSecondName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="395" y="295" width="60" height="20" uuid="eb28b2f6-411c-46f5-9002-0887667381e8">
+					<printWhenExpression><![CDATA[!$F{lessonSecondItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lessonDownSecondName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="250" y="530" width="55" height="30" uuid="bcd7bc7b-6497-4026-9d17-6364755edbef"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lessonThirdItem}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="150" y="545" width="100" height="1" uuid="4154e009-4e8f-45bb-855b-8478c1867fa2">
+					<printWhenExpression><![CDATA[!$F{lessonThirdItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="305" y="545" width="100" height="1" uuid="f39c105c-77e9-4d4b-8f47-313d67442c31">
+					<printWhenExpression><![CDATA[!$F{lessonThirdItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement x="279" y="571" width="1" height="220" uuid="4d81f1b8-7f6a-4d74-992f-e7db1f9f7b86">
+					<printWhenExpression><![CDATA[!$F{lessonThirdItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</line>
+			<rectangle>
+				<reportElement mode="Transparent" x="0" y="571" width="260" height="220" uuid="0fc5ccd5-fe86-4f63-bc67-e85b00f391a8">
+					<printWhenExpression><![CDATA[!$F{lessonThirdItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Transparent" x="295" y="571" width="260" height="220" uuid="ef2daa94-120b-47b7-bc0d-78b5899c5b94">
+					<printWhenExpression><![CDATA[!$F{lessonThirdItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<componentElement>
+				<reportElement x="295" y="571" width="260" height="220" uuid="dce0790a-753a-4f7e-b618-9df96a234a3c">
+					<printWhenExpression><![CDATA[!$F{lessonThirdItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="lessonDataset" uuid="7122df0c-69a0-4aaa-ab6e-a629bc519632">
+						<dataSourceExpression><![CDATA[$F{lessonDownThird}]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="260" uuid="fd8c4470-1398-4589-9655-27e562358d36">
+						<jr:columnHeader height="20" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="260" height="20" uuid="7739b31d-272c-484a-809d-07c3f55251b4"/>
+								<textElement textAlignment="Center" verticalAlignment="Bottom">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{tableHead}]]></textFieldExpression>
+							</textField>
+						</jr:columnHeader>
+						<jr:detailCell height="20" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="45" height="20" uuid="d4f229dd-e06c-44df-a556-2854c1855707"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameOne}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="45" y="0" width="20" height="20" uuid="3c05b64a-1682-4e11-89ac-3c2855b65c91"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankOne}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="65" y="0" width="45" height="20" uuid="8dbb28c3-5123-4dc1-8c76-b9764deedff3"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameTwo}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="110" y="0" width="20" height="20" uuid="77861eab-b758-4463-9d66-1007ca333a20"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankTwo}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="130" y="0" width="45" height="20" uuid="40437b89-0358-48d3-955c-2bc3b0296cd2"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameThree}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="175" y="0" width="20" height="20" uuid="ca734c1a-9ff1-4e50-a056-097afce5af62"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankThree}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="195" y="0" width="45" height="20" uuid="4b14e646-202f-43b7-b450-201469ed001a"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameFour}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="240" y="0" width="20" height="20" uuid="83398526-83f7-49ba-9bb7-56a9c4df7fd8"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankFour}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<componentElement>
+				<reportElement x="0" y="571" width="260" height="220" uuid="83150813-3483-4ecf-972a-21dc1a397729">
+					<printWhenExpression><![CDATA[!$F{lessonThirdItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="lessonDataset" uuid="80f9f071-79cc-44dc-81d6-1c458db9132c">
+						<dataSourceExpression><![CDATA[$F{lessonUpThird}]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="260" uuid="00a2c439-c655-4802-b57e-3372a2bc60b5">
+						<jr:columnHeader height="20" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="260" height="20" uuid="256b1e5e-601d-4d34-8dc8-15a435fc4938"/>
+								<textElement textAlignment="Center" verticalAlignment="Bottom">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{tableHead}]]></textFieldExpression>
+							</textField>
+						</jr:columnHeader>
+						<jr:detailCell height="20" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="45" height="20" uuid="22dd39b7-94dc-43ee-84c7-70e1cbbdc5c6"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameOne}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="45" y="0" width="20" height="20" uuid="e3a19bfc-e882-4cda-8e5f-597f0966edfe"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankOne}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="65" y="0" width="45" height="20" uuid="ed710044-724d-4132-a922-960b82156e5a"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameTwo}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="110" y="0" width="20" height="20" uuid="946e614a-5d41-4f3c-8f75-b5222a52611f"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankTwo}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="130" y="0" width="45" height="20" uuid="3ad3f330-de6a-4057-a9c8-e424f85bbb10"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameThree}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="175" y="0" width="20" height="20" uuid="0e2135ca-23c9-492a-85c0-405a19ad5e89"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankThree}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="195" y="0" width="45" height="20" uuid="71cfe49a-f3cb-48f8-ba44-4a3fa2e5c521"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentNameFour}]]></textFieldExpression>
+							</textField>
+							<textField>
+								<reportElement x="240" y="0" width="20" height="20" uuid="f0c22880-8b6b-4226-bc0f-12d9b8554fc8"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{studentRankFour}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<textField>
+				<reportElement mode="Opaque" x="100" y="560" width="60" height="20" uuid="bfc58565-29ea-4dce-a181-7e2430662cfa">
+					<printWhenExpression><![CDATA[!$F{lessonThirdItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lessonUpThirdName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="395" y="560" width="60" height="20" uuid="4aa2230e-b22f-4e2d-8be0-b4105fd2999c">
+					<printWhenExpression><![CDATA[!$F{lessonThirdItem}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lessonDownThirdName}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

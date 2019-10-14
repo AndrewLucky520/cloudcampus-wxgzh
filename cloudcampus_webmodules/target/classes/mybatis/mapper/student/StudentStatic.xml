@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.student.dao.ClassDao">
+	<!-- 例子 -->
+	<select id="QueryStudentInfo" parameterType="hashmap"
+		resultType="hashmap">
+		SELECT
+		e.mc,
+		a.bjmc,
+		count(d.xh) as zrs,
+		sum(case when
+		d.XBM='1' then 1 else 0 end) as nsrs,
+		sum(case when d.XBM='2' then 1
+		else 0 end) as lvsrs
+		FROM
+		${zhx_conn}.t_ss_class a
+		INNER JOIN
+		${zhx_conn}.t_ss_classenrol b ON a.BH=b.BH
+		INNER JOIN
+		${zhx_conn}.t_dm_nj e ON (cast(b.xn as UNSIGNED)-cast(a.synj as
+		UNSIGNED))=e.dm
+		LEFT JOIN ${zhx_conn}.t_ss_studenrol c ON c.BH=a.BH AND
+		b.XN=c.XN AND b.XQM=c.XQM and
+		c.sfzx='1'
+		LEFT JOIN
+		${zhx_conn}.t_ss_student d ON c.XH=d.XH
+		WHERE
+		b.SFCX='0'
+		AND
+		a.xxdm=#{xxdm} and CONCAT(b.xn,b.xqm)=#{xnxq}
+		<if test="nj!=null">
+		and synj=#{nj}
+		</if>
+		<if test="sql !=null">
+		${sql}
+		</if>
+		group by e.mc,a.bjmc
+	</select>
+</mapper>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.talkweb.teacher.dao.BmxxNjDao">  
+
+	<resultMap type="com.talkweb.teacher.domain.page.TTrBmxxNj" id="bmnjMap">
+	</resultMap>
+	<parameterMap type="com.talkweb.teacher.domain.page.TTrBmxxNj" id="bmnjParam">
+	</parameterMap>
+	
+	<!-- 添加管理年级 -->
+	<insert id="addBmnj" parameterMap="bmnjParam" >
+		insert into ${zhx_conn}.t_tr_bmxx_nj(xxdm,jgh,nj)
+		values(#{xxdm},#{jgh},#{nj})
+	</insert>
+	
+	<!-- 删除管理年级 -->
+	<delete id="deleteBmnj" parameterType="String">
+		delete from ${zhx_conn}.t_tr_bmxx_nj where jgh=#{jgh}
+	</delete>
+	
+	<!-- 修改管理年级 -->
+	<update id="updateBmnj" parameterMap="bmnjParam">
+		update ${zhx_conn}.t_tr_bmxx_nj set nj=#{nj},xxdm=#{xxdm} where jgh=#{jgh}
+	</update>
+	
+	<!-- 通过机构号查询列表信息 -->
+	<select id="getNjListByJgh" parameterType="String" resultMap="bmnjMap">
+		select * from ${zhx_conn}.t_tr_bmxx_nj  where jgh=#{jgh}
+	</select>
+</mapper>

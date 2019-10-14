@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.scoreManage.dao.ScoreUpGradeDao">
+
+	<update id='batchInsertTGmScorestubzfList2' parameterType='java.util.List'>
+		insert into ${db_name_scoreManage_old}.T_GM_ScoreStuBZF(xn,xqm,kslc,xxdm,xh,bzf)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">(#{item.xn},#{item.xqm},#{item.kslc},#{item.xxdm},#{item.xh},#{item.bzf})
+		</foreach>
+		on duplicate key update bzf=values(bzf) 
+	</update>
+	<update id='batchInsertTGmScorestubzfMkList2' parameterType='java.util.List'>
+		insert into
+		${db_name_scoreManage_old}.T_GM_ScoreStuBZF_mk(xn,xqm,kslc,xxdm,xh,kmdm,bzf) values
+		<foreach collection="list" item="item" index="index"
+			separator=",">(#{item.xn},#{item.xqm},#{item.kslc},#{item.xxdm},#{item.xh},#{item.kmdm},#{item.bzf})
+		</foreach>
+		on duplicate key update bzf=values(bzf)
+	</update>
+	<!-- 获取学生科目成绩及班级信息 -->
+	<select id="getStuInBhAndKmScore" parameterType="hashmap"  resultType="JSONObject">
+		SELECT xh,kmdm,bh,cj FROM ${db_name_scoreManage_old}.t_gm_scoreinfo 
+		WHERE xn=#{xn} AND xqm=#{xqm} AND kslc=#{kslc}
+	</select>
+	
+	<!-- 获取学生总分 -->
+	<select id="getStuZfAndPm" parameterType="hashmap"  resultType="JSONObject">
+		SELECT xh,zf FROM  ${db_name_scoreManage_old}.t_gm_scorestustatisticsrank
+		WHERE xn=#{xn} AND xqm=#{xqm} AND kslc=#{kslc}
+	</select>
+	
+	<select id="getClassZfBzfList" parameterType="hashmap"  resultType="JSONObject">
+		SELECT bh,pjf,bzc FROM ${db_name_scoreManage_old}.`t_gm_scoreclassstatistics` 
+		WHERE xn=#{xn} AND xqm=#{xqm} AND kslc=#{kslc}
+	</select>
+	<select id="getClassSubjectBzfList" parameterType="hashmap"  resultType="JSONObject">
+		SELECT bh,kmdm,pjf,bzc FROM ${db_name_scoreManage_old}.`t_gm_scoreclassstatistics_mk` 
+		WHERE xn=#{xn} AND xqm=#{xqm} AND kslc=#{kslc}
+	</select>
+	<select id="getAllKslc" parameterType="hashmap"  resultType="JSONObject">
+		SELECT * FROM ${db_name_scoreManage_old}.t_gm_degreeinfo
+	</select>
+	<update id="deleteStuZfBzf" parameterType="hashmap">
+		delete from ${db_name_scoreManage_old}.t_gm_scorestubzf
+	</update>
+	<update id="deleteStuKmBzf" parameterType="hashmap">
+		delete from ${db_name_scoreManage_old}.t_gm_scorestubzf_mk
+	</update>
+</mapper>

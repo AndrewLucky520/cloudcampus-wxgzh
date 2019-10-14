@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.scoreReport.dao.StudentLevelReportDao">
+	<select id="getNjpmMax" parameterType="splitDbAndTableRule" resultType="int">
+		SELECT max(t.njpm)
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} t
+				LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} c 
+					ON t.xnxq = c.xnxq AND t.kslc = c.kslc AND t.xxdm = c.xxdm AND t.xh = c.xh
+				INNER JOIN (
+					SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+					WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+						AND m.lb = '01'
+				) v ON t.kslc = v.kslc AND t.xxdm = v.xxdm AND t.xnxq = v.xnxq AND c.bh = v.bh
+		WHERE t.kslc = #{data.kslc} AND t.xxdm = #{data.xxdm} AND t.xnxq = #{data.xnxq} AND v.bmfz = #{data.bmfz}
+		<if test="data.nj != null">
+			AND c.nj = #{data.nj}
+		</if> 
+	</select>
+	
+	<select id="getBjcjMk" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT a.kmdm, '' AS kmmc, d.bmfz AS fzdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a 
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} b 
+					ON a.xnxq = b.xnxq AND a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.bh = b.bh 
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} d 
+					ON b.kslc = d.kslc AND b.xnxq = d.xnxq AND b.xxdm = d.xxdm AND b.bmfz = d.bmfz AND d.lb = '01' 
+		WHERE a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} AND a.xxdm = #{data.xxdm}
+		<if test="data.nj != null">
+			AND d.nj = #{data.nj}
+		</if>	
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.bmfz != null">
+			AND d.bmfz = #{data.bmfz}
+		</if>
+		<if test="data.xhList != null">
+			AND a.xh IN 
+			<foreach collection="data.xhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		UNION ALL
+		SELECT DISTINCT a.kmdm AS kmdm, '' AS zwmc, a.fzdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} a 
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} d 
+					ON a.kslc = d.kslc AND a.xxdm = d.xxdm AND a.xnxq = d.xnxq AND a.fzdm = d.bmfz AND d.lb = '01'
+		WHERE a.kslc = #{data.kslc} AND a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} 
+		<if test="data.nj != null">
+		    AND	a.nj = #{data.nj}
+		</if>
+		<if test="data.bmfz != null">
+			AND a.fzdm = #{data.bmfz}
+		</if>
+	</select>
+
+	<select id="ifExistsBjcjzhcj" parameterType="splitDbAndTableRule" resultType="int">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} 
+		WHERE xnxq = #{data.xnxq} AND xxdm = #{data.xxdm} AND kslc = #{data.kslc}
+			AND nj = #{data.nj}	AND fzdm = #{data.bmfz}
+		LIMIT 1
+	</select>
+	
+	<select id="getbjcjqamk00" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT a.kmdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreleveltemplate} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoretjmk} b 
+					ON a.kslc = b.kslc AND a.xxdm = b.xxdm AND a.xnxq = b.xnxq AND a.nj = b.nj AND a.kmdm=b.kmdm
+		WHERE a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} AND a.xxdm = #{data.xxdm}
+			AND a.nj = #{data.nj} AND b.fzdm = #{data.bmfz} AND IFNULL(a.kmdm, '') != '' 
+	</select>
+
+	<select id="getbjcjqamk01" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT a.kmdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreleveltemplate} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoretjmk} b 
+					ON a.kslc = b.kslc AND a.xxdm = b.xxdm AND a.xnxq = b.xnxq AND a.nj = b.nj 
+						AND a.kmdm = b.kmdm
+				LEFT OUTER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} c 
+					ON a.kslc = c.kslc AND a.nj = c.nj AND a.kmdm != c.kmdm AND c.dykm LIKE CONCAT('%', a.kmdm, '%') 
+		WHERE a.xnxq = #{data.xnxq} AND a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} 
+			AND a.nj = #{data.nj} AND b.fzdm = #{data.bmfz} AND IFNULL(a.kmdm, '') != '' 
+			AND IFNULL(c.kmdm, '') = ''
+		UNION ALL
+		SELECT kmdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore}
+		WHERE kslc = #{data.kslc} AND xxdm = #{data.xxdm} AND xnxq = #{data.xnxq} AND nj = #{data.nj} 
+			AND fzdm = #{data.bmfz}
+	</select>
+
+	<select id="getbjcjxsdd" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT '' AS studentName, a.bh AS classId, '' AS className, a.xh AS studentNo, b.zf AS totalScore,
+			b.bjpm AS totalScoreClassRank, b.njpm AS totalScoreGradeRank, a.bh, b.djxl AS totalScoreLevel,
+			b.djxl2 AS compositiveLevel, b.njpmgz AS upDownRank, b.xh, b.dbkslc, b.dbxnxq
+		FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a
+			INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} e 
+				ON a.xxdm = e.xxdm AND a.xnxq = e.xnxq AND e.kslc = a.kslc AND a.bh = e.bh
+			LEFT OUTER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} b 
+				ON a.xxdm = b.xxdm AND a.xnxq = b.xnxq AND a.kslc = b.kslc AND a.xh = b.xh 
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}
+		<if test="data.nj != null">
+			AND a.nj = #{data.nj} 
+		</if>
+		<if test="data.bmfz != null">
+			AND e.bmfz = #{data.bmfz}
+		</if>
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.xhList != null">
+			AND a.xh IN 
+			<foreach collection="data.xhList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.topXRank != null">
+			AND b.njpm &lt;= #{data.topXRank}
+		</if>
+		<if test="data.lastXRank != null">
+			AND b.njpm > #{data.lastXRank}
+		</if>
+		<if test="data.mkCount != null">
+			AND b.djxl LIKE CONCAT(#{data.mkCount}, 'A%')
+		</if>
+		<if test="data.mkCount2 != null">
+			AND b.djxl2 LIKE CONCAT(#{data.mkCount2}, 'A%')
+		</if>
+	</select>
+	
+	<select id="getNjpmInDbKslc" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT d.xh, d.njpm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} d
+		WHERE d.xxdm = #{data.xxdm} AND d.xnxq = #{data.xnxq} AND d.kslc = #{data.kslc} 
+		<if test="data.xhList != null">
+			AND d.xh IN
+			<foreach collection="data.xhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<select id="getbjcjcjdd" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.xh, a.kmdm, CONCAT(a.cj, IFNULL(b.dj, '')) AS cj, b.bjpm, b.njpm, a.bh, d.bmfz
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} d
+					ON a.kslc = d.kslc AND a.xxdm = d.xxdm AND a.xnxq = d.xnxq AND a.bh = d.bh 
+				LEFT OUTER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} b 
+					ON a.xnxq = b.xnxq AND a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.kmdm = b.kmdm AND a.xh = b.xh
+		WHERE a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} AND a.xxdm = #{data.xxdm}
+			AND d.bmfz = #{data.bmfz}
+		<if test="data.nj != null">
+			AND a.nj = #{data.nj}
+		</if>
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		UNION ALL
+		SELECT a.xh, a.kmdm, CONCAT(a.cj, IFNULL(a.dj, '')) AS cj, a.bjpm, a.njpm, '' AS bh, d.bmfz 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} a
+				INNER JOIN (
+					SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+					WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+						AND m.lb = '01'
+				) d ON a.xnxq = d.xnxq AND a.kslc = d.kslc AND a.xxdm = d.xxdm 
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} b 
+					ON a.kslc = b.kslc AND a.xxdm = b.xxdm AND a.xnxq = b.xnxq AND d.bmfz = b.fzdm AND a.kmdm = b.kmdm 
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}
+		<if test="data.nj != null">
+			AND d.nj = #{data.nj}
+		</if>
+		<if test="data.bmfz != null">
+			AND d.bmfz = #{data.bmfz}
+		</if>
+		<if test="data.bhList != null">
+			AND d.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<select id="getGetAllKmdm" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT a.kmdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a
+		WHERE a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} AND a.xxdm = #{data.xxdm}
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.nj != null">
+			AND a.nj = #{data.nj}
+		</if>
+		<if test="data.xhList != null">
+			AND a.xh IN
+			<foreach collection="data.xhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<select id="getGetBrkm" parameterType="splitDbAndTableRule"	resultType="JSONObject">
+		SELECT '' AS className, '' AS studentName, b.xh AS studentNo, b.djxl AS totalScoreLevel, c.kmdm AS subjectId,
+			'' AS weakSubjectName 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} b 
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} c
+					ON b.xnxq = c.xnxq AND b.xxdm = c.xxdm AND b.kslc = c.kslc AND b.xh = c.xh 
+						AND (c.dj NOT IN ('A','A+') AND IFNULL(c.dj, '') != '')
+		WHERE b.xnxq = #{data.xnxq} AND b.xxdm = #{data.xxdm} AND b.kslc = #{data.kslc} 
+			AND b.djxl LIKE CONCAT(#{data.kmCount}, 'A%')
+		<if test="data.kmdmList != null">
+			AND c.kmdm IN
+			<foreach collection="data.kmdmList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		 </if>
+		 <if test="data.xhList != null">
+		 	AND b.xh IN
+		 	<foreach collection="data.xhList" open="(" separator="," close=")" item="item">
+		 		#{item}
+		 	</foreach>
+		 </if>
+	</select>
+	
+	<select id="getAllTdTj" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.bh, a.ckrs, a.hgrs, a.mf 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} a 
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<select id="getAllKmFromStatisticsRankMk" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT a.kmdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} a 
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}
+		<if test="data.xhList != null">
+			AND a.xh IN
+			<foreach collection="data.xhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<select id="getEverySubjectScore" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT a.kmdm, a.njpm, a.dj, a.xh 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} a 
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}  
+		<if test="data.xhList != null">
+			AND a.xh IN
+			<foreach collection="data.xhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<select id="sql_ddzftjb" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.zgf, a.ckrs, a.bh AS bhs, b.djxl, b.rs AS rs, b.ljrs AS ljrs
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelsequnce} b 
+					ON a.xnxq = b.xnxq AND a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.bh = b.bh
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}  
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="("	separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<select id="sql_getAllBj" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.bh AS bhs, a.zgf, a.ckrs 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} a
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}  
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="("	separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<select id="sql_getAllDjxlInfo" parameterType="splitDbAndTableRule" resultType="java.lang.String">
+		SELECT djxl 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorelevelsequnce} a 
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} AND a.djxllb = '01'   
+		<if test="data.nj != null">
+			AND a.nj = #{data.nj}
+		</if>
+		AND EXISTS (
+			SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelsequnce} b 
+			WHERE b.xxdm = #{data.xxdm} AND b.xnxq = #{data.xnxq} AND b.kslc = #{data.kslc}
+			<if test="data.bhList != null">
+				AND b.bh IN
+				<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+					#{item}
+				</foreach>
+			</if>
+				AND b.djxl = a.djxl AND b.djxllb = '01' 
+		)
+		ORDER BY djqz DESC
+	</select>
+
+	<select id="getAllZfxl" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT bh, LEFT(djxl, instr(djxl,'A')) AS xl, SUM(rs) AS rs 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelsequnce} a
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} 
+		<if test="data.djxllb != null">
+			AND a.djxllb = #{data.djxllb}
+		</if>
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		GROUP BY LEFT(djxl, instr(djxl,'A')), bh
+	</select>
+
+	<select id="getNoA" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT bh, SUM(rs) AS rs 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelsequnce} a
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}  
+		<if test="data.djxllb != null">
+			AND a.djxllb = #{data.djxllb}
+		</if>
+			AND a.djxl NOT LIKE '%A%'
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		GROUP BY bh
+	</select>
+	
+	<select id="getZfJg" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.xh, a.njpm, a.zf 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} a   
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} AND a.njpm > 0 
+		<if test="data.xhList != null">
+			AND a.xh IN
+			<foreach collection="data.xhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+			ORDER BY a.njpm ASC
+	</select>
+	
+	<select id="getAllKskm" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		<choose>
+			<when test="data.isNoAdd != null">
+				SELECT a.nj, COUNT(DISTINCT a.kmdm) AS mks 
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreleveltemplate} a 
+		    			INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoretjmk} b 
+		    				ON a.xxdm = b.xxdm AND a.xnxq = b.xnxq AND a.kslc = b.kslc AND a.nj = b.nj 
+		    					AND a.kmdm = b.kmdm 
+		    	WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} 
+		    		AND IFNULL(a.kmdm, '') != '' 
+				<if test="data.nj != null">
+					AND a.nj = #{data.nj} 
+				</if>
+				GROUP BY a.nj
+			</when>
+			<otherwise> 
+				SELECT a.nj AS nj, COUNT(DISTINCT a.kmdm) AS mks 
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreleveltemplate} a 
+						INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoretjmk} b 
+							ON a.xxdm = b.xxdm AND a.xnxq = b.xnxq AND a.kslc = b.kslc AND a.nj = b.nj 
+								AND a.kmdm = b.kmdm 
+				WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} 
+					AND IFNULL(a.kmdm, '') != ''  
+					AND NOT EXISTS (
+						select 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} c 
+						WHERE a.xxdm = c.xxdm AND a.xnxq = c.xnxq AND a.kslc = c.kslc AND a.nj = c.nj
+							AND CONCAT(',', c.dykm, ',') LIKE CONCAT('%,', a.kmdm, ',%') 
+							AND IFNULL(c.kmdm, '') != ''
+					)
+				<if test="data.nj != null">
+					AND a.nj = #{data.nj} 
+				</if>
+				UNION ALL
+				SELECT a.nj AS nj, COUNT(DISTINCT a.kmdm) AS mks 
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreleveltemplate} a 
+						INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} c 
+							ON a.xxdm = c.xxdm AND a.xnxq = c.xnxq AND a.kslc = c.kslc AND a.nj = c.nj 
+								AND a.kmdm = c.kmdm 
+				WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} 
+					AND IFNULL(a.kmdm, '') != '' AND IFNULL(c.kmdm, '') != '' 
+				<if test="data.nj != null">
+					AND a.nj = #{data.nj} 
+				</if>
+				GROUP BY nj
+			</otherwise>
+		</choose> 
+	</select>
+</mapper>

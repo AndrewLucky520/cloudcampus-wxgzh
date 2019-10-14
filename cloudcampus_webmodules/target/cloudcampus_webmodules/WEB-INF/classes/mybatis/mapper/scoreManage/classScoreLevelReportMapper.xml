@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.scoreReport.dao.ClassScoreLevelReportDao">
+	<!--等第科目统计表 得到所有的等级信息 -->
+	<select id="getAllDjInfo" parameterType="hashmap" resultType="JSONObject">
+		SELECT dm, mc FROM ${db_name_scoreManage_global}.t_gm_scoreleveltemplatename
+		ORDER BY cjmf DESC
+	</select>
+	
+	<!--等第科目统计表 得到等第科目级别 -->
+	<select id="getDDKMJB" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT t.bmfz AS fzdm, a.bh, a.kmdm, '' AS zgh, '' AS bzrxm, '' AS kmmc, '' AS bjmc, a.pjf, a.zgf, 
+			b.djdm, CONCAT(b.rs, '/', b.ljrs) AS djljrs, a.pm, b.rs, a.yxl AS yxl, a.yxlpm, a.hgl AS hgl, a.hglpm
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics_mk} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelmk} b 
+					ON a.xnxq = b.xnxq AND a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.kmdm = b.kmdm AND a.bh=b.bh
+				INNER JOIN (
+					SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+					WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+						AND m.lb = '01'
+				) t ON a.xnxq = t.xnxq AND a.xxdm = t.xxdm AND a.kslc = t.kslc AND b.bh = t.bh
+		WHERE a.xnxq = #{data.xnxq} AND a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc}
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.kmdmList != null">
+			AND a.kmdm IN
+			<foreach collection="data.kmdmList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<!--等第科目统计表 得到全年级各个科目的平均分 fzdm 待改 -->
+	<select id="getQnjpjf" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.fzdm, a.kmdm, a.pjf, a.pjffc, a.yxl, a.yxlc, a.hgl, a.hglc, g.rs AS njrs, g.lc, g.rsc, g.djdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoregroupstatistics_mk} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics_mk} b 
+					ON a.xnxq = b.xnxq AND a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.kmdm = b.kmdm
+				INNER JOIN (
+					SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+					WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+						AND m.lb = '01'
+				) c ON a.xnxq = c.xnxq AND a.xxdm = c.xxdm AND a.kslc = c.kslc AND a.fzdm = c.bmfz AND b.bh = c.bh
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_groupscorelevelmk} g 
+					ON a.xnxq = g.xnxq AND a.xxdm = g.xxdm AND a.kslc = g.kslc AND a.kmdm = g.kmdm AND a.fzdm = g.fzdm
+		WHERE a.xnxq = #{data.xnxq} AND a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc}
+		<if test="data.bmfz != null">
+			AND c.bmfz = #{data.bmfz}
+		</if>
+		<if test="data.kmdmList != null">
+			AND a.kmdm IN
+			<foreach collection="data.kmdmList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<!--等第人数统计表 得到bmfz 参考人数 平均分 排名 班级名称 班主任姓名 -->
+	<select id="getNumInfo" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.ckrs AS referenceNum, a.pjf AS totalAverageScore, a.pm AS totalScoreRank, NULL AS className, a.bh 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} a
+				INNER JOIN (
+					SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+					WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz 
+						AND m.lb = '01'
+				) b ON a.xnxq = b.xnxq AND a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.bh = b.bh
+		WHERE a.xnxq = #{data.xnxq} AND a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND	b.nj = #{data.nj} 
+			AND b.bmfz = #{data.bmfz}
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		UNION ALL
+		SELECT ckrs AS referenceNum, pjf AS totalAverageScore, NULL AS totalScoreRank, '总计' AS className, NULL AS bh 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoregroupstatistics}
+		WHERE xnxq = #{data.xnxq} AND xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND fzdm = #{data.bmfz}
+		UNION ALL
+		SELECT NULL AS referenceNum, pjffc AS totalAverageScore, NULL AS totalScoreRank, '班差' AS className, NULL AS bh 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoregroupstatistics} 
+		WHERE xnxq = #{data.xnxq} AND xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND fzdm = #{data.bmfz}
+	</select>
+	
+	<!--等第人数统计表 得到全年级的等级序列 -->
+	<select id="getAllDjxlInfo" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT e.djxl 
+			FROM (
+				SELECT d.djxl, c.zrs, d.djqz 
+					FROM (
+						SELECT a.djxl, a.djqz
+							FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorelevelsequnce} a
+						WHERE a.xnxq = #{data.xnxq} AND a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc}
+							AND a.djxllb = #{data.lb} AND a.nj = #{data.nj}
+					) d INNER JOIN (
+						SELECT SUM(b.rs) AS zrs, b.djxl
+							FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelsequnce} b
+						WHERE b.xnxq = #{data.xnxq} AND b.kslc = #{data.kslc} AND b.xxdm = #{data.xxdm}
+							AND b.djxllb = #{data.lb}
+						<if test="data.bhList != null">
+							AND b.bh IN
+							<foreach collection="data.bhList" item="item" open="(" close=")" separator=","> 
+								#{item} 
+							</foreach> 
+						</if> 
+						GROUP BY b.djxl
+					) c ON d.djxl = c.djxl
+				) e 
+		WHERE e.zrs > 0 
+			ORDER BY e.djqz DESC
+	</select>
+	
+	<!--等第人数统计表 得到各个排名区间，年级排名分布设置表 -->
+	<select id="getAllPmqj" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT pmfbdm, pmfbsx, pmfbxx 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankdistribute} a 
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} 
+			AND nj = #{data.nj} AND fzdm = #{data.bmfz}
+	</select>
+	
+	<!--等第人数统计表 得到年级等级序列分布情况 -->
+	<select id="getAllDjxlInformation" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.bh, a.djxl, a.rs, a.ljrs, a.bl 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelsequnce} a
+		WHERE a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} AND a.xxdm = #{data.xxdm} AND a.djxllb = #{data.lb}
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<!--等第人数统计表 得到年级排名分布情况 -->
+	<select id="getAllPmInfo" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT bh, pmfbdm, rs, ljrs 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankstatistics} a 
+		WHERE a.xnxq = #{data.xnxq} AND a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc}
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<!--等第人数统计表 得到全年级的排名分布情况 班差情况 -->
+	<select id="getNjPmfb" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT g.pmfbdm, g.pmrs, g.pmljrs, g.pmcz, g.ljrscz, g.lastcz, t.totalrs, t.totalljrs 
+			FROM (
+				SELECT a.pmfbdm, SUM(rs) AS pmrs, SUM(ljrs) AS pmljrs, MAX(rs) - MIN(rs) AS pmcz,
+					MAX(ljrs) - MIN(ljrs) AS ljrscz, MAX(b.ckrs - a.ljrs) - MIN(b.ckrs - a.ljrs) AS lastcz
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankstatistics} a
+						INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} b 
+							ON a.xnxq = b.xnxq AND a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.bh = b.bh
+				WHERE a.xnxq = #{data.xnxq} AND a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc}
+				<if test="data.bhList != null">
+					AND a.bh IN
+					<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+				GROUP BY pmfbdm
+			) g LEFT JOIN (
+				SELECT a.pmfbdm, SUM(rs) AS totalrs, SUM(ljrs) AS totalljrs
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankstatistics} a
+						INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} b 
+							ON a.xnxq = b.xnxq AND a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.bh = b.bh
+				WHERE a.xnxq = #{data.xnxq} AND a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc}
+				<if test="data.allList != null">
+					AND a.bh IN
+					<foreach collection="data.allList" item="item" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+				GROUP BY pmfbdm
+			) t ON g.pmfbdm = t.pmfbdm
+	</select>
+
+	<!--等第人数统计表 得到全年级的等级序列 班差情况 -->
+	<select id="getNjDjxl" resultType="JSONObject" parameterType="hashmap">
+		SELECT a.djxl, a.djxlrs, a.djxlcz, b.totalrs 
+			FROM (
+				SELECT djxl, SUM(rs) AS djxlrs, MAX(rs) - MIN(rs) AS djxlcz 
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelsequnce} a
+				WHERE a.xnxq = #{data.xnxq} AND a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} 
+					AND a.djxllb = #{data.lb}
+				<if test="data.bhList != null">
+					AND a.bh IN
+					<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+				GROUP BY djxl
+			) a LEFT JOIN (
+				SELECT djxl, SUM(rs) AS totalrs 
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelsequnce} a
+				WHERE a.xnxq = #{data.xnxq} AND a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} 
+					AND a.djxllb = #{data.lb}
+				<if test="data.allList != null">
+					AND a.bh IN
+					<foreach collection="data.allList" item="item" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+				GROUP BY djxl
+			) b ON a.djxl = b.djxl
+	</select>
+</mapper>

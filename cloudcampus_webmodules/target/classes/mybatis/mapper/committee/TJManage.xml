@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.committee.dao.TJManageDao">
+	
+	<update id="updateTJStudent" parameterType="JSONObject" >
+		INSERT INTO ${db_name_committee}.t_tj_studentinfo(uuid,schoolId,termInfoId,studentId,
+		studentName,fatherName,motherName,contactInfo) 
+		VALUES (UUID(),#{schoolId},#{termInfoId},#{studentId},#{studentName},#{fatherName},
+		#{motherName},#{contactInfo}) ON DUPLICATE KEY UPDATE fatherName=values(fatherName),
+		motherName=values(motherName),contactInfo=values(contactInfo)
+	</update>
+	
+	<delete id="deleteTJStudent" parameterType="JSONObject">
+        DELETE FROM ${db_name_committee}.t_tj_studentinfo WHERE schoolId = #{schoolId} 
+        AND termInfoId = #{termInfoId} AND studentId = #{studentId}
+    </delete>
+    
+    <select id="getTJStudentList" parameterType="JSONObject" resultType="JSONObject">
+	    SELECT studentId,studentName,fatherName,motherName,contactInfo 
+	    FROM ${db_name_committee}.t_tj_studentinfo WHERE schoolId = #{schoolId} AND termInfoId = #{termInfoId}
+	    <if test="studentName != null and studentName != ''"> 
+			AND studentName LIKE CONCAT('%',#{studentName},'%')
+		</if>
+    </select>
+	
+</mapper>

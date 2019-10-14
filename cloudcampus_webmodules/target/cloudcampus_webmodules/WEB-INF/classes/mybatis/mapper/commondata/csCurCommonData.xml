@@ -1,0 +1,1330 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.talkweb.commondata.dao.CsCurCommonDataDao"> 
+      
+	
+	<!-- <cache eviction="FIFO" flushInterval="60000" size="1024" readOnly="true"/>  -->
+	  <select id="getAccountByRoleAndConditionCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	     <if test="role ==  1 ">
+	     SELECT a.`id`,u.id as userId FROM   ${db_name_csCurCommonData}${termInfoId}.t_account	 a 
+		INNER JOIN   ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.`accountId`=a.`id` AND u.role=1 AND u.`status`=1 AND a.`status`=1
+		INNER JOIN   ${db_name_csCurCommonData}${termInfoId}.t_teacher t ON t.`teacherId`=u.`id` 
+		INNER JOIN   ${db_name_csCurCommonData}${termInfoId}.t_school s ON s.`id`=t.`schoolId` AND s.`status`=1
+		<where> 
+		    <if test="type ==  11 ">
+		   a.`mobilePhone`=#{mobilePhone} 
+		    </if>
+		    <if test="type ==  12 ">
+		    ( a.`name`=#{name}  AND s.`name`=#{schoolName} ) 
+		    </if>
+		     <if test="type ==  13 ">
+		      a.`idNumber`=#{idNumber} 
+		     </if>
+		 </where>
+		</if>
+		 <if test="role ==  3 ">
+		SELECT a.`id`,u.id as userId  FROM   ${db_name_csCurCommonData}${termInfoId}.t_account a 
+		INNER JOIN   ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.`accountId`=a.`id` AND u.role=3 AND u.`status`=1 AND a.`status`=1
+		INNER JOIN   ${db_name_csCurCommonData}${termInfoId}.t_parent p ON p.`parentId`=u.`id` 
+		INNER JOIN    ${db_name_csCurCommonData}${termInfoId}.t_class c ON c.`id`=p.`classId` AND c.`status`=1
+		INNER JOIN   ${db_name_csCurCommonData}${termInfoId}.t_grade g ON g.`id`=c.`gradeId` AND g.`status`=1 
+		INNER JOIN   ${db_name_csCurCommonData}${termInfoId}.t_school s ON s.`id`=g.`schoolId` AND s.`status`=1
+		<where>
+		  <if test="type ==  31 ">
+		 a.`mobilePhone`=#{mobilePhone}
+		 </if>
+		  <if test="type ==  32 ">
+		 (s.`name`=#{schoolName} AND c.`className`=#{className} AND a.`name`=#{name})
+          </if>
+          <if test="type ==  33 ">
+          a.`idNumber`=#{idNumber}
+           </if>
+         </where>
+		 </if>
+		 <if test="role ==  2 ">
+		SELECT a.`id`,u.id as userId  FROM   ${db_name_csCurCommonData}${termInfoId}.t_account a 
+		INNER JOIN   ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.`accountId`=a.`id` AND u.role=2 AND u.`status`=1 AND a.`status`=1
+		INNER JOIN   ${db_name_csCurCommonData}${termInfoId}.t_student ss ON ss.`stdId`=u.`id`  AND ss.`status`=1
+		INNER JOIN    ${db_name_csCurCommonData}${termInfoId}.t_class c ON c.`id`=ss.`classId` AND c.`status`=1
+		INNER JOIN   ${db_name_csCurCommonData}${termInfoId}.t_grade g ON g.`id`=c.`gradeId` AND g.`status`=1 
+		INNER JOIN   ${db_name_csCurCommonData}${termInfoId}.t_school s ON s.`id`=g.`schoolId` AND s.`status`=1
+		<where> 
+		 <if test="type ==  21 ">
+		ss.`stdNumber`=#{stdNumber} 
+		</if>
+		<if test="type ==  22 ">
+        (s.`name`=#{schoolName} AND c.`className`=#{className} AND a.`name`=#{name}) 
+        </if>
+        <if test="type ==  23 ">
+        a.`idNumber`=#{idNumber}
+        </if>
+	  	</where>
+	  	</if>
+	  </select>
+    <select id="getTeacherHeaderAccountCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT 
+	  o.orgId,
+	  t.orgName,
+	  t.orgType,
+	  GROUP_CONCAT(DISTINCT u.accountId) headerIds
+	FROM
+	  ${db_name_csCurCommonData}${termInfoId}.t_school_org o 
+	  LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_orginfo t 
+	    ON o.orgId = t.id 
+	  LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_org_header h 
+	    ON o.orgId = h.orgId 
+	  LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u 
+	    ON h.`headerId` = u.id 
+	WHERE o.schoolId = #{schoolId}
+	  AND t.status = 1 
+	  <if test="orgId != null and orgId != ''">
+	      AND o.orgId = #{orgId}
+      </if>
+      <if test="ids != null and ids.size() > 0">
+          AND o.orgId in
+       		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+      <if test="type != null and type != ''"> 
+          AND t.orgType = #{type}
+      </if>
+       GROUP BY o.orgId 
+    </select>
+	  <select id="getOrgTeacherListCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  	SELECT DISTINCT a.id,a.name FROM ( 
+        SELECT m.orgId ,m.userId FROM  ${db_name_csCurCommonData}${termInfoId}.`t_org_member` m  
+	    	UNION
+	    SELECT h.`orgId`,h.`headerId` AS userId FROM  ${db_name_csCurCommonData}${termInfoId}.`t_org_header` h 
+          )l
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_orginfo` t ON l.`orgId`=t.`id`
+	INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_school_org so ON t.id=so.`orgId`
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_user` u ON l.`userId`=u.`id`
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_account` a ON u.accountId=a.id 
+	WHERE  so.`schoolId`=#{schoolId} AND t.`status`='1'
+	<if test="orgIdList!=null and orgIdList!='' and orgIdList.size() > 0">
+	  AND l.`orgId` IN
+     	<foreach collection="orgIdList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     </if>
+     <if test="name!=null and name!=''"> 
+      AND a.`name` LIKE CONCAT('%',#{name},'%') 
+     </if>
+     <if test="type!=null and type!=''"> 
+      AND t.`orgType`=#{type}
+     </if>
+  </select>
+	 <!-- 查询年级组和教研组共有的教师交集   accountId name -->
+  <select id="getOrgIntersectionTeacherListCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  	SELECT DISTINCT a.id,a.name FROM ( 
+        SELECT m.orgId ,m.userId FROM  ${db_name_csCurCommonData}${termInfoId}.`t_org_member` m  
+	    	UNION
+	    SELECT h.`orgId`,h.`headerId` AS userId FROM  ${db_name_csCurCommonData}${termInfoId}.`t_org_header` h 
+          )l
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_orginfo` t ON l.`orgId`=t.`id`
+	INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_school_org so ON t.id=so.`orgId`
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_user` u ON l.`userId`=u.`id`
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_account` a ON u.accountId=a.id
+	left JOIN
+	(
+	  	SELECT DISTINCT u.`accountId` FROM ( 
+        SELECT m.orgId ,m.userId FROM  ${db_name_csCurCommonData}${termInfoId}.`t_org_member` m  
+	    	UNION
+	    SELECT h.`orgId`,h.`headerId` AS userId FROM  ${db_name_csCurCommonData}${termInfoId}.`t_org_header` h 
+          )ll
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_orginfo` t ON ll.`orgId`=t.`id`
+		INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_school_org so ON t.id=so.`orgId`
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_user` u ON ll.`userId`=u.`id`
+		WHERE  so.`schoolId`=#{schoolId} AND t.`status`='1' AND t.`orgType`='1'	
+		<if test="orgResearchIdList!=null and orgResearchIdList!='' and orgResearchIdList.size() > 0">
+	  	AND ll.`orgId` IN
+     	<foreach collection="orgResearchIdList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     	</if>	  
+	)a2 ON a.`id`=a2.accountId	 
+	WHERE  so.`schoolId`=#{schoolId} AND t.`status`='1' AND t.`orgType`='2'	
+	<if test="orgGradeIdList!=null and orgGradeIdList!='' and orgGradeIdList.size() > 0">
+	  AND l.`orgId` IN
+     	<foreach collection="orgGradeIdList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     </if>
+     <if test="name!=null and name!=''"> 
+      AND a.`name` LIKE CONCAT('%',#{name},'%') 
+     </if>
+  </select>
+	<select id="getTermInfosCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT  t.`id`,FROM_UNIXTIME(t.startTime) as startTime,FROM_UNIXTIME(t.`endTime`) as endTime 
+		FROM  ${db_name_csCurCommonData}${termInfoId}.`t_terminfo` t 
+		WHERE t.`schoolId`=#{schoolId} and t.`status`=1  order by t.startTime 
+	</select>
+	<select id="getTermInfoBatchCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT  * 
+		FROM  ${db_name_csCurCommonData}${termInfoId}.`t_terminfo` t 
+		WHERE t.`schoolId`=#{schoolId} and t.`status`=1
+		<if test="ids != null and ids != ''  and ids.size() > 0">
+        and t.id in
+       		<foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+		 order by t.startTime 
+	</select>
+	<select id="getParentByIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+    SELECT * FROM ${db_name_csCurCommonData}${termInfoId}.`t_parent` p
+   		LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_class c ON c.`id`=p.`classId` AND c.`status`=1
+   		LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_grade g ON g.`status`=1 AND g.`id`=c.`gradeId`
+   		WHERE p.`parentId`=#{userId};
+    </select>
+    <select id="getStudentByIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+    	SELECT * FROM ${db_name_csCurCommonData}${termInfoId}.`t_student` WHERE `status`=1 AND stdId=#{userId};
+    </select>
+    <select id="getTeacherByIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+    	SELECT * FROM ${db_name_csCurCommonData}${termInfoId}.`t_teacher` t WHERE t.`teacherId`=#{userId};
+    </select>
+    <select id="getStaffByIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+    	SELECT * FROM ${db_name_csCurCommonData}${termInfoId}.`t_sstaff` 
+    	WHERE staffId=#{userId};
+    </select>
+     <select id="getSchoolManagerByIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+   		 SELECT * FROM ${db_name_csCurCommonData}${termInfoId}.`t_schoolmanager` t WHERE t.`managerId`=#{userId};
+    </select>
+    <select id="getUserPermissionByIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT dp.`type` AS levelv2 ,dp.`name`,pp.`userid` AS userId FROM ${db_name_csCurCommonData}${termInfoId}.`t_permissionpc_type` pt 
+	LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.`t_user_permissionspc` pp ON pt.`permissionid`=pp.`permissionid`
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_dic_permissiontype` dp ON dp.`type`= pt.`permissiontype`
+	WHERE pp.`userid`=#{userId};
+	</select>
+	<select id="getDicPermissionsCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT type AS levelv2,`name` AS permissionName ,`type` AS permissionType
+		FROM  ${db_name_csCurCommonData}${termInfoId}.t_dic_permissiontype ;
+	</select>
+  <select id="getBaseAccountUserIdsByAccountCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  		SELECT t0.idNumber,t0.id,t0.accountName,t0.accountStatus,t0.name,t0.mobilePhone
+  		FROM ${db_name_csCurCommonData}${termInfoId}.t_account t0 WHERE t0.accountName=#{accountName} AND t0.status='1'
+  </select>
+  <select id="getAllSchoolListCS" parameterType="java.lang.String" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT  i.id , i.name  
+		  FROM ${db_name_csCurCommonData}${_parameter}.t_school i 
+	</select>
+	<select id="getSchoolInfoByNameCS" parameterType="com.alibaba.fastjson.JSONObject"
+		resultType="com.alibaba.fastjson.JSONObject">
+		SELECT  i.id , i.name 
+		  FROM ${db_name_csCurCommonData}${termInfoId}.t_school i 
+		    WHERE i.`name` LIKE "%${schoolName}%"
+	</select>
+	<update id="insertTeacherLessonBatchCS" parameterType="com.alibaba.fastjson.JSONObject"  >
+    	INSERT INTO ${db_name_csCurCommonData}${termInfoId}.`t_teacher_course` (`teacherId`,`classId`,`lessonId`)
+		VALUES
+		<foreach collection="insertParamList" item="item" index="index" separator=",">
+	    (#{item.teacherId},#{item.classId},#{item.lessonId}) 
+	    </foreach>
+    </update>
+    <update id="deleteTeacherLessonCS" parameterType="com.alibaba.fastjson.JSONObject"  >
+    	DELETE  FROM  ${db_name_csCurCommonData}${termInfoId}.`t_teacher_course`  
+    	<where>
+    	<if test="teacherId != null and teacherId != '' ">
+    	  AND `teacherId`=#{teacherId}
+    	 </if>
+    	<if test="teacherIds != null and teacherIds != ''  and teacherIds.size() > 0">
+          AND teacherId in
+       		<foreach collection="teacherIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+    	<if test="classId != null and classId != '' ">
+    	  AND `classId`=#{classId}
+    	 </if>
+    	</where>
+    </update>
+    <update id="updateClassroomCS" parameterType="com.alibaba.fastjson.JSONObject"  >
+    	UPDATE ${db_name_csCurCommonData}${termInfoId}.`t_class` c 
+    	set  c.`id`=#{id}
+    	<if test="headTeacherId!=null and headTeacherId !='' ">
+    	 ,c.`headTeacherId`=#{headTeacherId} 
+    	</if>
+    	<if test="className != null and className != '' ">
+    	,c.`className`=#{className} 
+    	</if>
+    	<if test="classNo != null and classNo != '' ">
+    	, c.`classNo`=#{classNo}
+    	</if>
+    	<if test="classType != null and classType != '' ">
+    	, c.`classType`=#{classType}
+    	</if>
+		<if test="USER_BH != null and USER_BH != '' ">
+		,c.`USER_BH`=#{USER_BH}
+		</if>
+		WHERE c.`id`=#{id}; 
+    </update>
+     <select id="getTeacherByLessonOrGradeBatchCS" parameterType="JSONObject" resultType="JSONObject" >
+    SELECT a.id AS accountId,IFNULL(a.name,"") AS name,if(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))+g.createLevel ,g.createLevel ) as currentLevel,tc.lessonId 
+    FROM ${db_name_csCurCommonData}${termInfoId}.t_grade  g 
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_class c ON  c.schoolId=#{schoolId} AND c.gradeId=g.id AND c.status=1 AND g.status=1 
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_teacher_course tc ON tc.classId=c.id 
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.id = tc.teacherId AND u.status=1
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_account  a ON a.id = u.accountId AND a.status=1 
+	WHERE  g.schoolId=#{schoolId} 
+	<if test="ids!=null  and ids.size()>0">
+	           AND (
+	           if(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))+g.createLevel ,g.createLevel )  IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	</if>
+	<if test="lessonIds!=null  and lessonIds.size()>0">
+	            OR tc.lessonId IN
+	          <foreach collection="lessonIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>
+	          )  
+	</if>
+	<if test="name!=null and name!='' ">
+			AND	   a.name=#{name}
+		 </if>
+	<if test="noIds!=null   and noIds.size()>0">
+	           AND g.id  NOT IN
+	          <foreach collection="noIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	</if>
+    </select>
+     <select id="getOrgInfosCS"  parameterType="JSONObject" resultType="JSONObject">
+   SELECT o.orgType,o.uuid,subStr(FROM_UNIXTIME(o.`createTime`),1,10) AS createTime,o.`id` AS orgId ,IFNULL(o.`orgName`,"") AS orgName,IFNULL(a.`name`,"") AS name,a.id AS accountId, 1 AS type
+	FROM ${db_name_csCurCommonData}${termInfoId}.`t_orginfo` o 
+	left JOIN ${db_name_csCurCommonData}${termInfoId}.`t_org_header` h ON h.`orgId`=o.`id` AND o.`status`=1
+	left JOIN ${db_name_csCurCommonData}${termInfoId}.`t_user` u ON u.`status`=1 AND o.`status`=1 AND u.`id`=h.`headerId`
+	left JOIN ${db_name_csCurCommonData}${termInfoId}.`t_account` a ON a.`id` = u.`accountId` AND a.`status`=1 AND u.`status`=1 AND o.`status`=1
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_school_org` so ON so.`orgId`=o.`id` AND so.`schoolId`=#{schoolId}
+	WHERE o.`status`=1
+		<if test="tIds!=null   and tIds.size()>0">
+        AND   o.orgType IN
+          <foreach collection="tIds" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+    	 </if>
+	 	<if test="name!=null and name!='' ">
+		AND	   a.name=#{name}
+		 </if>
+		 <if test="orgId!=null and orgId!='' ">
+		AND	   o.`id`=#{orgId}
+		 </if>
+		  <if test="ids!=null   and ids.size()>0">
+         AND      o.`id` IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+    	 </if>
+    	<if test="isQueryMember!=null and isQueryMember!='' ">
+			UNION ALL
+			SELECT o.orgType,o.uuid,subStr(FROM_UNIXTIME(o.`createTime`),1,10) AS createTime,o.`id` AS orgId ,IFNULL(o.`orgName`,"") AS orgName, IFNULL(a.`name`,"") AS name,a.id AS accountId, 2 AS type
+			FROM ${db_name_csCurCommonData}${termInfoId}.`t_orginfo` o 
+			left JOIN ${db_name_csCurCommonData}${termInfoId}.`t_org_member` m ON m.`orgId`=o.`id` AND o.`status`=1
+			left JOIN ${db_name_csCurCommonData}${termInfoId}.`t_user` u ON u.`status`=1 AND o.`status`=1 AND u.`id`=m.`userId`
+			left JOIN ${db_name_csCurCommonData}${termInfoId}.`t_account` a ON a.`id` = u.`accountId` AND a.`status`=1 AND u.`status`=1 AND o.`status`=1
+			INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_school_org` so ON so.`orgId`=o.`id` AND so.`schoolId`=#{schoolId}
+		    WHERE o.`status`=1
+		    <if test="tIds!=null   and tIds.size()>0">
+	        AND   o.orgType IN
+	          <foreach collection="tIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	    	 </if>
+		 	<if test="name!=null and name!='' ">
+				AND	   a.name=#{name}
+			 </if>
+			 <if test="orgId!=null and orgId!='' ">
+				AND   o.`id`=#{orgId}
+			 </if>
+			  <if test="ids!=null   and ids.size()>0">
+	            AND   o.`id` IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	     		</if>
+     	</if>
+    </select>
+     <select id="getOrgScopeListCS"  parameterType="JSONObject" resultType="JSONObject">
+	SELECT l.currentLevel,l.orgId,l.createTime,l.gradeId,l.createLevel FROM (
+		SELECT s.scopeId AS currentLevel,s.orgId,o.createTime,g.id as gradeId,g.createLevel 
+		FROM ${db_name_csCurCommonData}${termInfoId}.t_org_scope s 
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_school_org so ON so.orgId=s.orgId AND so.schoolId=#{schoolId}
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_orginfo o ON o.id = s.orgId AND o.status=1 
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_grade g ON g.`schoolId`=#{schoolId} 
+		AND s.scopeId= 
+		IF(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))+g.createLevel ,g.createLevel )
+		 AND g.status=1
+		<where>
+		<if test="tIds!=null    and tIds.size()>0">
+           o.orgType IN
+          <foreach collection="tIds" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+    	 </if>
+			<if test="orgId!=null and orgId!='' ">
+			AND	s.orgId=#{orgId}
+			</if>
+			<if test="ids!=null   and ids.size()>0">
+            AND  s.orgId IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+    	 </if>
+		</where>
+	) l order by l.currentLevel ASC;
+    </select>
+     <select id="getOrgLessonListCS" parameterType="JSONObject" resultType="JSONObject" >
+	SELECT l.lessonId,l.orgId,IFNULL(le.name,"") AS name FROM ${db_name_csCurCommonData}${termInfoId}.t_org_lesson l 
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_school_org so ON so.orgId=l.orgId AND so.schoolId=#{schoolId}
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_lessoninfo le ON le.id=l.lessonId AND le.status=1
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_orgInfo o ON o.id=so.`orgId` AND o.`status`=1 
+	<where>
+	    <if test="tIds!=null   and tIds.size()>0">
+           o.orgType IN
+          <foreach collection="tIds" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+    	 </if>
+		<if test="orgId!=null and orgId!='' ">
+		AND	l.orgId=#{orgId}
+		</if>
+		<if test="ids!=null   and ids.size()>0">
+        AND   l.orgId IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+    	 </if>
+	</where>
+	ORDER BY le.id asc
+    </select>
+     <select id="getTeacherByLessonAndGradeBatchCS" parameterType="JSONObject" resultType="JSONObject" >
+    SELECT a.id AS accountId,IFNULL(a.name,"") AS name,if(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))+g.createLevel ,g.createLevel ) as currentLevel,tc.lessonId 
+    FROM ${db_name_csCurCommonData}${termInfoId}.t_grade  g 
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_class c ON  c.schoolId=#{schoolId} AND c.gradeId=g.id AND c.status=1 AND g.status=1 
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_teacher_course tc ON tc.classId=c.id 
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.id = tc.teacherId AND u.status=1
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_account  a ON a.id = u.accountId AND a.status=1 
+	WHERE  g.schoolId=#{schoolId} 
+	<if test="ids!=null   and ids.size()>0">
+	           AND if(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))+g.createLevel ,g.createLevel )  IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	</if>
+	<if test="lessonIds!=null  and lessonIds.size()>0">
+	            AND tc.lessonId IN
+	          <foreach collection="lessonIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>
+	</if>
+	<if test="name!=null and name!='' ">
+			AND	a.name=#{name}
+		 </if>
+	<if test="noIds!=null   and noIds.size()>0">
+	           AND g.id  NOT IN
+	          <foreach collection="noIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	</if>
+    </select>
+	 <!-- 通过用户代码查用户信息 -->
+  <select id="getUserByIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	select a.id,a.accountId,a.role,a.createTime,a.avatar from ${db_name_csCurCommonData}${termInfoId}.t_user a where a.id = #{userId} and status = '1'
+  </select>
+   <select id="getUserIdsAndRoleCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT `id`,`role` FROM ${db_name_csCurCommonData}${termInfoId}.t_user WHERE accountId=#{id} 
+  </select>
+   <select id="getStaffRoleCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  		SELECT t0.staffId,t0.jobType,GROUP_CONCAT(t1.orgId) orgIds,t2.jobTypeName,t0.schoolId FROM ${db_name_csCurCommonData}${termInfoId}.t_sstaff t0
+ 		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_org_member t1 ON t0.staffId=t1.userId
+ 		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_jobtype t2 ON t0.jobType = t2.id
+		WHERE t0.staffId = #{id} GROUP BY t0.staffId,t0.jobType,t2.jobTypeName,t0.schoolId
+  </select>
+   <select id="getSchoolManagerPartRoleCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  		select schoolId,managerId from ${db_name_csCurCommonData}${termInfoId}.T_SchoolManager where managerId=#{id}
+  </select>
+  <select id="getSchoolById1CS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  	SELECT * FROM ${db_name_csCurCommonData}${termInfoId}.t_school s 
+  	WHERE s.id=#{schoolId}
+  </select>
+  <select id="getSchoolByIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT GROUP_CONCAT(a.id)AS ids,u.`role` FROM 
+	(SELECT t.teacherId FROM  ${db_name_csCurCommonData}${termInfoId}.t_teacher t WHERE t.`schoolId`=#{schoolId}
+	UNION SELECT t.managerId AS teacherId FROM  ${db_name_csCurCommonData}${termInfoId}.`t_schoolmanager` t WHERE t.`schoolId`=#{schoolId}
+	UNION SELECT t.staffId AS teacherId FROM  ${db_name_csCurCommonData}${termInfoId}.`t_sstaff` t WHERE t.`schoolId`=#{schoolId}
+	)t
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_user` u ON  t.`teacherId`=u.`id`
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_account` a ON u.accountId=a.id 
+	WHERE a.`status`='1'
+	GROUP BY u.role
+	UNION ALL  
+	SELECT 
+	GROUP_CONCAT(g.id)AS ids,99 AS role FROM ${db_name_csCurCommonData}${termInfoId}.`t_grade` g  
+	WHERE g.`schoolId`=#{schoolId} AND g.`status`='1' ;
+  </select>
+  <select id="getAreaCodeCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+     SELECT s.`areaCode` FROM ${db_name_csCurCommonData}${termInfoId}.`t_school` s WHERE s.`id`=#{schoolId};
+  </select>
+  <select id="getGradeListBySchoolIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+ 	 SELECT g.id ,g.createLevel,if(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))+g.createLevel ,g.createLevel ) AS currentLevel
+		,IFNULL(GROUP_CONCAT(c.id),"") AS classIds
+ 		FROM  ${db_name_csCurCommonData}${termInfoId}.t_grade g 
+		LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_class c ON c.gradeId=g.id 
+        WHERE g.schoolId=#{schoolId} AND g.status=1  AND  c.status=1
+        <if test="ids != null and ids != ''  and ids.size() > 0">
+        and g.id in
+       		<foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+    	 <if test="gradeId!=null and gradeId!=''">
+        and g.id =#{gradeId} 
+    	</if>
+        GROUP BY g.id 
+  </select>
+  <select id="getSchoolTermIdsCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="Long">
+     SELECT t.`id` FROM ${db_name_csCurCommonData}${termInfoId}.`t_terminfo` t 
+     	WHERE t.`schoolId`=#{schoolId} AND t.`status`=1;
+  </select>
+   <select id="getAccountBatchCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+    	SELECT IFNULL(b.deanOfOrgIds,"") AS deanOfOrgIds,
+	IFNULL(a.orgIds,"")AS orgIds ,t2.extId as extAccountId,t2.`accountId`, t2.id,t2.role,t1.`accountName`,t1.`gender`,t1.`name`,t1.idNumber ,t1.extId as extUserId
+	FROM ${db_name_csCurCommonData}${termInfoId}.t_user t2 
+	LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_account t1 ON t1.id = t2.accountId AND t1.status = '1' 
+	LEFT JOIN 
+	   ( SELECT GROUP_CONCAT(o1.orgId) AS orgIds,o1.`userId` 
+	   FROM  ${db_name_csCurCommonData}${termInfoId}.`t_org_member` o1 
+	    GROUP BY o1.`userId`)a 
+	ON a.userId=t2.`id`
+	LEFT JOIN (
+	  SELECT GROUP_CONCAT(o2.orgId) AS deanOfOrgIds,o2.`headerId`  AS userId
+	   FROM  ${db_name_csCurCommonData}${termInfoId}.`t_org_header` o2 
+	    GROUP BY o2.`headerId`
+	)b
+	ON b.userId=t2.`id`
+	WHERE t2.status = '1' 
+	<if test="ids != null and ids != '' and ids.size() > 0">
+       	AND t1.id in
+      		<foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+         		#{item}
+      		</foreach>  
+   	</if> 
+  </select>
+  <select id="queryStudentListByUserIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	SELECT a.`isYouth`,a.`stdId` AS id,a.`classId`,IFNULL(p.`parentId`,'')AS parentId,IFNULL(a.`schoolNumber`,'')AS schoolNumber,IFNULL(a.`stdNumber`,'')AS stdNumber FROM ${db_name_csCurCommonData}${termInfoId}.t_student a 
+	  	LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.`t_parent` p ON a.`stdId`=p.`studentId`
+	  	WHERE
+	  	 a.`schoolId`=#{schoolId} and
+	  	 a.stdId  in  
+	  	 <foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          	#{item}
+     	 </foreach>	
+  </select>
+   <select id="queryTeacherRoleByUserIdCS" parameterType="java.lang.Long" resultType="com.alibaba.fastjson.JSONObject">
+  	 SELECT t.teacherId,IFNULL(GROUP_CONCAT(c.`id`),'') AS deanOfClassIds,t.empno
+	 FROM ${db_name_csCurCommonData}${termInfoId}.T_Teacher t   
+	 LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_class c ON t.`teacherId`=c.`headTeacherId` AND t.`schoolId`=c.`schoolId`AND c.`status`='1'
+	 WHERE t.`schoolId`=#{schoolId} 
+	 <if test="userIds != null and userIds != '' and userIds.size() > 0">
+        	 AND t.teacherId IN
+       		<foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+	 GROUP BY t.`teacherId`;
+   </select>
+   <select id="queryStaffListByUserIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+   	 SELECT t.`staffId`,IFNULL(t.`empno`,'')AS empno FROM ${db_name_csCurCommonData}${termInfoId}.`t_sstaff` t
+   	  WHERE t.`schoolId`=#{schoolId} and
+	  	 t.`staffId`  in  
+	  	 <foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          	#{item}
+     	 </foreach>	
+  </select>
+   <select id="queryManagerListByUserIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+   	 SELECT t.`managerId`,IFNULL(t.`empno`,'')AS empno FROM ${db_name_csCurCommonData}${termInfoId}.`T_SchoolManager` t
+   	  WHERE t.`schoolId`=#{schoolId} and
+	  	 t.`managerId`  in  
+	  	 <foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          	#{item}
+     	 </foreach>	
+  </select>
+  <select id="queryStudentNameListByUserIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+   	SELECT u.id AS studentId,a.name AS studentName FROM ${db_name_csCurCommonData}${termInfoId}.t_user u 
+   	LEFT JOIN
+      ${db_name_csCurCommonData}${termInfoId}.t_account a ON a.id=u.accountId AND a.status='1'
+      WHERE u.status='1'  
+	  	 <if test="userIds != null and userIds != '' and userIds.size()>0">
+	  		AND  u.id  in  
+		  	 <foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+	          	#{item}
+	     	 </foreach>	
+     	 </if>
+   </select>
+    <select id="queryParentListByUserIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	<!-- select a.* from ${db_name_csCurCommonData}${termInfoId}.t_parent a where
+	  	<if test="userIds != null and userIds != '' and userIds.size() > 0">
+        	a.parentId in
+       		<foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>  -->
+    	SELECT t.`parentId`,t.`studentId`,t.`prole`,t.`classId`,t2.`accountId` FROM ${db_name_csCurCommonData}${termInfoId}.t_parent t
+		LEFT JOIN  ${db_name_csCurCommonData}${termInfoId}.t_user t2 ON t.`parentId`=t2.`id` AND t2.status = '1'
+		<if test="userIds != null and userIds != '' and userIds.size() > 0">
+        	WHERE t.`parentId` in
+       		<foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>	
+  </select> 
+    <select id="getCourseTeacherListCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+    SELECT a.id as teaId,a.name as teaName,u.id AS userId,u.`role`,tc.`classId`,tc.`lessonId`,IFNULL(l.`name`,'')AS lessonName FROM ${db_name_csCurCommonData}${termInfoId}.t_teacher_course tc
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_user` u ON  tc.`teacherId`=u.`id`
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_account` a ON u.accountId=a.id AND a.`status`='1'
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_lessoninfo` l ON tc.lessonId=l.id
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_class` c ON c.`id`=tc.`classId` 
+	<if test="njdmList!=null and njdmList!='' and njdmList.size() > 0"> 
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_grade g ON c.`gradeId`=g.`id` AND g.`status`='1'
+	</if>
+	WHERE c.`schoolId`=#{schoolId} AND a.`status`='1' 
+	 <if test="name!=null and name!=''"> 
+      AND a.`name` LIKE CONCAT('%',#{name},'%') 
+     </if>
+     <if test="lessonIdList!=null and lessonIdList!='' and lessonIdList.size() > 0"> 
+      	  AND tc.lessonId IN
+     	<foreach collection="lessonIdList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     </if>
+	 <if test="classIdList!=null and classIdList!='' and classIdList.size() > 0"> 
+        AND tc.classId IN
+        <foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     </if>
+     <if test="njdmList!=null and njdmList!='' and njdmList.size() > 0"> 
+      AND  g.`createLevel`+IF(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0,#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)),0) IN
+        <foreach collection="njdmList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     </if>      
+	ORDER BY a.id;
+  </select>
+  <select id="getDeanListCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  	SELECT a.id,a.name,u.id AS userId,u.`role`,GROUP_CONCAT(c.`id`)AS deanOfClassIds FROM ${db_name_csCurCommonData}${termInfoId}.t_class c
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_user` u ON c.`headTeacherId`=u.`id` AND u.`role`='1' 
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_account` a ON u.accountId=a.id
+	<if test="njdmList!=null and njdmList!='' and njdmList.size() > 0"> 
+	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_grade g ON c.`gradeId`=g.`id` AND g.`status`='1'
+	</if>
+	WHERE c.`status`='1' AND c.`schoolId`=#{schoolId} AND a.`status`='1'  
+     <if test="name!=null and name!=''"> 
+      AND a.`name` LIKE CONCAT('%',#{name},'%') 
+     </if>
+	 <if test="classIdList!=null and classIdList!='' and classIdList.size() > 0"> 
+        AND c.id IN
+        <foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     </if>
+     <if test="njdmList!=null and njdmList!='' and njdmList.size() > 0"> 
+     AND g.`createLevel`+IF(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0,#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)),0) IN
+        <foreach collection="njdmList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     </if>      
+	GROUP BY a.id ORDER BY a.id;
+  </select>
+   <select id="getAllSchoolEmployeesCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT  DISTINCT a.id,a.name,u.id AS userId,u.`role` FROM 
+		(SELECT t.teacherId FROM  ${db_name_csCurCommonData}${termInfoId}.t_teacher t WHERE t.`schoolId`=#{schoolId}
+		UNION SELECT t.managerId AS teacherId FROM  ${db_name_csCurCommonData}${termInfoId}.`t_schoolmanager` t WHERE t.`schoolId`=#{schoolId}
+		UNION SELECT t.staffId AS teacherId FROM  ${db_name_csCurCommonData}${termInfoId}.`t_sstaff` t WHERE t.`schoolId`=#{schoolId}
+		)t
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_user` u ON  t.`teacherId`=u.`id` 
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_account` a ON u.accountId=a.id 
+		WHERE a.`status`='1'
+		<if test="name!=null and name!=''"> 
+      	AND a.`name` LIKE CONCAT('%',#{name},'%') 
+     	</if>
+		ORDER BY a.id;
+  </select>
+  <select id="getClassListByCS" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+ 	SELECT g.id AS gradeId ,c.className,c.classType,c.id
+	FROM  ${db_name_csCurCommonData}${termInfoId}.t_grade g 
+ 	LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_class c ON c.gradeId=g.id 
+	WHERE g.schoolId=#{schoolId}  AND g.status=1 AND  c.status=1
+		   <if test="classTypeId!=null and classTypeId!=''">
+				and c.`classType`!=#{classTypeId}
+		   </if>
+		   <if test="createLevels != null and createLevels != '' and createLevels.size() > 0">
+        		and g.createLevel in
+       			<foreach collection="createLevels" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    		</if>
+    		<if test="currentLevels != null and currentLevels != '' and currentLevels.size() > 0">
+        		and g.createLevel in
+       			<foreach collection="currentLevels" index="index" item="item" open="("   separator="," close=")">
+          			#{item}-(IF(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0,#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)),0))
+       			</foreach>  
+    		</if>
+    		<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and g.id in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    		</if>
+    		<if test="ids != null and ids != '' and ids.size() > 0">
+        		and c.id in
+       			<foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    		</if>
+    	
+  </select>
+  <select id="getDeanIdByClassIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+ 	  SELECT  c.id AS classId,c.headTeacherId AS teacherId,a.id AS accountId
+		FROM ${db_name_csCurCommonData}${termInfoId}.t_class c
+    	LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.id=c.headTeacherId
+   		LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_account a ON a.id=u.accountId
+  		WHERE  c.schoolId=#{schoolId} AND c.status=1 AND a.status=1 AND u.status=1
+  		<if test="classIds != null and classIds != '' and classIds.size() > 0">
+        		and c.id in
+       			<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    	<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and c.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    
+  </select>
+  <select id="getStudentIdByClassIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+ 	   SELECT s.classId,s.stdId AS studentId ,s.accountId FROM ${db_name_csCurCommonData}${termInfoId}.t_student  s 
+ 		WHERE s.schoolId=#{schoolId}  AND s.status=1  
+    	<if test="classIds != null and classIds != ''  and classIds.size() > 0">
+        		and s.classId in
+       			<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    	 <if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and s.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+  </select>
+   <select id="getParentIdByClassIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+    	SELECT  p.classId,p.parentId ,a.id AS accountId
+		FROM ${db_name_csCurCommonData}${termInfoId}.t_class c 
+   			LEFT JOIN  ${db_name_csCurCommonData}${termInfoId}.t_parent p ON p.classId=c.id 
+   			LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.id=p.parentId
+   			LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_account a ON a.id=u.accountId
+  		WHERE    c.schoolId=#{schoolId} AND a.status=1  AND u.status=1 AND c.status=1    
+ 		<if test="classIds != null and classIds != ''  and classIds.size() > 0">
+        		AND  p.classId IN
+       			<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    	<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and c.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+  </select>
+   <select id="getLessonAndTeacherByClassIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT tc.teacherId,tc.classId,tc.lessonId,a.id  AS accountId FROM ${db_name_csCurCommonData}${termInfoId}.t_teacher_course  tc
+   		LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.id=tc.teacherId
+  	    LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_account a ON a.id=u.accountId
+  	    LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_class c ON c.id=tc.classId
+		WHERE c.schoolId=#{schoolId} AND a.status=1 AND u.status=1
+			<if test="classIds != null and classIds != ''  and classIds.size() > 0">
+        	 AND tc.classId in
+       		<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    		</if>
+    		<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and c.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    		</if>
+  </select>
+  <select id="getDeanIdByClassIdNoAccountCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+ 	  SELECT  c.id AS classId,c.headTeacherId AS teacherId
+		FROM ${db_name_csCurCommonData}${termInfoId}.t_class c
+    	LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.id=c.headTeacherId
+  		WHERE  c.schoolId=#{schoolId} AND c.status=1  AND u.status=1
+  		<if test="classIds != null and classIds != '' and classIds.size() > 0">
+        		and c.id in
+       			<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    	<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and c.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    
+  </select>
+  <select id="getStudentIdByClassIdNoAccountCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+ 	   SELECT s.classId,s.stdId AS studentId FROM ${db_name_csCurCommonData}${termInfoId}.t_student  s 
+ 		WHERE s.schoolId=#{schoolId}  AND s.status=1  
+    	<if test="classIds != null and classIds != ''  and classIds.size() > 0">
+        		and s.classId in
+       			<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    	 <if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and s.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+  </select>
+   <select id="getParentIdByClassIdNoAccountCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+    	SELECT  p.classId,p.parentId 
+		FROM ${db_name_csCurCommonData}${termInfoId}.t_class c 
+   			LEFT JOIN  ${db_name_csCurCommonData}${termInfoId}.t_parent p ON p.classId=c.id 
+   			LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.id=p.parentId
+  		WHERE    c.schoolId=#{schoolId} AND u.status=1 AND c.status=1    
+ 		<if test="classIds != null and classIds != ''  and classIds.size() > 0">
+        		AND  p.classId IN
+       			<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    	<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and c.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+  </select>
+  <select id="getLessonAndTeacherByClassIdNoAccountCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT tc.teacherId,tc.classId,tc.lessonId  FROM ${db_name_csCurCommonData}${termInfoId}.t_teacher_course  tc
+   		LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.id=tc.teacherId
+  	    LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_class c ON c.id=tc.classId
+		WHERE c.schoolId=#{schoolId}  AND u.status=1
+			<if test="classIds != null and classIds != ''  and classIds.size() > 0">
+        	 AND tc.classId in
+       		<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    		</if>
+    		<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and c.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    		</if>
+  </select>
+   <select id="getLessonListBySchoolIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT l.id AS lessonId,sl.schoolId,l.name,IFNULL(l.simpleName,"")AS simpleName,l.lessontype FROM ${db_name_csCurCommonData}${termInfoId}.t_school_lesson sl
+ 		LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_lessoninfo l ON l.id=sl.lessonId
+	WHERE  l.status=1 AND sl.schoolId=#{schoolId}  
+			<if test="ids != null and ids != '' and ids.size() > 0">
+        	 AND l.id in
+       		<foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    		</if>
+    		<if test="type != null and type != ''">
+        	 AND l.lessonType = #{type} 
+    		</if>
+  </select>
+    <select id="getSchoolStudentListCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT t0.stdId 'userId',t0.name,t0.accountId,t0.classId,t0.schoolNumber,t0.stdNumber 
+		FROM ${db_name_csCurCommonData}${termInfoId}.t_student t0
+		LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_class t1 ON t1.id= t0.classId
+	 	WHERE t1.gradeId IN
+	 	<foreach collection="gids" index="index" item="item" open="(" separator="," close=")">
+	 			#{item}
+ 		</foreach>
+	 	<if test="keyword!=null and keyword!=''">
+    	 	AND (t0.name like '%${keyword}%' OR t0.schoolNumber=#{keyword} OR t0.stdNumber=#{keyword})
+    	 </if>   
+  </select>
+  <select id="getStudentListCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  		SELECT t0.stdId AS 'userId',t0.name,t0.accountId,t0.classId,t0.schoolNumber,t0.stdNumber 
+		FROM ${db_name_csCurCommonData}${termInfoId}.t_student t0
+		<if test="classIdList==null or classIdList==''">
+			INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_grade t1 ON t0.gradeId = t1.id
+			<if test="njdmList!=null and njdmList!=''">
+				AND t1.`createLevel`+IF(#{xn}-YEAR(FROM_UNIXTIME(t1.`createTime`))>0,#{xn}-YEAR(FROM_UNIXTIME(t1.`createTime`)),0) IN
+		        <foreach collection="njdmList" index="index" item="item" open="(" separator="," close=")">
+						#{item}
+				</foreach>
+			</if>
+			<!-- <if test="classType!=null and classType!=''">
+		 	   AND t0.classType = #{classType}
+		 	</if> -->
+		</if>
+		WHERE t0.schoolId=#{schoolId} and t0.status='1'
+		<if test="keyword!=null and keyword!=''">
+	    	 	AND (t0.name like '%${keyword}%' OR t0.schoolNumber=#{keyword} OR t0.stdNumber=#{keyword})
+	    </if> 
+		<if test="classIdList!=null and classIdList.size() > 0">
+	 		AND t0.classId IN
+	 		<foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+	 			#{item}
+	 		</foreach>
+	 	</if>
+  </select>
+   <select id="getSchoolOrgListCS" parameterType="JSONObject" resultType="JSONObject">
+  	  SELECT o.orgId,t.orgName,t.orgType,GROUP_CONCAT(distinct h.headerId) headerIds,GROUP_CONCAT(DISTINCT ol.`lessonId`) lessonIds,
+  	  GROUP_CONCAT(distinct u.accountId) memberIds, GROUP_CONCAT(distinct os.scopeId) scopeIds
+  	  FROM ${db_name_csCurCommonData}${termInfoId}.t_school_org o
+	  LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_orginfo t ON o.orgId = t.id 
+	  LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_org_header h ON o.orgId = h.orgId 
+   	  LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_org_member m ON o.orgId = m.orgId
+   	  LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.`t_org_scope` os ON o.orgId = os.orgId 
+   	  LEFT JOIN  ${db_name_csCurCommonData}${termInfoId}.`t_org_lesson` ol ON ol.`orgId`=o.`orgId`
+   	  LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON m.userId = u.id 
+	  WHERE  o.schoolId = #{schoolId}  AND t.status = 1     
+	  <if test="orgId != null and orgId != ''">
+	      AND o.orgId = #{orgId}
+      </if>
+      <if test="ids != null and ids.size() > 0">
+          AND o.orgId in
+       		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+      <if test="type != null and type != ''"> 
+          AND t.orgType = #{type}
+      </if>
+       GROUP BY o.orgId
+  </select>
+  <select id="getAllOrgMembersCS"  parameterType="JSONObject" resultType="JSONObject">
+	    SELECT a.`id`,a.`name`,r.userId,r.`type` 
+		 FROM ${db_name_csCurCommonData}${termInfoId}.t_account a ,(
+		SELECT 2 AS `type`,m.`userId` AS  userId,u.`accountId` FROM ${db_name_csCurCommonData}${termInfoId}.t_school_org so LEFT JOIN 
+		${db_name_csCurCommonData}${termInfoId}.`t_org_member` m ON m.`orgId` = so.`orgId`
+		LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.`id`= m.`userId`
+		 WHERE so.`schoolId`=#{schoolId}
+		 UNION 
+		 SELECT  1 AS `type`,h.`headerId` AS userId,u.`accountId` FROM ${db_name_csCurCommonData}${termInfoId}.t_school_org so LEFT JOIN 
+		${db_name_csCurCommonData}${termInfoId}.`t_org_header` h ON h.`orgId` = so.`orgId`
+		LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.`id`= h.`headerId`
+		 WHERE so.`schoolId`=#{schoolId}
+		 )r WHERE r.accountId= a.`id`
+	</select>
+	 <select id="getUserBatchByIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  SELECT u.id,u.role,u.accountId,a.idNumber,a.id AS accountId,a.name,a.accountName,u.extId as extAccountId,a.extId as extUserId FROM ${db_name_csCurCommonData}${termInfoId}.t_user u
+       LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_account a ON a.id=u.accountId
+       WHERE 
+	  	 u.status=1 and  a.status=1 and 
+	  	 u.id  in  
+	  	 <foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          	#{item}
+     	 </foreach>	
+  </select>
+  <select id="getBaseAccountUserIdsCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  		SELECT t0.id,t0.accountName,t0.accountStatus,t0.idNumber,t0.name,t0.mobilePhone
+  		FROM ${db_name_csCurCommonData}${termInfoId}.t_account t0 WHERE t0.id=#{accountId} AND t0.status='1'
+  </select>
+   <select id="getTeacherDeanOfClassIdsCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+ 	 SELECT c.`id` AS classId,c.`headTeacherId`,c.`schoolId` FROM ${db_name_csCurCommonData}${termInfoId}.t_class c 
+ 		LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_teacher t ON t.`schoolId`=c.`schoolId` AND t.`teacherId`=#{userId}
+			WHERE  c.`headTeacherId` =#{userId} AND c.`status`=1;
+  </select>
+  <select id="getAccountByIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT t0.idNumber,t0.id,t0.accountName,t0.accountStatus,t0.name,t0.gender,t0.extId FROM 
+	${db_name_csCurCommonData}${termInfoId}.t_account t0 WHERE t0.id=#{accountId} AND t0.status ='1'
+  </select>
+  <select id="getTeacherRoleByAccountCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  	 SELECT t.`schoolId`,t.`teacherId`,c.classIds,c.lessonIds,c.userId,c.orgIds 
+FROM (
+   SELECT  * FROM
+    (
+      SELECT  b.teacherId, GROUP_CONCAT(b.classId) AS classIds, GROUP_CONCAT(b.lessonId) AS lessonIds FROM ${db_name_csCurCommonData}${termInfoId}.t_teacher_course b WHERE b.teacherId = #{id}
+     ) AS b 
+  LEFT JOIN 
+    (
+      SELECT  m.userId, GROUP_CONCAT(m.orgId) AS orgIds  FROM ${db_name_csCurCommonData}${termInfoId}.t_org_member m  WHERE m.userId = #{id} 
+    ) AS a 
+  ON b.teacherId = a.userId 
+    ) c
+INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_teacher` t ON t.`teacherId`=c.teacherId  AND t.`teacherId`=#{id}
+   </select>
+  <select id="getAllStudentCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	 	SELECT t0.stdId 'userId',t2.name,t0.accountId,t0.classId,t0.schoolNumber,t0.stdNumber 
+		FROM ${db_name_csCurCommonData}${termInfoId}.t_student t0
+		<!-- 临时获取name的办法，演示数据studentName为null -->
+		inner join ${db_name_csCurCommonData}${termInfoId}.t_account t2 on t2.id=t0.accountId
+		LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_class t1 ON t1.id= t0.classId
+	 	WHERE t0.schoolId=#{schoolId}
+	 	  <if test="ids != null and ids != ''  and ids.size() > 0">
+         AND t1.gradeId in
+       		<foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+  </select>
+    <select id="getTeacherRoleCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  	 SELECT * FROM (SELECT b.teacherId,GROUP_CONCAT(b.classId) AS classIds,GROUP_CONCAT(b.lessonId) AS lessonIds
+	 FROM ${db_name_csCurCommonData}${termInfoId}.t_teacher_course b WHERE b.teacherId = #{id}) AS b
+	 left JOIN(SELECT m.userId, GROUP_CONCAT(m.orgId) as orgIds FROM ${db_name_csCurCommonData}${termInfoId}.t_org_member m
+	 WHERE m.userId = #{id}) AS a ON b.teacherId = a.userId
+   </select>
+    <select id="getClassByStudentCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	 SELECT a.stdId AS studentId,p.parentId FROM ${db_name_csCurCommonData}${termInfoId}.t_student a
+	     LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.`t_parent` p ON a.`stdId`=p.`studentId` where a.classId = #{classId}
+  </select>
+   <select id="getClassByIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	SELECT a.id,a.gradeId,a.classNo,a.className,a.createTime,a.USER_BH,a.classType,a.headTeacherId as teacherId
+		FROM ${db_name_csCurCommonData}${termInfoId}.t_class a WHERE a.status = '1'
+		AND a.schoolId = #{schoolId}
+		AND a.id = #{classId}
+  </select>
+   <select id="getAllClassCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  	SELECT t0.id,t0.className,t0.classType,t0.gradeId FROM ${db_name_csCurCommonData}${termInfoId}.t_class t0
+  	<where>
+  	<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+		 t0.gradeId IN
+		<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+	 			#{item}
+		</foreach>  
+    </if>
+    </where>
+  </select>
+   <select id="getParentByUserIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	select a.* from ${db_name_csCurCommonData}${termInfoId}.t_parent a where a.parentId  = #{userId};
+  </select>
+   <select id="getOrgListByUserIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="Long">
+	  	select a.orgId from ${db_name_csCurCommonData}${termInfoId}.t_org_member a,${db_name_csCurCommonData}${termInfoId}.t_orginfo b where a.userid = #{userId} and a.orgid = b.id
+  </select>
+    <select id="getTeacherCourseListByUserIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	select * from ${db_name_csCurCommonData}${termInfoId}.T_Teacher_Course a where teacherId = #{userId}
+  </select>
+    <select id="getStudentByUserIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	 SELECT p.parentId,a.classId FROM ${db_name_csCurCommonData}${termInfoId}.t_student a 
+	 LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.`t_parent` p ON a.`stdId`=p.`studentId` where a.stdId  = #{userId}
+	 ORDER BY p.`parentId` ASC LIMIT 1 ;
+  </select>
+   <select id="getAccountByUserIdCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	SELECT a.* FROM ${db_name_csCurCommonData}${termInfoId}.t_account a 
+			LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.`accountId`=a.`id` 
+			WHERE u.`id`=#{userId} AND a.`status`=1 AND u.`status`=1;
+  </select>
+  
+  <select id="getUserIdByExtIdCS" parameterType="JSONObject" resultType="JSONObject">
+    		SELECT id AS userId,max(role) AS role FROM ${db_name_csCurCommonData}${termInfoId}.`t_user` WHERE extId = #{extId};
+  </select>
+  <select id="getUserIdByExtIdRoleCS" parameterType="JSONObject" resultType="JSONObject">
+    		SELECT u.id AS userId, u.role , u2.`extId` as extStudentId
+			FROM  ${db_name_csCurCommonData}${termInfoId}.`t_user` u 
+			left JOIN ${db_name_csCurCommonData}${termInfoId}.t_parent p ON p.`parentId`=u.`id` AND u.`status`=1
+			left JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u2 ON u2.`id`=p.`studentId` AND u2.`status`=1
+			 WHERE u.extId =  #{extId}  and u.role=#{role};
+  </select>
+    <select id="getUserIdsByExtIdCS" parameterType="JSONObject" resultType="JSONObject">
+    	SELECT id AS userId,role,extId FROM ${db_name_csCurCommonData}${termInfoId}.`t_user`
+    	 WHERE 
+    	 <if test="ids!=null   and ids.size()>0">
+           extId IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+     	  </if>
+    	 and status=1;
+  </select>
+  <select id="getUserIdByConditonCS" parameterType="JSONObject" resultType="JSONObject">
+    	SELECT u.id AS userId,a.id AS accountId,a.accountName AS accountName FROM ${db_name_csCurCommonData}${termInfoId}.t_account a
+    	INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_user` u ON a.id = u.accountId 
+    	<choose>
+        <when test="mobilePhone !=null and mobilePhone != ''">
+            WHERE a.mobilePhone = #{mobilePhone} 
+            AND u.role IN
+			<foreach collection="roleList" item="item" open="(" separator="," close=")">
+		 			#{item}
+			</foreach>
+            ORDER By u.role desc
+        </when>
+        <when test="idNumber !=null and idNumber != ''">
+            WHERE a.idNumber = #{idNumber} 
+            AND u.role IN
+			<foreach collection="roleList" item="item" open="(" separator="," close=")">
+		 			#{item}
+			</foreach>
+            ORDER By u.role desc
+        </when>
+        <when test="stuNo !=null and stuNo != ''">
+            INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_student` s ON u.id = s.stdId
+            WHERE s.stdNumber = #{stuNo}  
+            AND u.role IN
+			<foreach collection="roleList" item="item" open="(" separator="," close=")">
+		 			#{item}
+			</foreach>
+        </when>
+        </choose>	
+  </select>
+  <select id="getAccountByIdsCS" parameterType="JSONObject" resultType="JSONObject">
+    	 SELECT * FROM ${db_name_csCurCommonData}${termInfoId}.t_account a 
+    	 WHERE 
+		<if test="studentIds != null and studentIds != '' and studentIds.size() > 0">
+		 a.`id`IN
+		<foreach collection="studentIds" index="index" item="item" open="("   separator="," close=")">
+	 			#{item}
+		</foreach>  
+    </if>
+		 AND a.`status`=1;
+  </select>
+   <select id="queryTeacherCourseListCS" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+ 	 SELECT * FROM    ${db_name_csCurCommonData}${termInfoId}.`t_teacher_course` tc 
+   <where>
+   <if test="userIds != null and userIds != '' and userIds.size() > 0">
+        	  tc.`teacherId` IN 
+       		<foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+    </where> 
+   </select>
+   
+   
+   <!-- orgCommon -->
+    <select id="getOrgInfosCOMMON"  parameterType="JSONObject" resultType="JSONObject">
+   SELECT o.uuid,subStr(FROM_UNIXTIME(o.`createTime`),1,10) AS createTime,o.`id` AS orgId ,IFNULL(o.`orgName`,"") AS orgName,IFNULL(a.`name`,"") AS name,a.id AS accountId, 1 AS orgType
+	FROM  ${db_name_csCurCommonData}${termInfoId}.`t_orginfo` o 
+	left JOIN  ${db_name_csCurCommonData}${termInfoId}.`t_org_header` h ON h.`orgId`=o.`id` AND o.`status`=1
+	left JOIN  ${db_name_csCurCommonData}${termInfoId}.`t_user` u ON u.`status`=1 AND o.`status`=1 AND u.`id`=h.`headerId`
+	left JOIN  ${db_name_csCurCommonData}${termInfoId}.`t_account` a ON a.`id` = u.`accountId` AND a.`status`=1 AND u.`status`=1 AND o.`status`=1
+	INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.`t_school_org` so ON so.`orgId`=o.`id` AND so.`schoolId`=#{schoolId}
+	 where o.`orgType`=#{orgType} 
+	 <if test="uuid!=null and uuid!='' ">
+		  AND o.`uuid`=#{uuid}
+	 </if>
+	 <if test="isQueryMember!=null and isQueryMember!='' ">
+		UNION ALL
+		SELECT o.uuid,subStr(FROM_UNIXTIME(o.`createTime`),1,10) AS createTime,o.`id` AS orgId ,IFNULL(o.`orgName`,"") AS orgName, IFNULL(a.`name`,"") AS name,a.id AS accountId, 2 AS orgType
+		FROM  ${db_name_csCurCommonData}${termInfoId}.`t_orginfo` o 
+		left JOIN  ${db_name_csCurCommonData}${termInfoId}.`t_org_member` m ON m.`orgId`=o.`id` AND o.`status`=1
+		left JOIN  ${db_name_csCurCommonData}${termInfoId}.`t_user` u ON u.`status`=1 AND o.`status`=1 AND u.`id`=m.`userId`
+		left JOIN  ${db_name_csCurCommonData}${termInfoId}.`t_account` a ON a.`id` = u.`accountId` AND a.`status`=1 AND u.`status`=1 AND o.`status`=1
+		INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.`t_school_org` so ON so.`orgId`=o.`id` AND so.`schoolId`=#{schoolId}
+		where  o.`orgType`=#{orgType} 
+		 <if test="uuid!=null and uuid!='' ">
+			  AND o.`uuid`=#{uuid}
+		 </if>
+	  </if>
+    </select>
+    
+	<select id="getOrgListCOMMON"  parameterType="JSONObject" resultType="JSONObject">
+ 	SELECT o.uuid,SUBSTR(FROM_UNIXTIME(o.`createTime`),1,10) AS createTime,o.`id` AS orgId,IFNULL(o.`orgName`,"") AS orgName
+ 	 FROM  ${db_name_csCurCommonData}${termInfoId}.`t_orginfo` o 
+ 	 <if test="isInsert==null or isInsert=='' ">
+		INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.`t_school_org` so ON so.`orgId`=o.`id` AND so.`schoolId`=#{schoolId}
+ 	</if>
+ 	WHERE o.`status`=1 
+ 	 <if test="orgType!=null and orgType!='' ">
+			 AND o.`orgType`=#{orgType} 
+	 </if>
+ 	 <if test="uuid!=null and uuid!='' ">
+			  AND o.`uuid`=#{uuid}
+	 </if>
+	 <if test="ids!=null   and ids.size()>0">
+        AND   o.`uuid` IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+     </if>
+  	ORDER BY o.`createTime` ASC
+    </select>
+     <select id="getOrgScopeListCOMMON"  parameterType="JSONObject" resultType="JSONObject">
+	SELECT l.currentLevel,l.orgId,l.createTime,l.gradeId,l.createLevel FROM (
+		SELECT s.scopeId AS currentLevel,s.orgId,o.createTime,g.id as gradeId,g.createLevel 
+		FROM  ${db_name_csCurCommonData}${termInfoId}.t_org_scope s 
+		INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_school_org so ON so.orgId=s.orgId AND so.schoolId=#{schoolId}
+		INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_orginfo o ON o.id = s.orgId AND o.status=1 AND o.orgType=#{orgType}
+		INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_grade g ON g.`schoolId`=#{schoolId} 
+		AND s.scopeId= IF(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))+g.createLevel ,g.createLevel )
+		AND g.status=1
+		<where>
+			<if test="orgId!=null and orgId!='' ">
+				s.orgId=#{orgId}
+			</if>
+			<if test="noUuid!=null and noUuid!='' ">
+				o.uuid!=#{noUuid}
+			</if>
+		</where>
+	) l order by l.currentLevel ASC;
+    </select>
+    <select id="getOrgLessonListCOMMON" parameterType="JSONObject" resultType="JSONObject" >
+	SELECT l.lessonId,l.orgId,IFNULL(le.name,"") AS name FROM  ${db_name_csCurCommonData}${termInfoId}.t_org_lesson l 
+	INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_school_org so ON so.orgId=l.orgId AND so.schoolId=#{schoolId}
+	INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_lessoninfo le ON le.id=l.lessonId AND le.status=1
+	INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_orgInfo o ON o.id=so.`orgId` AND o.`status`=1 AND o.`orgType`=#{orgType}
+	<where>
+		<if test="orgId!=null and orgId!='' ">
+			l.orgId=#{orgId}
+		</if>
+		<if test="noUuid!=null and noUuid!='' ">
+				o.uuid!=#{noUuid}
+		</if>
+	</where>
+	ORDER BY le.id asc
+    </select>
+     <select id="getTeacherByLessonAndGradeBatchCOMMON" parameterType="JSONObject" resultType="JSONObject" >
+    SELECT DISTINCT a.id AS accountId,IFNULL(a.name,"") AS name,if(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))+g.createLevel  ,g.createLevel ) as currentLevel,tc.lessonId 
+    FROM  ${db_name_csCurCommonData}${termInfoId}.t_grade  g 
+	INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_class c ON  c.schoolId=#{schoolId} AND c.gradeId=g.id AND c.status=1 AND g.status=1 
+	INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_teacher_course tc ON tc.classId=c.id 
+	INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_user u ON u.id = tc.teacherId AND u.status=1
+	INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_account  a ON a.id = u.accountId AND a.status=1 
+	INNER JOIN 
+	WHERE  g.schoolId=#{schoolId} 
+	<if test="ids!=null  and ids.size()>0">
+	           AND if(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))+g.createLevel  ,g.createLevel )  IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	</if>
+	<if test="noIds!=null   and noIds.size()>0">
+	           AND g.id  NOT IN
+	          <foreach collection="noIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	</if>
+	<if test="lessonIds!=null   and lessonIds.size()>0">
+	            AND tc.lessonId IN
+	          <foreach collection="lessonIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	</if>
+    </select>
+    <select id="getExtAccountIdByUserIdsCS" parameterType="JSONObject" resultType="JSONObject" >
+      SELECT u.`id` as userId,u.`extId` as extAccountId 
+        FROM ${db_name_csCurCommonData}${termInfoId}.t_user u 
+        where
+        <if test="ids!=null  and ids.size()>0">
+	             u.`id` IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+		</if>
+		AND u.`status`=1
+    </select>
+     <select id="getExtClassIdByclassIdCS" parameterType="JSONObject" resultType="JSONObject" >
+	     SELECT c.id AS classId,c.`extId` 
+	     FROM ${db_name_csCurCommonData}${termInfoId}.t_class c 
+        where
+        <if test="ids!=null   and ids.size()>0">
+	             c.`id` IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+		</if>
+		AND c.`status`=1
+    </select>
+      <select id="getClassIdByExtclassIdCS" parameterType="JSONObject" resultType="JSONObject" >
+	     SELECT c.id AS classId,c.`extId` 
+	     FROM ${db_name_csCurCommonData}${termInfoId}.t_class c 
+        where
+        <if test="ids!=null    and ids.size()>0">
+	             c.`extId` IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+		</if>
+		AND c.`status`=1
+    </select>
+    <select id="getSchoolIdByExtIdCS" parameterType="JSONObject" resultType="String" >
+	    SELECT s.`id` AS schoolId FROM ${db_name_csCurCommonData}${termInfoId}.t_school s 
+	    WHERE s.extId=#{extId}; 
+    </select>
+    <select id="getModuleManagersCS" parameterType="JSONObject" resultType="Long" >
+      SELECT DISTINCT ps.`userid` FROM ${db_name_csCurCommonData}${termInfoId}.`t_permissionpc_type` pt 
+		 INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_nav_info` n ON n.`navId` = pt.`permissionid`  
+		 INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_user_permissionspc` ps ON ps.`permissionid`=n.`navId`
+		 INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_teacher t ON t.`teacherId`=ps.`userid` 
+		 WHERE pt.`permissiontype`=#{appId} AND  t.`schoolId`=#{schoolId};
+    </select>
+    <select id="getExtLessonIdBySchoolIdCS" parameterType="JSONObject" resultType="JSONObject" >
+      	 SELECT l.`extId`,l.`id` AS lessonId,l.`name`,l.`simpleName` FROM ${db_name_csCurCommonData}${termInfoId}.t_school_lesson sl 
+      	 INNER JOIN  ${db_name_csCurCommonData}${termInfoId}.t_lessoninfo l ON l.`id`=sl.`lessonId` AND l.`status`=1 
+ WHERE sl.`schoolId`=#{schoolId};
+    </select>
+     <select id="getExtLessonIdByIdsCS" parameterType="JSONObject" resultType="JSONObject" >
+      	  SELECT l.`extId`,l.`id` AS lessonId,l.`name`,l.`simpleName` FROM
+    ${db_name_csCurCommonData}${termInfoId}.t_lessoninfo l  
+ WHERE 
+  <if test="ids!=null   and ids.size()>0">
+	            l.`id` IN  
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+		</if>
+ 
+  AND l.`status`=1;
+    </select>
+    
+    <!-- 根据accountids获取对应user对象列表 -->
+    <select id="getUserByAccountIds" parameterType="JSONObject" resultType="JSONObject">
+    	select u.id,a.extId,a.`name`,a.mobilePhone from ${db_name_csCurCommonData}${termInfoId}.t_user u 
+		inner join ${db_name_csCurCommonData}${termInfoId}.t_account a on a.id = u.accountId
+		inner join ${db_name_csCurCommonData}${termInfoId}.t_teacher_course tc on tc.teacherId = u.id
+		where u.`status`=1 and a.`status`=1 and u.role=#{roleId}
+		and tc.classId=#{classId}
+		and u.accountId IN 
+		<foreach collection="accountIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        
+    </select>
+    
+    <!-- 根据student userId 获取家长 userIds -->
+    <select id="getParentByStudentIds" parameterType="JSONObject" resultType="JSONObject">
+    	 SELECT distinct p.parentId FROM ${db_name_csCurCommonData}${termInfoId}.t_student a
+		 LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.`t_parent` p ON a.`stdId`=p.`studentId` 
+		 left join ${db_name_csCurCommonData}${termInfoId}.t_user u on u.id = a.stdId
+		 left join ${db_name_csCurCommonData}${termInfoId}.t_account ac on ac.id = u.accountId
+		 where ac.id in 
+		 <foreach collection="ids" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+ 
+    </select>
+     <select id="getParentIdsByStuCS"  parameterType="JSONObject" resultType="JSONObject" >
+     SELECT p.`parentId`,a.id as studentAccountId,a.name as studentName  FROM ${db_name_csCurCommonData}${termInfoId}.`t_account` a 
+     INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON  a.`id`=u.`accountId` AND  u.`role`=2 AND  a.`status`=1 AND u.`status`=1 
+ 		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_parent` p ON p.`studentId`=u.`id`
+		<where>
+		<if test="ids!=null  and ids.size()>0">
+	              a.`id` in
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+		</if>
+		</where>
+    </select>
+      <select id="getSimpleParentObjCS"  parameterType="JSONObject" resultType="JSONObject" >
+     SELECT a.`name`,a.`extId` AS extUserId,u.id as parentId,a.id as accountId FROM ${db_name_csCurCommonData}${termInfoId}.`t_account` a 
+     INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON  a.`id`=u.`accountId` AND  u.`role`=0 AND  a.`status`=1 AND u.`status`=1 
+	 <where>
+	 <if test="ids!=null  and ids.size()>0">
+	              u.`id` IN 
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	</if>
+	</where>
+    </select>
+</mapper>

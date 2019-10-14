@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.scoreManage.dao.ScoreManageConfigDao">
+
+	<select id="getScoreReportNameList" parameterType="Map" resultType="JSONObject">
+		SELECT DISTINCT tgscd.rptdm as reportNo,
+			(SELECT rptmc FROM ${db_name_scoreManage_global}.t_gm_scorereportinfo WHERE rptdm = tgscd.rptdm) AS reportName,
+			(SELECT rptlb FROM ${db_name_scoreManage_global}.t_gm_scorereportinfo WHERE rptdm = tgscd.rptdm) AS reportType,
+			(SELECT orderId FROM ${db_name_scoreManage_global}.t_gm_scorereportinfo WHERE rptdm = tgscd.rptdm) AS orderId,
+			CASE WHEN (tgsc.flag IS NULL OR tgsc.flag = "") THEN tgscd.flag ELSE tgsc.flag END AS flag,
+			CASE WHEN (tgsc.role IS NULL OR tgsc.role = "") THEN tgscd.role ELSE tgsc.role END AS role
+		FROM ${db_name_scoreManage_global}.t_gm_scorereportconfigdefault tgscd 
+			LEFT JOIN ${db_name_scoreManage_global}.t_gm_scorereportconfig tgsc 
+				ON tgscd.rptdm = tgsc.rptdm AND tgsc.xxdm = #{shcoolId} AND tgsc.rptdm NOT IN ("020","021","023") 
+		<if test="studyStage != null and studyState != ''">
+			WHERE tgscd.rptdm NOT IN ("020","021","023") AND 
+			<foreach collection="studyStage" open="(" close=")" separator="OR" item="item">
+				tgscd.pycc LIKE CONCAT('%', #{item}, '%')   
+			</foreach>
+			GROUP BY reportType, reportName ORDER BY reportType, orderId;
+		</if>
+	</select>
+   
+	<update id="updateScoreReportIsShow" parameterType="Map">
+		UPDATE ${db_name_scoreManage_global}.t_gm_scorereportconfig 
+       		SET flag = #{flag} 
+       	WHERE xxdm = #{schoolId} AND rptdm = #{reportNo};
+	</update>
+   
+	<select id="getScoreReportConfig" parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT tgscd.rptdm AS reportNo,
+			(SELECT rptmc FROM ${db_name_scoreManage_global}.t_gm_scorereportinfo WHERE rptdm = tgscd.rptdm) AS reportName,
+			CASE WHEN (tgsc.config IS NULL) THEN tgscd.config ELSE tgsc.config END AS config,
+			CASE WHEN (tgsc.role IS NULL) THEN tgscd.role ELSE tgsc.role END AS availableRole
+      	FROM ${db_name_scoreManage_global}.t_gm_scorereportconfigdefault tgscd 
+      		LEFT JOIN ${db_name_scoreManage_global}.t_gm_scorereportconfig tgsc 
+      		ON tgscd.rptdm = tgsc.rptdm AND tgsc.xxdm = #{schoolId} AND tgsc.rptdm=#{reportNo} 
+      	WHERE tgscd.rptdm = #{reportNo} 
+		GROUP BY tgscd.rptdm, reportName;
+	</select>
+   
+	<select id="selectOneScoreReportConfig" parameterType="Map" resultType="int">
+		SELECT COUNT(1) FROM ${db_name_scoreManage_global}.t_gm_scorereportconfig WHERE xxdm = #{schoolId} and rptdm = #{reportNo};
+	</select>
+   
+   	<insert id="addScoreReportConfig" parameterType="Map">
+		INSERT INTO ${db_name_scoreManage_global}.t_gm_scorereportconfig
+	      	(xxdm, rptdm, rptmc, config, flag, role)
+		VALUES
+			(#{schoolId}, #{reportNo}, #{reportName}, #{config}, #{flag}, #{availableRole});
+	</insert>
+	
+	<update id="updateScoreReportConfig" parameterType="Map">
+		UPDATE ${db_name_scoreManage_global}.t_gm_scorereportconfig 
+			SET rptmc = #{reportName}, config = #{config}, role = #{availableRole}
+		WHERE xxdm = #{schoolId} AND rptdm = #{reportNo};
+	</update>
+   
+	<update id="updateScoreReportInfo" parameterType="Map">
+		UPDATE ${db_name_scoreManage_global}.t_gm_scorereportinfo SET rptmc = #{reportName} WHERE rptdm = #{reportNo};
+	</update>
+	
+	<select id="getScoreReportDefaultConfig" parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT tgscd.rptdm AS reportNo, tgsc.rptmc AS reportName, tgscd.config, tgscd.role 
+			FROM ${db_name_scoreManage_global}.t_gm_scorereportconfigdefault tgscd,
+				${db_name_scoreManage_global}.t_gm_scorereportinfo tgsc 
+		WHERE tgscd.rptdm = tgsc.rptdm AND tgscd.rptdm = #{reportNo} AND tgscd.pycc = #{stateType};
+	</select>
+	
+	
+	
+	
+	
+	
+	<insert id="addScoreReportConfigCustom" parameterType="Map">
+		INSERT INTO ${db_name_scoreManage_old}.t_gm_scorereportconfig_custom(xxdm,customId,rptdm,rptmc,config,flag,role)
+		values(#{schoolId},#{customId},#{reportNo},#{reportName},#{config},#{flag},#{availableRole});
+	</insert>
+	
+	<delete id="delCustomConfig" parameterType="Map">
+		DELETE * FROM ${db_name_scoreManage_old}.t_gm_scorereportconfig_custom WHERE xxdm = #{schoolId} AND customId = #{customId}
+	</delete>
+   
+    <select id="getScoreReportConfigCustomByReportNo" parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">
+      select customId as reportNo,
+      rptmc as reportName,
+      config,
+     role  as availableRole,rptdm
+      from  ${db_name_scoreManage_old}.T_GM_ScoreReportConfig_custom where 
+      xxdm=#{schoolId} and customId=#{reportNo}
+   </select>
+   
+     <select id="getScoreReportConfigCustom" parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">
+      select '04' as reportType,customId as reportNo,rptmc as reportName,'1' as flag
+      from  ${db_name_scoreManage_old}.T_GM_ScoreReportConfig_custom  where 
+      xxdm=#{shcoolId} order by rptdm
+   </select>
+   
+    <update id="updateScoreReportConfigCustom" parameterType="Map">
+     update ${db_name_scoreManage_old}.T_GM_ScoreReportConfig_custom  set rptmc=#{reportName},config=#{config}
+     ,role=#{availableRole}
+      where xxdm=#{schoolId} and customId=#{customId};
+   </update>
+</mapper>

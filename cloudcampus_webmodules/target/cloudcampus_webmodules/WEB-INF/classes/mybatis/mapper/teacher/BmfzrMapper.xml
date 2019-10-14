@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.talkweb.teacher.dao.BmfzrDao">  
+
+	<parameterMap type="com.talkweb.teacher.domain.page.TTrBmfzr" id="bmfzrParam">
+	</parameterMap>
+	
+	<!-- 查询部门负责人 -->
+	<select id="getDepartmentFzrList" resultType="hashmap" parameterType="String">
+		select fzrgh from ${zhx_conn}.t_tr_bmfzr where jgh=#{jgh}
+	</select>
+
+	<!-- 添加部门人员 -->
+	<insert id="addBmfzr" parameterMap="bmfzrParam" >
+		insert into ${zhx_conn}.t_tr_bmfzr(xxdm,jgh,fzrgh,zwjb)
+		values(#{xxdm},#{jgh},#{fzrgh},#{zwjb})
+	</insert>
+	
+	<!-- 删除部门人员 -->
+	<delete id="deleteBmfzr" parameterMap="bmfzrParam">
+		delete from ${zhx_conn}.t_tr_bmfzr where jgh=#{jgh} and fzrgh=#{fzrgh}
+	</delete>
+</mapper>

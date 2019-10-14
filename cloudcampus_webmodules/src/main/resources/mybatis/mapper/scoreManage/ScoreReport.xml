@@ -1,0 +1,905 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.scoreReport.dao.ScoreReportDao">
+	<!-- 获取当前学生所有考试的成绩列表，examType=1为校内考试  -->
+	<select id="ifExistsDegreeInfoByStudId" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo}
+		WHERE kslc = #{data.examId} AND xxdm = #{data.schoolId} AND xnxq = #{data.termInfoId}
+			AND xh = #{data.studentId}
+		LIMIT 1
+	</select>
+
+	<!-- 获取当前学生班内考试的成绩列表(系统格式)，examType=2为系统格式 -->
+	<select id="ifExistsClassExamInfoByStudId" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore}
+		WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId}
+			AND StudentId = #{data.studentId} 
+		LIMIT 1
+	</select>
+
+	<!-- 获取当前学生班内考试的成绩列表（自定义格式），examType=3为自定义格式 -->
+	<select id="ifExistsCustomClassExamInfoByStudId" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscoreinfo}
+		WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId}
+			AND StudentId = #{data.studentId}
+		LIMIT 1
+	</select>
+	
+	<!-- 获取当前学生班内考试的某次成绩 -->
+	<select id="getStudentClassExamByExamId" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT CASE WHEN (#{data.scoreDataType} = '1') THEN score ELSE score2 END AS score,
+			subjectId
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore}
+		WHERE examId = #{data.examId} AND schoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId}
+			AND studentId = #{data.studentId}
+		UNION ALL
+		SELECT totalScore AS score, "totalScore" AS subjectId
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_studenttotalscorestatistics}
+		WHERE examId = #{data.examId} AND schoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId}
+			AND studentId = #{data.studentId}
+	</select>
+
+	<!--学生成绩报告 -->
+	<select id="getStudentAnalysisReport" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT cjd AS scoreResultData, jbtsy AS advanceTip, tbtsy AS fallBehindTip, kmylsj AS subjectGoodBadData, 
+				kmyltsy AS subjectGoodBadTip 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_sar_analysisreport_stu}
+		WHERE xxdm = #{data.schoolId} AND kslc = #{data.examId} AND xnxq = #{data.termInfoId} 
+			AND xh = #{data.studentId}
+	</select>
+
+	<select id="getSchoolExamSubjectScoreList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT kmdm as subjectId, cj as score 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo}
+		WHERE xxdm = #{data.schoolId} AND kslc = #{data.examId} AND xnxq = #{data.termInfoId}
+			AND xh = #{data.studentId}
+	</select>
+	
+	<select id="getScoreReportTypeList" parameterType="Map" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT tgsi.rptdm AS reportNo, tgsi.rptmc AS reportName, tgsi.rptlb AS reportType, 
+		    CASE WHEN (tgsc.flag IS NULL OR tgsc.flag = "") 
+		        THEN tgscd.flag 
+		        ELSE tgsc.flag 
+		    END AS flag,
+		    CASE WHEN (tgsc.role IS NULL OR tgsc.role = "") 
+		        THEN tgscd.role 
+		        ELSE tgsc.role 
+		    END AS role,
+		    tgsi.orderId 
+		FROM
+		    ${db_name_scoreManage_global}.t_gm_scorereportconfigdefault tgscd 
+		    INNER JOIN ${db_name_scoreManage_global}.t_gm_scorereportinfo tgsi 
+		        ON tgsi.rptdm = tgscd.rptdm 
+		    LEFT JOIN ${db_name_scoreManage_global}.t_gm_scorereportconfig tgsc 
+		        ON tgscd.rptdm = tgsc.rptdm 
+		        AND tgsc.xxdm = #{xxdm}
+		WHERE tgscd.pycc LIKE CONCAT('%', #{studyStage}, '%') 
+		    AND (tgsc.flag = '1' OR tgscd.flag = '1') 
+		GROUP BY tgsi.rptlb, tgsi.rptdm 
+		ORDER BY tgsi.rptlb, tgsi.orderId ;
+	</select>
+	
+	<select id="getNjpmMax" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+		SELECT max(t.njpm) AS maxpm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} t
+			LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} c 
+				ON t.xnxq = c.xnxq AND t.kslc = c.kslc AND t.xxdm = c.xxdm AND t.xh = c.xh
+			INNER JOIN (
+				SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+				WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+					AND m.lb = '01'
+			) v ON v.kslc = t.kslc AND v.xxdm = t.xxdm AND v.xnxq = t.xnxq AND c.nj = v.nj AND c.bh = v.bh
+		WHERE t.kslc = #{data.kslc} AND t.xnxq = #{data.xnxq} AND t.xxdm = #{data.xxdm} 
+			<if test="data.bmfz!=null">
+				AND v.bmfz = #{data.bmfz}
+			</if> 
+			AND c.nj = #{data.nj}
+	</select>
+	
+	<select id="getKmdmListFromScoretjmk" parameterType="splitDbAndTableRule" resultType="java.lang.String">
+		SELECT DISTINCT kmdm FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoretjmk} 
+			WHERE kslc = #{data.kslc} AND xxdm = #{data.xxdm} AND xnxq = #{data.xnxq}
+		<if test="data.nj != null">
+			AND nj = #{data.nj}
+		</if>
+		<if test="data.bmfz != null">
+			AND fzdm = #{data.bmfz}
+		</if>
+	</select>
+
+	<select id="getBjcjMk" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT a.kmdm, v.bmfz AS fzdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a
+			INNER JOIN (
+				SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+				WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+					AND m.lb = '01'
+			) v ON a.kslc = v.kslc AND a.xxdm = v.xxdm AND a.xnxq = v.xnxq AND a.nj = v.nj AND a.bh = v.bh
+		WHERE a.xxdm = #{data.xxdm} AND	a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}
+			<!-- AND a.nj = #{data.nj} -->
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.bh != null">
+			AND a.bh = #{data.bh}
+		</if>
+		<if test="data.bmfz != null">
+			AND v.bmfz = #{data.bmfz}
+		</if>
+		<if test="data.njList != null">
+			AND a.nj IN
+			<foreach collection="data.njList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.kmdmList != null">
+			AND a.kmdm IN
+			<foreach collection="data.kmdmList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+		GROUP BY a.kmdm
+<!-- 		UNION ALL
+		SELECT DISTINCT a.kmdm, a.fzdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} a
+			INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} d 
+				ON a.kslc = d.kslc AND a.xxdm = d.xxdm AND a.xnxq = d.xnxq AND a.fzdm = d.bmfz 
+					AND d.lb = '01' AND a.nj=d.nj AND EXISTS ( 
+						SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} j 
+							WHERE j.xnxq = d.xnxq AND j.xxdm = d.xxdm AND j.kslc = d.kslc AND j.bmfz = d.bmfz
+							<if test="data.bh != null">
+								AND j.bh = #{data.bh}
+							</if>
+							<if test="data.bhList != null">
+								AND j.bh IN
+								<foreach collection="data.bhList" item="item" open="(" separator="," close=")">
+									#{item}
+								</foreach>
+							</if>
+					)
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq}	
+			AND a.nj = #{data.nj}
+		<if test="data.bmfz!=null">
+		 	AND a.fzdm = #{data.bmfz}
+		</if> -->
+	</select>
+
+	<select id="getBjcjXs" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT tsr.xh AS studentId, tsr.njpm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} tsr
+			LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} si 
+				ON si.xnxq = tsr.xnxq AND si.kslc = tsr.kslc AND si.xxdm = tsr.xxdm
+					AND si.xh = tsr.xh
+			LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} tbj 
+				ON tsr.xnxq = tbj.xnxq AND tsr.kslc = tbj.kslc AND tsr.xxdm = tbj.xxdm
+					AND si.bh = tbj.bh
+			INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} tgtg 
+				ON tgtg.xnxq = tbj.xnxq AND tgtg.kslc = tbj.kslc AND tgtg.xxdm = tbj.xxdm 
+					AND tgtg.bmfz = tbj.bmfz AND tgtg.lb = "01"
+		WHERE tsr.xxdm = #{data.xxdm} 
+		<if test="data.bmfz!=null">
+			AND tbj.bmfz = #{data.bmfz} 
+		</if>
+			AND tsr.xnxq = #{data.xnxq} AND tsr.kslc = #{data.kslc}
+		<if test="data.bhList != null">
+			AND si.bh IN
+			<foreach collection="data.bhList" item="item" open="(" close=")" separator=",">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.xhList != null">
+			AND tsr.xh IN
+			<foreach collection="data.xhList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.topXRank != null">
+			AND tsr.njpm &lt;= #{data.topXRank}
+		</if>
+		<if test="data.lastXRank != null">
+			AND tsr.njpm &gt; #{data.lastXRank}
+		</if>
+	</select>
+
+	<select id="getNoExamStudentList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT tgs.xh AS studentId, 0 AS njpm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} tgs
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_xscjbtj} tgx 
+					ON tgs.xxdm = tgx.xxdm AND tgs.xnxq = tgx.xnxq AND tgs.kslc = tgx.kslc
+						AND tgs.xh = tgx.xh  
+		WHERE tgs.xxdm = #{data.xxdm} AND tgs.xnxq = #{data.xnxq} AND tgs.kslc = #{data.kslc} 
+			AND tgs.nj = #{data.nj}
+		<if test="data.bhList != null">
+			AND tgs.bh IN
+			<foreach collection="data.bhList" item="item" open="(" close=")" separator=",">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.xhList != null">
+			AND tgs.xh IN
+			<foreach collection="data.xhList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<select id="getBjcjCj" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.xh, a.kmdm, '' AS kmmc, a.cj, b.bjpm, b.njpm, a.bh AS bh, c.bmfz, a.kmdm AS totalBzScore, 
+			b.bzcj AS bzzcj, b.bzbjpm, b.bznjpm
+		FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a
+			INNER JOIN (
+				SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+				WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+					AND m.lb = '01'
+			) c ON a.xnxq = c.xnxq AND a.xxdm = c.xxdm AND a.kslc = c.kslc AND a.bh = c.bh
+			LEFT OUTER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} b 
+				ON a.xnxq = b.xnxq AND a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.xh = b.xh 
+					AND a.kmdm = b.kmdm
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}
+			AND c.nj = #{data.nj} 
+		<if test="data.bmfz!=null">
+			AND c.bmfz = #{data.bmfz}
+		</if>
+		<if test="data.bhList != null and data.bhList.size>0">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" close=")" separator=",">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.xhList != null and data.xhList.size>0">
+			AND a.xh IN
+			<foreach collection="data.xhList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.kmdmList != null and data.kmdmList.size>0">
+			AND a.kmdm IN
+			<foreach collection="data.kmdmList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+		UNION ALL
+		SELECT DISTINCT a.xh, 'totalScore' AS kmdm, '总分' AS kmmc, b.zf AS cj, b.bjpm, b.njpm, a.bh AS bh,
+			c.bmfz, 'totalBzScore' as totalBzScore, b.bzzcj, b.bzbjpm, b.bznjpm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} b 
+					ON a.xnxq = b.xnxq AND a.kslc = b.kslc AND a.xxdm = b.xxdm AND a.xh = b.xh
+				INNER JOIN (
+					SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+				WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+					AND m.lb = '01'
+				) c on a.xnxq = c.xnxq AND a.xxdm=b.xxdm AND a.kslc = c.kslc AND a.bh = c.bh
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} 
+		<if test="data.bmfz!=null">
+			AND c.bmfz = #{data.bmfz}
+		</if> 
+			AND c.nj = #{data.nj}
+		<if test="data.bhList != null and data.bhList.size>0">
+			AND a.bh IN
+			<foreach collection="data.bhList" item="item" open="(" close=")" separator=",">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.xhList != null and data.xhList.size>0">
+			AND a.xh IN
+			<foreach collection="data.xhList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+		UNION ALL
+		SELECT b.xh, a.kmdm, '' AS kmmc, b.cj, b.bjpm, b.njpm, c.bh AS bh, a.fzdm AS bmfz, a.kmdm AS totalBzScore,
+			b.bzcj AS bzzcj, b.bzbjpm, b.bznjpm
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} b 
+					ON a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.kmdm = b.kmdm
+				LEFT JOIN (
+					SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+				WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+					AND m.lb = '01'
+				) c ON a.xxdm = c.xxdm AND a.kslc = c.kslc AND a.xnxq = c.xnxq AND a.fzdm = c.bmfz
+		WHERE a.xxdm = #{data.xxdm} AND c.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} 
+		<if test="data.bmfz!=null">	
+			AND a.fzdm = #{data.bmfz} 
+		</if>
+			AND a.nj = #{data.nj}
+		<if test="data.bhList != null and data.bhList.size>0">
+			AND c.bh IN
+			<foreach collection="data.bhList" item="item" open="(" close=")" separator=",">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.xhList != null and data.xhList.size>0">
+			AND b.xh IN
+			<foreach collection="data.xhList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<!-- 获取未分析成绩的单科成绩 -->
+	<select id="getClassScoreStudentList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT a.xh AS studentId, "" as njpm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}
+		<if test="data.bhList != null">
+			AND a.bh in
+			<foreach collection="data.bhList" item="item" open="(" close=")" separator=",">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.xhList != null">
+			AND a.xh IN
+			<foreach collection="data.xhList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<!-- 获取未分析成绩的成绩列表 -->
+	<select id="getClassScoreList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.xh, a.kmdm, '' AS kmmc, a.cj, '' AS bjpm, '' AS njpm, '' AS bh, '' AS bmfz 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} 
+			AND a.nj = #{data.nj}
+		<if test="data.bhList != null and data.bhList.size>0" >
+			AND a.bh in
+			<foreach collection="data.bhList" item="item" open="(" close=")" separator=",">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.xhList != null and data.xhList.size>0">
+			AND a.xh IN 
+			<foreach collection="data.xhList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.kmdmList != null and data.kmdmList.size>0">
+			AND a.kmdm IN 
+			<foreach collection="data.kmdmList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<!--获取班级成绩数据 -->
+	<select id="getClassScores" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.kslc AS examId, a.bh AS classId, '' AS className, a.kmdm AS subjectId, '' AS subjectName, 
+			a.pjf AS averageScore, a.pm AS averageScoreRank, a.yxl AS excellentRate, a.yxlpm AS excellentRateRank, 
+			a.hgl AS passRate, a.hglpm AS passRateRank, tgs.bl AS ALevelRate, tgs.pm AS ALevelRateRank
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics_mk} a 
+				LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelmk} tgs 
+					ON a.xnxq = tgs.xnxq AND a.kslc = tgs.kslc AND a.xxdm = tgs.xxdm AND a.kmdm = tgs.kmdm 
+						AND a.bh = tgs.bh AND tgs.djdm = '01'
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}
+		<if test="data.kmdmList != null">
+			AND a.kmdm IN
+			<foreach collection="data.kmdmList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+		UNION ALL
+		SELECT a.kslc AS examId, a.bh AS classId, '' AS className, 'zf' AS subjectId, '总分' AS subjectName, 
+			a.pjf AS averageScore, a.pm AS averageScoreRank, a.yxl AS excellentRate, a.yxlpm AS excellentRateRank,
+			a.hgl AS passRate, a.hglpm AS passRateRank, tgs.bl AS ALevelRate, tgs.pm AS ALevelRateRank
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} a 
+				LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelmk} tgs 
+					ON a.xnxq = tgs.xnxq AND a.kslc = tgs.kslc AND a.xxdm = tgs.xxdm AND a.bh = tgs.bh AND tgs.djdm='01'
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<!-- 获取科目某个等级成绩的学生人数 -->
+	<select id="getAssignLevelStudentNum" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT SUM(rs) AS studentNum, djxl AS levelType, bh AS classId, kslc AS examId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelsequnce} tscm
+		WHERE tscm.xxdm = #{data.xxdm} AND tscm.xnxq = #{data.xnxq} AND tscm.kslc = #{data.kslc}
+		<if test="data.bhList != null">
+			AND tscm.bh IN
+			<foreach collection="data.bhList" open="(" close=")" item="item" separator=",">
+				#{item}
+			</foreach>
+		</if>
+			AND tscm.djxllb = '03'
+		GROUP BY classId, examId, levelType
+	</select>
+	
+	<select id="getCompetitionStuStatistics" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT tgcss.kmzmc AS subjectName, (
+				SELECT COUNT(1) 
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_competitionstu} tgcs 
+				WHERE tgcs.xnxq = tgcss.xnxq AND tgcs.xxdm = tgcss.xxdm AND tgcs.kslc = tgcss.kslc 
+					AND tgcs.kmdm = tgcss.kmdm
+			) AS referenceNum, tgcss.pjf AS subjectAverageScore, tgsgsm.pjf AS gradeTotalAverageScore, 
+			tgcss.yxrs AS subjectExcellentNum, tgcss.yxl AS subjectExcellentRate, tgsgsm.yxl AS gradeTotalExcellentRate,
+			tgcss.hgrs AS subjectPassNum, tgcss.hgl AS subjectPassRate, tgsgsm.hgl AS gradeTotalPassRate
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_competitionstustatistics} tgcss 
+				LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoregroupstatistics_mk} tgsgsm
+					ON tgsgsm.xnxq = tgcss.xnxq AND tgsgsm.kslc = tgcss.kslc AND tgsgsm.xxdm = tgcss.xxdm 
+						AND tgsgsm.kmdm = tgcss.kmdm AND tgsgsm.fzdm = tgcss.fzdm
+				LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} b 
+					ON tgcss.xnxq = b.xnxq AND tgcss.kslc = b.kslc AND tgcss.xxdm = b.xxdm
+						AND tgcss.fzdm = b.bmfz
+		WHERE tgcss.xnxq = #{data.xnxq} AND tgcss.kslc = #{data.kslc} AND tgcss.xxdm = #{data.xxdm}
+			AND b.nj = #{data.nj} 
+			AND tgcss.kmdm IN
+		<foreach collection="data.kmdmList" item="item" open="(" close=")" separator=",">
+			#{item}
+		</foreach>
+		ORDER BY CAST(tgcss.kmdm AS UNSIGNED) ASC
+	</select>
+
+	<!-- 获取竞赛学生列表 -->
+	<select id="getCompetitionStu" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.xh AS studentId, a.kmdm AS subjectId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_competitionstu} a 
+				LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} b 
+					ON a.xnxq = b.xnxq AND a.kslc = b.kslc AND a.xxdm = b.xxdm AND a.xh = b.xh 
+						AND a.kmdm = b.kmdm
+		WHERE a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} AND a.xxdm = #{data.xxdm} AND b.nj = #{data.nj}
+		<if test="data.kmdmList != null">
+			AND a.kmdm IN
+			<foreach collection="data.kmdmList" item="item" open="(" close=")" separator=",">
+				#{item}
+			</foreach>
+		</if>
+		ORDER BY CAST(a.kmdm AS UNSIGNED), a.xh ASC;
+	</select>
+	
+	<!-- 获取学生所有考试的科目列表 -->
+	<select id="getStudentAllExamSubjectList" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT a.kmdm
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} a 
+				LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} b
+					ON a.xnxq = b.xnxq AND a.kslc = b.kslc AND a.xxdm = b.xxdm AND a.xh = b.xh
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} AND b.nj = #{data.nj}
+	</select>
+
+	<!-- 获取竞赛学生考试成绩等级情况已经总分等级 -->
+	<select id="getCompetitionStuExamScoreList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT tgrmk.kmdm AS subjectId, '' AS subjectName, tgrmk.xh AS studentId, '' AS studentName, 
+			tgrmk.cj AS score, tgrmk.dj AS level, tgsr.zf AS totalScore, tgsr.djxl AS totalScoreLevel,
+			tgsr.njpm AS totalScoreGradeRank
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_competitionstu} a 
+				LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} tgrmk
+					ON a.xxdm = tgrmk.xxdm AND a.xnxq = tgrmk.xnxq AND a.kslc = tgrmk.kslc AND a.xh = tgrmk.xh
+				LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} tgsr
+					ON tgsr.xnxq = tgrmk.xnxq AND tgsr.kslc = tgrmk.kslc AND tgsr.xxdm = tgrmk.xxdm 
+						AND tgsr.xh = tgrmk.xh
+		WHERE a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} AND a.xxdm = #{data.xxdm}
+		<if test="data.studIdList != null">
+			AND a.xh IN
+			<foreach collection="data.studIdList" item="item" open="(" close=")" separator=",">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<!-- 班级排名单科分数统计结果 -->
+	<select id="getSubjectScoreClassStatistics" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT tgs.bh AS classId, '' AS className, AVG(tgsr.cj) AS Score, tgsr.kmdm AS subjectId,
+			'' AS subjectName 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} tgsr
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} tgs 
+					ON tgsr.xnxq = tgs.xnxq AND tgsr.kslc = tgs.kslc AND tgsr.xxdm = tgs.xxdm
+						AND tgsr.xh = tgs.xh AND tgsr.kmdm = tgs.kmdm
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} tbj 
+					ON tgsr.xnxq = tbj.xnxq AND tgsr.kslc = tbj.kslc AND tgsr.xxdm = tbj.xxdm
+		WHERE tgsr.xnxq = #{data.xnxq} AND tgsr.kslc = #{data.kslc} AND tgsr.xxdm = #{data.xxdm} 
+			AND tgs.nj = #{data.nj} 
+		<if test="data.bmfz!=null">
+			AND tbj.bmfz = #{data.bmfz}
+		</if>
+		<if test="data.bhList != null">
+			AND tgs.bh IN
+			<foreach collection="data.bhList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+			AND tgsr.bjpm BETWEEN 0 AND #{data.topNRank} 
+		GROUP BY classId, subjectId
+	</select>
+
+	<!-- 班级总分数统计结果 -->
+	<select id="getSubjectTotalScoreStatistics" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT tgs.bh AS classId, '' AS className, AVG(tgsr.zf) AS topNTotalAverScore, 
+			'totalScore' AS subjectId, '总分' AS subjectName 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} tgsr
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} tgs 
+					ON tgsr.xnxq = tgs.xnxq AND tgsr.kslc = tgs.kslc AND tgsr.xxdm = tgs.xxdm AND tgsr.xh = tgs.xh
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} tbj 
+					ON tgsr.xnxq = tbj.xnxq AND tgsr.kslc = tbj.kslc AND tgsr.xxdm = tbj.xxdm
+		WHERE tgsr.xnxq = #{data.xnxq} AND tgsr.kslc = #{data.kslc} AND tgsr.xxdm = #{data.xxdm} 
+			AND tgs.nj = #{data.nj} 
+		<if test="data.bmfz!=null">
+			AND tbj.bmfz = #{data.bmfz}
+		</if>
+		<if test="data.bhList != null">
+			AND tgs.bh IN
+			<foreach collection="data.bhList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+			AND tgsr.bjpm BETWEEN 0 AND #{data.topNRank} 
+		GROUP BY classId
+	</select>
+
+	<!-- 年级排名学生单科成绩 -->
+	<select id="getStudentScores" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT tgs.bh AS classId, '' AS className, tgsr.cj AS Score, tgsr.kmdm AS subjectId,
+			'' AS subjectName, tgsr.xh AS studentId, tgsr.njpm AS gradeRank 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} tgsr
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} tgs 
+					ON tgsr.xnxq = tgs.xnxq AND tgsr.kslc = tgs.kslc AND tgsr.xxdm = tgs.xxdm
+						AND tgsr.xh = tgs.xh AND tgsr.kmdm = tgs.kmdm
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} tbj 
+					ON tgsr.xnxq = tbj.xnxq AND tgsr.kslc = tbj.kslc AND tgsr.xxdm = tbj.xxdm
+		WHERE tgsr.xnxq = #{data.xnxq} AND tgsr.kslc = #{data.kslc} AND tgsr.xxdm = #{data.xxdm}
+			AND tgs.nj = #{data.nj} 
+		<if test="data.bmfz!=null">
+			AND tbj.bmfz = #{data.bmfz}
+		</if>
+		<if test="data.bhList != null">
+			AND tgs.bh IN
+			<foreach collection="data.bhList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+			AND tgsr.njpm BETWEEN 0 AND #{data.topNRank} 
+		ORDER BY tgsr.njpm ASC
+	</select>
+	
+	<!-- 考试名称列表 -->
+	<select id="getExamineNameList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT tgi.kslcdm AS examId, tgi.xnxq AS termInfoId, tgi.kslcmc AS examName 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo} tgi,
+				${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo_nj} tgn
+		WHERE tgi.kslcdm = tgn.kslcdm AND tgi.xnxq = tgn.xnxq AND tgi.xxdm = tgn.xxdm
+			AND tgi.xxdm = #{data.xxdm} AND tgi.xnxq = #{data.xnxq} AND tgi.fxflag = '1' 
+			AND tgn.nj = #{data.nj} 
+		ORDER BY tgi.cdate DESC 
+		LIMIT 0, 12
+	</select>
+	
+	<!-- 班级成绩统计数据列表 -->
+	<select id="getClassAverageScoreList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT tgs.pm AS totalRank, tgs.yxl AS excellentRate, tgs.hgl AS passRate, tgs.kslc AS examId,
+			tgs.bh AS classId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} tgs
+		WHERE tgs.xnxq = #{data.xnxq} AND tgs.xxdm = #{data.xxdm} AND tgs.kslc = #{data.kslc}
+		<if test="data.bhList != null">
+			AND tgs.bh IN
+			<foreach collection="data.bhList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<select id="getExamNormalSubjectCount" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+		SELECT COUNT(DISTINCT kmdm) 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} 
+		WHERE xxdm = #{data.xxdm} AND nj = #{data.nj} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</select>
+
+	<!-- 班级等级成绩序列列表 -->
+	<select id="getLevelStudentNumList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT tgcss.rs AS studentNum, tgcss.kslc AS examId, tgcss.djxl AS levelSequque, tgcss.bh AS classId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelsequnce} tgcss
+		WHERE tgcss.djxllb = "01" AND tgcss.xnxq = #{data.xnxq} AND tgcss.xxdm = #{data.xxdm}
+			AND tgcss.kslc = #{data.kslc}
+		<if test="data.allALevel != null">
+			and tgcss.djxl = #{data.allALevel}
+		</if>
+		<if test="data.s6A1BLevel != null">
+			and tgcss.djxl = #{data.s6A1BLevel}
+		</if>
+		<if test="data.bhList != null">
+			AND tgcss.bh IN
+			<foreach collection="data.bhList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<!-- 获取班级报告列表 -->
+	<select id="getClassReportList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.ksqk AS examSituation, a.xsycqk AS studentAbnormalSituation, a.cjgzsj AS scoreTraceData,
+			a.mcdrs AS everySubjectRankNum, a.zfdrs AS everyClassTotalScoreNum
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_sar_analysisreport_bj} a
+		WHERE a.xnxq = #{data.xnxq} AND a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} 
+			AND a.bh = #{data.bh}
+	</select>
+	
+		<!-- 获取某次成绩对应班级报告列表 -->
+	<select id="getExamClassReportList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.bh, a.ksqk AS examSituation, a.xsycqk AS studentAbnormalSituation, a.cjgzsj AS scoreTraceData,
+			a.mcdrs AS everySubjectRankNum, a.zfdrs AS everyClassTotalScoreNum
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_sar_analysisreport_bj} a
+		WHERE a.xnxq = #{data.xnxq} AND a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} 
+	</select>
+
+	<!-- 学生成绩单  成绩+排名+总分 -->
+	<select id="getStudentAllExamScoreList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.xh, a.kslc AS examId, #{data.kslcmc} AS examName,
+			CASE WHEN (a.cj = '' OR a.cj IS NULL) THEN '-' ELSE a.cj END AS score,
+			"" AS studentLevel, a.kmdm AS lessonId, '' AS lessonName, "" AS classRank, "" AS gradeRank,
+			#{data.cdate} AS cdate, #{data.fbpmflag} AS publicRankFlag, "1" AS examType, b.bzcj AS bzcj, '' AS bzzcj,
+ 			b.bzbjpm AS bzbjpm, b.bznjpm AS bznjpm
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a 
+				LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} b 
+					ON a.xnxq = b.xnxq AND a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.xh = b.xh
+						AND a.kmdm = b.kmdm
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}
+		<if test="data.xhList != null">
+			AND a.xh IN
+			<foreach collection="data.xhList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+		UNION ALL
+		SELECT tggr.xh, tggr.kslc as examId, #{data.kslcmc} as examName,
+			CASE WHEN (tggr.zf = '' OR tggr.zf IS NULL) THEN '-' ELSE tggr.zf END AS score,
+			tggr.djxl AS studentLevel, 'totalScore' AS lessonId, '' AS lessonName,
+			tggr.bjpm AS classRank, tggr.njpm AS gradeRank, #{data.cdate} AS cdate, #{data.fbpmflag} AS publicRankFlag,
+			"1" AS examType, '' AS bzcj, tggr.bzzcj AS bzzcj, tggr.bzbjpm AS bzbjpm, tggr.bznjpm AS bznjpm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} tggr 
+		WHERE tggr.xxdm = #{data.xxdm} AND tggr.xnxq = #{data.xnxq} AND tggr.kslc = #{data.kslc}
+		<if test="data.xhList != null">
+			AND tggr.xh IN
+			<foreach collection="data.xhList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+		UNION ALL
+		SELECT b.xh, a.kslc AS examId, #{data.kslcmc} AS examName,
+			CASE WHEN (b.cj = '' OR b.cj IS NULL) THEN '-' ELSE b.cj END AS score,
+			"" AS studentLevel, a.kmdm AS lessonId, '' AS lessonName, "" AS classRank, "" AS gradeRank,
+			#{data.cdate} AS cdate, #{data.fbpmflag} AS publicRankFlag, "1" AS examType, b.bzcj AS bzcj, '' AS bzzcj,
+			b.bzbjpm AS bzbjpm, b.bznjpm AS bznjpm
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} b 
+					ON a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.xnxq = b.xnxq AND a.kmdm = b.kmdm
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}
+		<if test="data.xhList != null">
+			AND b.xh IN
+			<foreach collection="data.xhList" open="(" close=")" separator="," item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<select id="getARnj" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.bjtsy AS classViewTip, a.pjfdbb AS averageScoreCompareTab, a.yxldbb AS excellentRateCompareTab, 
+			a.hgldbb AS passRateCompareTab, a.ddzdbb AS levelValueCompareTab, a.pmdbb AS rankCompareTab, 
+			a.kmtsy AS subjectViewTip, a.kmdbb AS subjectCompareTab, a.jstsy AS teacherViewTip, 
+			a.jskmdbb AS teacherSubjectCompareTab 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_sar_analysisreport_nj} a
+		WHERE a.xnxq = #{data.xnxq} AND a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} 
+			AND a.nj = #{data.nj} 
+			<if test="data.bmfz!=null">
+				AND a.fzdm = #{data.bmfz} 
+			</if>
+	</select>
+
+	
+
+	<!-- 考试关联下的科目 -->
+	<select id="getSubjIdListFromScoreInfo" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT kmdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} 
+		<if test="data.nj != null">
+			AND nj = #{data.nj}
+		</if>
+		<if test="data.njList != null">
+			AND nj IN
+			<foreach collection="data.njList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<select id="getSubjIdListFromSynthScore" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT kmdm AS subjectId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+		<if test="data.nj != null">
+			AND nj = #{data.nj}
+		</if>
+		<if test="data.njList != null">
+			AND nj IN
+			<foreach collection="data.njList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<!-- 考试关联下的科目   给修改成绩用-->
+	<select id="getExamSubjectListToModify" parameterType="Map" resultType="String">
+		select  DISTINCT(kmdm) as subjectId from ${db_name_scoreManage_old}.T_GM_ScoreInfo
+		where xxdm=#{schoolId} and nj=#{useGradeId}
+		<if test="examId!=null and examId!=''">
+			and kslc=#{examId}
+		</if>
+		</select>
+
+
+	<!-- 竞赛学生的统计科目 -->
+	<select id="getSubjIdFromCompetitionStu" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT a.kmdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_competitionstu} a
+		LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} b 
+			ON a.xxdm = b.xxdm AND a.xnxq = b.xnxq AND a.kslc = b.kslc AND a.xh = b.xh
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}
+		<if test="data.nj != null">
+			 AND b.nj = #{data.nj}
+		</if>
+		<if test="data.njList != null">
+			AND b.nj IN
+			<foreach collection="data.njList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+  	
+  	<insert id="insertStudentScoreReportTrace" parameterType="splitDbAndTableRule">
+  		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_studentscorereporttrace}
+			(SchoolId, ExamId, StudentId, classId, accountId, viewFlag, termInfoId)
+		VALUES(#{data.SchoolId}, #{data.ExamId}, #{data.StudentId}, #{data.classId}, #{data.accountId},
+			#{data.viewFlag}, #{data.termInfoId})
+			ON DUPLICATE KEY UPDATE classId = VALUES(classId), accountId = VALUES(accountId), viewFlag = VALUES(viewFlag)
+  	</insert>
+  	
+  	
+  		<!-- 查找特定学生成绩 -->
+	<!--成绩分析-获取统计参数-->
+	<!-- <resultMap type="JSONObject" id="SubScoreReportOfStu">
+		<result column="" property=""/>
+	</resultMap> -->
+	<select id="getStuSubjectScoreRank_ScoreReport" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT nj,bh,a.xh,a.kmdm,a.cj,a.dj,a.bjpm,a.njpm
+		FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} a 
+			LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} b 
+				ON a.xxdm=b.xxdm AND a.xh=b.xh AND a.kslc=b.kslc AND a.kmdm=b.kmdm
+		WHERE a.xxdm=#{data.xxdm} AND a.xnxq=#{data.xnxq} AND a.kslc=#{data.kslcdm}
+		<if test="data.nj!=null">
+			AND  nj=#{data.nj}	
+		</if>
+		<if test="data.studentId!=null and data.studentId.size>0">
+			AND a.xh IN
+			<foreach collection="data.studentId" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>	
+		</if>
+		<if test="data.subjectId!=null">
+			AND a.kmdm=#{data.subjectId}
+		</if>
+		<if test="data.excludeSubIds!=null and data.excludeSubIds.size>0">
+			AND a.kmdm NOT IN
+			<foreach collection="data.excludeSubIds" item="item" open="(" close=")" separator=",">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.bhList!=null">
+			AND bh IN 
+			<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+		GROUP BY nj,bh,a.xh,a.kmdm HAVING a.kmdm;
+	</select>
+	
+	   
+	    <!-- 获取班级最近的1次考试 -->
+	    <select id="getRecentExams" parameterType="splitDbAndTableRule" resultType="com.alibaba.fastjson.JSONObject">
+			SELECT  a.xxdm , a.kslcdm , a.kslcmc , a.autoIncr , a.cdate
+			from ${dbRule.db_name_scoreManage}.t_gm_degreeinfo a
+			where a.xxdm = #{data.xxdm} and a.fbflag = '1'
+			ORDER BY  a.cdate DESC 
+	    </select>
+	    
+	    <select id="getScoreinfoCnt"  parameterType="splitDbAndTableRule" resultType="java.lang.Integer" >
+	        select count(1) as cnt
+	        from ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo}
+	        where  kslc = #{data.kslc}
+            <if test=' data.classId!=null and data.classId != "" '>
+              and bh = #{data.classId}
+            </if>
+            <if test=' data.xh!=null and data.xh != "" '>
+              and xh = #{data.xh}
+            </if>
+	    </select>
+	    
+		<!-- 教师获取班级最近一次考试的信息  班级平均分 年级平均分 -->
+		<select id="getRecentClassExamInfo" parameterType="splitDbAndTableRule" resultType="com.alibaba.fastjson.JSONObject">
+			SELECT a.kslc  , a.bh ,  a.pjf  as bjpjf, a.pm ,  b.pjf as njpjf ,
+			(SELECT count(bh) from ${dbRule.db_name_scoreManage}.t_gm_scoreclassstatistics c where c.kslc =  a.kslc ) as cnt  from 
+			${dbRule.db_name_scoreManage}.t_gm_scoreclassstatistics  a 
+			left join ${dbRule.db_name_scoreManage}.t_gm_scoregroupstatistics b on (a.kslc = b.kslc ) 
+			where a.bh =#{data.classId}  and a.kslc = #{data.kslc} 
+		</select>
+		
+		 <!-- 获取学生最近的2次考试 -->
+ 
+		 
+		<!-- 学生获取最近一次考试的信息 总分-->
+		<select id="getRecentStuExamInfo" parameterType="splitDbAndTableRule" resultType="com.alibaba.fastjson.JSONObject">
+            SELECT  a.kslc ,  '-1' as kmdm , a.zf , a.bjpm ,  (SELECT  mf 
+			from  ${dbRule.db_name_scoreManage}.t_gm_scoreclassstatistics b
+			where b.kslc = a.kslc LIMIT 1 ,1) as mf  FROM
+			${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} a
+			where xh = #{data.xh} and kslc = #{data.kslc}
+			union 
+			SELECT  a.kslc , a.kmdm , a.cj , a.bjpm , 
+			(
+			SELECT   mf 
+			from  ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics_mk}  b
+			where b.kslc = a.kslc
+			and a.kmdm = b.kmdm  LIMIT 1 , 1 
+			) as mf
+			from ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk}  a
+			where a.xh = #{data.xh} and a.kslc =  #{data.kslc}
+ 
+		</select>
+		
+		
+	 <select id="getStudentStatisticsrank" parameterType="splitDbAndTableRule" resultType="com.alibaba.fastjson.JSONObject">
+		  select  a.kslc , a.zf ,  a.njpm , a.bjpm , a.xh
+		  from  ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} a
+		  where  a.xh = #{data.xh} and  a.kslc  = #{data.kslc}
+	 </select>
+	
+ 	 
+ 	 <select id="getExamListBynj" parameterType="splitDbAndTableRule" resultType="com.alibaba.fastjson.JSONObject" >
+         SELECT  kslcdm , kslcmc , autoIncr  
+         from   ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo} a
+         where  EXISTS (select 1 from ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo_nj} b where a.kslcdm = b.kslcdm and b.nj = #{data.synj})
+         and    a.fbflag = '1'
+ 	 </select>
+ 	 <select id="getBmfzByClassId" parameterType="splitDbAndTableRule" resultType="com.alibaba.fastjson.JSONObject" >
+ 	    SELECT  bmfz
+ 	    from   ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj}
+        where  kslc = #{data.kslc} and  bh = #{data.classId}
+ 	 </select>
+	 <select id="getSubjectfullScoreByfzdm" parameterType="splitDbAndTableRule" resultType="com.alibaba.fastjson.JSONObject">
+	       select  a.kslc , a.xxdm , a.kmdm , a.mf ,a.xnxq
+	       from  ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoremf} a
+	       where kslc = #{data.kslc} and a.fzdm in
+	      	<foreach collection="data.fzdmList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+	 </select>
+	 
+	 <select id="getAllHisSubjectAverageScore"  parameterType="splitDbAndTableRule" resultType="com.alibaba.fastjson.JSONObject">
+	       SELECT a.kslc , a.bh , a.kmdm , a.pjf 
+	       FROM   ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics_mk} a
+           where  a.kslc = #{data.kslc} and a.bh = #{data.classId}
+	 </select>	
+		
+	
+</mapper>

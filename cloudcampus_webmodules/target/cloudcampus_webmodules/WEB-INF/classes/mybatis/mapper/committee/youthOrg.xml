@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.committee.dao.YouthOrgDao">
+	<update id="deleteYouthOrgYO"  parameterType="JSONObject">
+		DELETE FROM ${db_name_committee}.`t_yo_youthorg` 
+		WHERE  `termInfoId`=#{termInfoId} AND `schoolId`=#{schoolId}  AND `branchId`=#{branchId}
+	</update>
+	
+	<update id="deleteYouthOrgPersonYO"  parameterType="JSONObject">
+		DELETE FROM ${db_name_committee}.`t_yo_youthorgperson` 
+		WHERE `termInfoId`=#{termInfoId} AND `schoolId`=#{schoolId}  
+		AND `branchId`=#{branchId}
+	</update>
+	
+	<select id="getYouthOrgYO" parameterType="JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT * FROM ${db_name_committee}.`t_yo_youthorg` 
+		WHERE `termInfoId`=#{termInfoId}  AND`schoolId`=#{schoolId}
+		<if test="branchId!=null and branchId!=''">
+			AND `branchId`=#{branchId}
+		</if>
+		<if test="noBranchId!=null and noBranchId!=''">
+			AND `branchId`!=#{noBranchId}
+		</if>
+		ORDER BY createTime DESC
+	</select>
+	<select id="getYouthOrgPersonYO" parameterType="JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT * FROM ${db_name_committee}.`t_yo_youthorgperson` 
+		WHERE  `termInfoId`=#{termInfoId} AND`schoolId`=#{schoolId} 
+		<if test="branchId!=null and branchId!=''">
+			AND `branchId`=#{branchId}
+		</if>
+	</select>
+	<!-- <select id="getYouthOrgListYO" parameterType="JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT yo.`branchId` ,yo.`branchName`,yo.`branchContent`,yop.`accountId`,yop.`type` FROM ${db_name_committee}.`t_yo_youthorg` yo 
+		LEFT JOIN ${db_name_committee}.`t_yo_youthorgperson` yop ON yo.`schoolId`=yop.`schoolId`  AND yo.`termInfoId`=yop.`termInfoId`
+		AND yo.`branchId`=yop.`branchId` 
+		WHERE  yo.`termInfoId`=#{termInfoId} AND yo.`schoolId`=#{schoolId} 
+	</select> -->
+	<update id="addYouthOrgYO" parameterType="JSONObject">
+		INSERT INTO ${db_name_committee}.`t_yo_youthorg`(`schoolId`,`termInfoId`,`branchId`,`branchName`,`branchContent`,`createTime`) 
+		VALUES (#{schoolId},#{termInfoId},#{branchId},#{branchName},#{branchContent},#{createTime})
+		 on DUPLICATE KEY UPDATE 
+           branchName=values(branchName), branchContent=values(branchContent) 
+	</update>
+	<update id="addYouthOrgBatchYO"  parameterType="java.util.List">
+		INSERT INTO ${db_name_committee}.`t_yo_youthorg`(`schoolId`,`termInfoId`,`branchId`,`branchName`,`branchContent`,`createTime`) 
+		VALUES 
+		<foreach collection="list"   item="item" index="index" separator=",">
+		 (#{item.schoolId},#{item.termInfoId},#{item.branchId},#{item.branchName},#{item.branchContent},#{item.createTime})
+        </foreach>
+	</update>
+	<update id="addYouthOrgPersonBatchYO"  parameterType="java.util.List">
+		INSERT INTO ${db_name_committee}.`t_yo_youthorgperson`(`schoolId`,`termInfoId`,`branchId`,`accountId`,`type`)
+		 VALUES 
+		<foreach collection="list"   item="item" index="index" separator=",">
+		 (#{item.schoolId},#{item.termInfoId},#{item.branchId},#{item.accountId},#{item.type})
+        </foreach>
+	</update>
+</mapper>

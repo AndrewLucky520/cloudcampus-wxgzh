@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.committee.dao.SupportPoorDao">
+
+    <select id="getPoorStuList"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+       select  schoolId ,classId ,  studentId , idNum , fatherName , motherName , poorReason,
+	   address , telephone from  ${db_name_committee}.t_sp_poor
+	   where schoolId = #{schoolId}
+	   <if test="classIdList!=null">
+		    AND classId in
+			<foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+					${item}
+			</foreach>
+		</if>
+		<if test="accountIds!=null">
+		   AND studentId in
+		    <foreach collection="accountIds" index="index" item="item" open="(" separator="," close=")">
+					${item}
+			</foreach>
+		</if>
+	  
+	  
+    </select>
+    
+   <select id="getLeftChildList"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+       select  schoolId , classId ,studentId, idNum ,address , fatherName ,fatherWorkAddress , 
+	   motherName ,motherWorkAddress , guarder ,   telephone  from ${db_name_committee}.t_sp_leftchild
+	   where schoolId = #{schoolId}
+	   <if test="classIdList!=null">
+		    AND classId in
+			<foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+					${item}
+			</foreach>
+		</if>
+	   <if test="accountIds!=null">
+		   AND studentId in
+		    <foreach collection="accountIds" index="index" item="item" open="(" separator="," close=")">
+					${item}
+			</foreach>
+		</if>
+    </select>
+    
+     <select id="getCityWorkList"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+      select  schoolId , classId , studentId ,idNum ,address, fatherName, 
+	  motherName, telephone from ${db_name_committee}.t_sp_citywork 
+	  where schoolId = #{schoolId}
+	   <if test="classIdList!=null">
+		    AND classId in
+			<foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+					${item}
+			</foreach>
+		</if>
+	  <if test="accountIds!=null">
+		   AND studentId in
+		    <foreach collection="accountIds" index="index" item="item" open="(" separator="," close=")">
+					${item}
+			</foreach>
+		</if>
+    </select>
+    
+    <select id="getDisableChildList"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+       select  schoolId , classId ,studentId ,idNum , address , fatherName, 
+	   motherName  , telephone , disableType  from ${db_name_committee}.t_sp_disablechild
+	   where schoolId = #{schoolId}
+	   <if test="classIdList!=null">
+		    AND classId in
+			<foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+					${item}
+			</foreach>
+		</if>
+	  <if test="accountIds!=null">
+		   AND studentId in
+		    <foreach collection="accountIds" index="index" item="item" open="(" separator="," close=")">
+					${item}
+			</foreach>
+		</if>
+    </select>
+    
+    <select id="getSinglChildList"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+      select schoolId , classId , studentId , idNum , address ,guarder , 
+	  telephone, singleReason  from  ${db_name_committee}.t_sp_singlechild 
+	  where schoolId = #{schoolId}  
+	   <if test="classIdList!=null">
+		    AND classId in
+			<foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+					${item}
+			</foreach>
+		</if>
+	  <if test="accountIds!=null">
+		   AND studentId in
+		    <foreach collection="accountIds" index="index" item="item" open="(" separator="," close=")">
+					${item}
+			</foreach>
+		</if>
+
+    </select>
+    
+ 
+    <select id="getPoorStu" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+          select  schoolId , classId , studentId , idNum , fatherName , motherName , poorReason , 
+          address , telephone  from   ${db_name_committee}.t_sp_poor 
+          where schoolId = #{schoolId} and   studentId = #{studentId}
+    </select>
+    
+    <select id="getLeftChild" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" >
+         select schoolId , classId , studentId , idNum , address , fatherName , fatherWorkAddress,
+         motherName , motherWorkAddress , guarder , telephone
+         from   ${db_name_committee}.t_sp_leftchild 
+         where schoolId = #{schoolId} and   studentId = #{studentId}
+    </select>
+    
+    <select id="getCityWork" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" >
+         select schoolId , classId , studentId , idNum , address , fatherName , motherName , telephone
+         from   ${db_name_committee}.t_sp_citywork 
+         where  schoolId = #{schoolId} and studentId = #{studentId}
+     </select>
+    
+    <select id="getDisableChild" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" >
+        select schoolId , classId , studentId , idNum , address , fatherName , motherName , telephone , disableType
+        from  ${db_name_committee}.t_sp_disablechild 
+        where  schoolId = #{schoolId} and studentId = #{studentId}
+    </select>
+    
+    <select id="getSinglChild" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" >
+         select  schoolId , classId , studentId , idNum , address , guarder , telephone , singleReason
+         from   ${db_name_committee}.t_sp_singlechild 
+         where  schoolId = #{schoolId} and studentId = #{studentId}
+    </select>
+    
+ 
+    <insert id="updatePoorStudent" parameterType="com.alibaba.fastjson.JSONObject">
+	     insert into  ${db_name_committee}.t_sp_poor (schoolId ,classId ,  studentId , idNum , fatherName , motherName , poorReason,
+	     address , telephone) values 
+	     (#{schoolId}  ,#{classId}  , #{studentId}   , #{idNum}  , #{fatherName}  , #{motherName}  , #{poorReason} , #{address}  , #{telephone} )
+	     ON DUPLICATE KEY UPDATE idNum=VALUES(idNum),fatherName=VALUES(fatherName),motherName=VALUES(motherName),poorReason=VALUES(poorReason),
+	     address=VALUES(address),telephone=VALUES(telephone)
+    </insert>
+    <insert id="updateLeftChild" parameterType="com.alibaba.fastjson.JSONObject">
+	     insert into ${db_name_committee}.t_sp_leftchild (schoolId , classId ,studentId, idNum ,address , fatherName ,fatherWorkAddress , 
+	     motherName ,motherWorkAddress , guarder ,   telephone ) values 
+	     (#{schoolId},#{classId},#{studentId} , #{idNum}  ,#{address}  , #{fatherName}  ,#{fatherWorkAddress}  , 
+	     #{motherName}  ,#{motherWorkAddress},#{guarder} ,  #{telephone} )
+	     ON DUPLICATE KEY UPDATE idNum=VALUES(idNum),address=VALUES(address),fatherName=VALUES(fatherName),fatherWorkAddress=VALUES(fatherWorkAddress),
+	     motherName=VALUES(motherName),motherWorkAddress=VALUES(motherWorkAddress),guarder=VALUES(guarder),telephone=VALUES(telephone)
+    </insert>
+    <insert id="updateCityWork" parameterType="com.alibaba.fastjson.JSONObject">
+	    insert into   ${db_name_committee}.t_sp_citywork (schoolId , classId , studentId ,idNum ,address, fatherName, 
+	    motherName, telephone) values
+	   (#{schoolId} ,#{classId} , #{studentId},#{idNum} ,#{address},#{fatherName} , #{motherName}, #{telephone} )
+	    ON DUPLICATE KEY UPDATE idNum=VALUES(idNum),address=VALUES(address),fatherName=VALUES(fatherName),
+	    motherName=VALUES(motherName),telephone=VALUES(telephone)
+    </insert>
+    
+    <insert id="updateDisableChild" parameterType="com.alibaba.fastjson.JSONObject">
+	     insert into  ${db_name_committee}.t_sp_disablechild (schoolId , classId ,studentId ,idNum , address , fatherName, 
+	     motherName  , telephone , disableType ) values 
+	     (#{schoolId} ,#{classId} ,#{studentId},#{idNum}, #{address}, #{fatherName} ,  #{motherName}, #{telephone}, #{disableType}  )
+	     ON DUPLICATE KEY UPDATE idNum=VALUES(idNum),address=VALUES(address),fatherName=VALUES(fatherName),motherName=VALUES(motherName),
+	     telephone=VALUES(telephone),  disableType=VALUES(disableType)
+    </insert>
+    
+    <insert id="updateSinglChild" parameterType="com.alibaba.fastjson.JSONObject">
+	     insert into  ${db_name_committee}.t_sp_singlechild (schoolId , classId , studentId , idNum , address ,guarder , 
+	     telephone, singleReason ) values
+	     (#{schoolId} ,#{classId}  ,#{studentId}  ,#{idNum}  , #{address} ,#{guarder} ,  #{telephone}, #{singleReason})
+	     ON DUPLICATE KEY UPDATE idNum = VALUES(idNum), address = VALUES(address),guarder = VALUES(guarder),
+	     telephone = VALUES(telephone), singleReason  = VALUES(singleReason)
+    </insert>
+    
+ 
+    <delete id="deletePoorStudent" parameterType="com.alibaba.fastjson.JSONObject">
+        delete from    ${db_name_committee}.t_sp_poor 
+        where schoolId = #{schoolId} and studentId = #{studentId}
+    </delete>
+    
+    <delete id="deleteLeftChild" parameterType="com.alibaba.fastjson.JSONObject">
+        delete from    ${db_name_committee}.t_sp_leftchild 
+        where schoolId = #{schoolId} and studentId = #{studentId}
+    </delete>
+    
+    <delete id="deleteCityWork" parameterType="com.alibaba.fastjson.JSONObject">
+        delete from    ${db_name_committee}.t_sp_citywork 
+        where schoolId = #{schoolId} and studentId = #{studentId}
+    </delete>
+    
+    <delete id="deleteDisableChild" parameterType="com.alibaba.fastjson.JSONObject">
+        delete from    ${db_name_committee}.t_sp_disablechild 
+        where schoolId = #{schoolId} and studentId = #{studentId}
+    </delete>
+    
+    <delete id="deleteSinglChild" parameterType="com.alibaba.fastjson.JSONObject">
+        delete from    ${db_name_committee}.t_sp_singlechild 
+        where schoolId = #{schoolId} and studentId = #{studentId}
+    </delete>
+ 
+</mapper>

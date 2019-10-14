@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.questionnaire.dao.QuestionnaireDao">
+	<!-- 查询考评信息 -->
+	<select id="update1002269_queryRecord" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+   		SELECT recordId, questionId, schoolId, accountId FROM ${db_name_cc_questionnaire}.`t_qn_record`
+	</select>
+	
+	<select id="update1002269_queryObjTypeFromObj" parameterType="hashmap" resultType="java.lang.Integer">
+		SELECT objType FROM ${db_name_cc_questionnaire}.`t_qn_obj` 
+			WHERE questionId = #{questionId} AND schoolId = #{schoolId}
+		LIMIT 1
+	</select>
+	
+	<select id="update1002269_queryTermInfoIdFromQues" parameterType="hashmap" resultType="java.lang.String">
+		SELECT CONCAT(yearId, termId) AS termInfoId FROM ${db_name_cc_questionnaire}.`t_qn_questionnaire` 
+			WHERE questionId = #{questionId} AND schoolId = #{schoolId}
+	</select>
+	
+	<update id="update1002269_updateInfo">
+		UPDATE ${db_name_cc_questionnaire}.t_qn_record SET classId = #{classId}, userId = #{userId} 
+			WHERE recordId = #{recordId} AND schoolId = #{schoolId}
+	</update>
+</mapper>

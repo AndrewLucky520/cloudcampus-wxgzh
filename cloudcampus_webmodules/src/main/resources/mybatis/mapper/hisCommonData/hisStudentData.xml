@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.commondata.dao.HisCommonDataDao">
+  <select id="getStudentList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  		SELECT t0.stdId 'userId',t0.name,t0.accountId,t0.classId,t0.schoolNumber,t0.stdNumber 
+		FROM ${db_name_hisCommonData}${termInfoId}.t_student t0
+		<if test="classIdList==null or classIdList==''">
+			INNER JOIN ${db_name_hisCommonData}${termInfoId}.t_grade t1 ON t0.gradeId = t1.id
+			<if test="njdmList!=null   and njdmList.size() > 0">
+				AND t1.`createLevel`+IF(#{xn}-YEAR(FROM_UNIXTIME(t1.`createTime`))>0,#{xn}-YEAR(FROM_UNIXTIME(t1.`createTime`)),0) IN
+		        <foreach collection="njdmList" index="index" item="item" open="(" separator="," close=")">
+						#{item}
+				</foreach>
+			</if>
+			<!-- <if test="classType!=null and classType!=''">
+		 	   AND t0.classType = #{classType}
+		 	</if> -->
+		</if>
+		WHERE t0.schoolId=#{schoolId} and t0.status='1'
+		<if test="keyword!=null and keyword!=''">
+	    	 	AND (t0.name like '%${keyword}%' OR t0.schoolNumber=#{keyword} OR t0.stdNumber=#{keyword})
+	    </if> 
+		<if test="classIdList!=null and classIdList.size() > 0">
+	 		AND t0.classId IN
+	 		<foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+	 			#{item}
+	 		</foreach>
+	 	</if>
+  </select>
+  <select id="getSchoolStudentList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT t0.stdId 'userId',t0.name,t0.accountId,t0.classId,t0.schoolNumber,t0.stdNumber 
+		FROM ${db_name_hisCommonData}${termInfoId}.t_student t0
+		LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_class t1 ON t1.id= t0.classId
+	 	WHERE t1.gradeId IN
+	 	<foreach collection="gids" index="index" item="item" open="(" separator="," close=")">
+	 			#{item}
+ 		</foreach>
+	 	<if test="keyword!=null and keyword!=''">
+    	 	AND (t0.name like '%${keyword}%' OR t0.schoolNumber=#{keyword} OR t0.stdNumber=#{keyword})
+    	 </if>   
+  </select>
+  <select id="getAllStudent" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	 	SELECT t0.stdId 'userId',t0.name,t0.accountId,t0.classId,t0.schoolNumber,t0.stdNumber 
+		FROM ${db_name_hisCommonData}${termInfoId}.t_student t0
+		LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_class t1 ON t1.id= t0.classId
+	 	WHERE t0.schoolId=#{schoolId}
+	 	  <if test="ids != null and ids != ''  and ids.size() > 0">
+         AND t1.gradeId in
+       		<foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+  </select>
+    <select id="getAccountByIds" parameterType="JSONObject" resultType="JSONObject">
+    	 SELECT * FROM ${db_name_hisCommonData}${termInfoId}.t_account a 
+    	 WHERE 
+		<if test="studentIds != null and studentIds != '' and studentIds.size() > 0">
+		 a.`id`IN
+		<foreach collection="studentIds" index="index" item="item" open="("   separator="," close=")">
+	 			#{item}
+		</foreach>  
+    </if>
+		 AND a.`status`=1;
+  </select>
+</mapper>

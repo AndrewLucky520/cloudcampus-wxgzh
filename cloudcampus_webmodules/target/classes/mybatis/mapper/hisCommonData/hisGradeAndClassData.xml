@@ -1,0 +1,467 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.commondata.dao.HisCommonDataDao">
+<!--年级-->
+  <!-- 根据学校Id过滤年级-->
+  <select id="getGradeListBySchoolId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+ 	 SELECT g.id ,g.createLevel,if(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)) +g.createLevel,g.createLevel ) AS currentLevel
+		,IFNULL(GROUP_CONCAT(c.id),"") AS classIds
+ 		FROM  ${db_name_hisCommonData}${termInfoId}.t_grade g 
+		LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_class c ON c.gradeId=g.id 
+        WHERE g.schoolId=#{schoolId} AND g.status=1  AND  c.status=1
+        <if test="ids != null and ids != ''  and ids.size() > 0">
+        and g.id in
+       		<foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+    	 <if test="gradeId!=null and gradeId!=''">
+        and g.id =#{gradeId} 
+    	</if>
+        GROUP BY g.id 
+  </select>
+  
+<!--班级-->
+    <update id="insertTeacherLessonBatch" parameterType="com.alibaba.fastjson.JSONObject"  >
+    	INSERT INTO ${db_name_hisCommonData}${termInfoId}.`t_teacher_course` (`teacherId`,`classId`,`lessonId`)
+		VALUES
+		<foreach collection="insertParamList" item="item" index="index" separator=",">
+	    (#{item.teacherId},#{item.classId},#{item.lessonId}) 
+	    </foreach>
+    </update>
+    <update id="deleteTeacherLesson" parameterType="com.alibaba.fastjson.JSONObject"  >
+    	DELETE  FROM  ${db_name_hisCommonData}${termInfoId}.`t_teacher_course`  
+    	<where>
+    	<if test="teacherId != null and teacherId != '' ">
+    	  AND `teacherId`=#{teacherId}
+    	 </if>
+    	<if test="teacherIds != null and teacherIds != ''  and teacherIds.size() > 0">
+          AND teacherId in
+       		<foreach collection="teacherIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+    	<if test="classId != null and classId != '' ">
+    	  AND `classId`=#{classId}
+    	 </if>
+    	</where>
+    </update>
+    <update id="updateClassroom" parameterType="com.alibaba.fastjson.JSONObject"  >
+    	UPDATE ${db_name_csCurCommonData}${termInfoId}.`t_class` c 
+    	set  c.`id`=#{id}
+    	<if test="headTeacherId!=null and headTeacherId !='' ">
+    	 ,c.`headTeacherId`=#{headTeacherId} 
+    	</if>
+    	<if test="className != null and className != '' ">
+    	,c.`className`=#{className} 
+    	</if>
+    	<if test="classNo != null and classNo != '' ">
+    	, c.`classNo`=#{classNo}
+    	</if>
+    	<if test="classType != null and classType != '' ">
+    	, c.`classType`=#{classType}
+    	</if>
+		<if test="USER_BH != null and USER_BH != '' ">
+		,c.`USER_BH`=#{USER_BH}
+		</if>
+		WHERE c.`id`=#{id}; 
+    </update>
+   <!-- 学校年级过滤班级-->
+  <select id="getClassListBy" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+ 	SELECT g.id AS gradeId ,c.className,c.classType,c.id
+	FROM  ${db_name_hisCommonData}${termInfoId}.t_grade g 
+ 	LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_class c ON c.gradeId=g.id 
+	WHERE g.schoolId=#{schoolId}  AND g.status=1 AND  c.status=1
+		   <if test="classTypeId!=null and classTypeId!=''">
+				and c.`classType`!=#{classTypeId}
+		   </if>
+		   <if test="createLevels != null and createLevels != '' and createLevels.size() > 0">
+        		and g.createLevel in
+       			<foreach collection="createLevels" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    		</if>
+    		<if test="currentLevels != null and currentLevels != '' and currentLevels.size() > 0">
+        		and g.createLevel in
+       			<foreach collection="currentLevels" index="index" item="item" open="("   separator="," close=")">
+          			#{item}-(IF(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0,#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)),0))
+       			</foreach>  
+    		</if>
+    		<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and g.id in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    		</if>
+    		<if test="ids != null and ids != '' and ids.size() > 0">
+        		and c.id in
+       			<foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    		</if>
+    	
+  </select>
+    <!-- 班级过滤班主任User-->
+  <select id="getDeanIdByClassId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+ 	  SELECT  c.id AS classId,c.headTeacherId AS teacherId,a.id AS accountId
+		FROM ${db_name_hisCommonData}${termInfoId}.t_class c
+    	LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_user u ON u.id=c.headTeacherId
+   		LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_account a ON a.id=u.accountId
+  		WHERE  c.schoolId=#{schoolId} AND c.status=1 AND a.status=1 AND u.status=1
+  		<if test="classIds != null and classIds != '' and classIds.size() > 0">
+        		and c.id in
+       			<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    	<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and c.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    
+  </select>
+    <!-- 班级过滤班主任NoAccount-->
+  <select id="getDeanIdByClassIdNoAccount" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+ 	  SELECT  c.id AS classId,c.headTeacherId AS teacherId
+		FROM ${db_name_hisCommonData}${termInfoId}.t_class c
+    	LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_user u ON u.id=c.headTeacherId
+  		WHERE  c.schoolId=#{schoolId} AND c.status=1  AND u.status=1
+  		<if test="classIds != null and classIds != '' and classIds.size() > 0">
+        		and c.id in
+       			<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    	<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and c.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    
+  </select>
+  
+  
+  
+  
+  
+  <!-- 班级过滤学生User-->
+  <select id="getStudentIdByClassId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+ 	   SELECT s.classId,s.stdId AS studentId ,s.accountId FROM ${db_name_hisCommonData}${termInfoId}.t_student  s 
+ 		WHERE s.schoolId=#{schoolId}  AND s.status=1  
+    	<if test="classIds != null and classIds != ''  and classIds.size() > 0">
+        		and s.classId in
+       			<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    	 <if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and s.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+  </select>
+   <!-- 班级过滤学生NoAccount-->
+  <select id="getStudentIdByClassIdNoAccount" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+ 	   SELECT s.classId,s.stdId AS studentId FROM ${db_name_hisCommonData}${termInfoId}.t_student  s 
+ 		WHERE s.schoolId=#{schoolId}  AND s.status=1  
+    	<if test="classIds != null and classIds != ''  and classIds.size() > 0">
+        		and s.classId in
+       			<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    	 <if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and s.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+  </select>
+  
+  
+  
+  <!-- 班级过滤家长User-->
+  <select id="getParentIdByClassId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+    	SELECT  p.classId,p.parentId ,a.id AS accountId
+		FROM ${db_name_hisCommonData}${termInfoId}.t_class c 
+   			LEFT JOIN  ${db_name_hisCommonData}${termInfoId}.t_parent p ON p.classId=c.id 
+   			LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_user u ON u.id=p.parentId
+   			LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_account a ON a.id=u.accountId
+  		WHERE    c.schoolId=#{schoolId} AND a.status=1  AND u.status=1 AND c.status=1    
+ 		<if test="classIds != null and classIds != ''  and classIds.size() > 0">
+        		AND  p.classId IN
+       			<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    	<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and c.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+  </select>
+   <!-- 班级过滤家长NoAccount-->
+  <select id="getParentIdByClassIdNoAccount" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+    	SELECT  p.classId,p.parentId 
+		FROM ${db_name_hisCommonData}${termInfoId}.t_class c 
+   			LEFT JOIN  ${db_name_hisCommonData}${termInfoId}.t_parent p ON p.classId=c.id 
+   			LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_user u ON u.id=p.parentId
+  		WHERE    c.schoolId=#{schoolId} AND u.status=1 AND c.status=1    
+ 		<if test="classIds != null and classIds != ''  and classIds.size() > 0">
+        		AND  p.classId IN
+       			<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+    	<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and c.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    	</if>
+  </select>
+   <!-- 班级过滤老师科目信息-->
+  <select id="getLessonAndTeacherByClassId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT tc.teacherId,tc.classId,tc.lessonId,a.id  AS accountId FROM ${db_name_hisCommonData}${termInfoId}.t_teacher_course  tc
+   		LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_user u ON u.id=tc.teacherId
+  	    LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_account a ON a.id=u.accountId
+  	    LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_class c ON c.id=tc.classId
+		WHERE c.schoolId=#{schoolId} AND a.status=1 AND u.status=1
+			<if test="classIds != null and classIds != ''  and classIds.size() > 0">
+        	 AND tc.classId in
+       		<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    		</if>
+    		<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and c.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    		</if>
+  </select>
+   <!-- 班级过滤老师科目信息NoAccount-->
+  <select id="getLessonAndTeacherByClassIdNoAccount" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT tc.teacherId,tc.classId,tc.lessonId  FROM ${db_name_hisCommonData}${termInfoId}.t_teacher_course  tc
+   		LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_user u ON u.id=tc.teacherId
+  	    LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_class c ON c.id=tc.classId
+		WHERE c.schoolId=#{schoolId}  AND u.status=1
+			<if test="classIds != null and classIds != ''  and classIds.size() > 0">
+        	 AND tc.classId in
+       		<foreach collection="classIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    		</if>
+    		<if test="gradeIds != null and gradeIds != '' and gradeIds.size() > 0">
+        		and c.gradeId in
+       			<foreach collection="gradeIds" index="index" item="item" open="("   separator="," close=")">
+          			#{item}
+       			</foreach>  
+    		</if>
+  </select>
+<!--科目-->
+  <!-- 根据学校Id和科目ID过滤科目-->
+  <select id="getLessonListBySchoolId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT l.id AS lessonId,sl.schoolId,l.name,IFNULL(l.simpleName,"")AS simpleName,l.lessontype FROM ${db_name_hisCommonData}${termInfoId}.t_school_lesson sl
+ 		LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_lessoninfo l ON l.id=sl.lessonId
+	WHERE  l.status=1 AND sl.schoolId=#{schoolId}  
+			<if test="ids != null and ids != '' and ids.size() > 0">
+        	 AND l.id in
+       		<foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    		</if>
+    		<if test="type != null and type != ''">
+        	 AND l.lessonType = #{type} 
+    		</if>
+  </select>
+  
+    <!-- 通过班级代码查班级信息 -->
+  <select id="getClassById" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	SELECT a.id,a.gradeId,a.classNo,a.className,a.createTime,a.USER_BH,a.classType,a.headTeacherId as teacherId
+		FROM ${db_name_hisCommonData}${termInfoId}.t_class a WHERE a.status = '1'
+		AND a.schoolId = #{schoolId}
+		AND a.id = #{classId}
+  </select>
+  <!-- 通过班级代码查班级学生信息 -->
+  <select id="getClassByStudent" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	 SELECT a.stdId AS studentId,p.parentId FROM ${db_name_hisCommonData}${termInfoId}.t_student a
+	     LEFT JOIN ${db_name_hisCommonData}${termInfoId}.`t_parent` p ON a.`stdId`=p.`studentId` where a.classId = #{classId}
+  </select>
+  <!-- 通过用户代码查用户信息 -->
+  <select id="getUserById" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	select a.id,a.accountId,a.role,a.createTime,a.avatar from ${db_name_hisCommonData}${termInfoId}.t_user a where a.id = #{userId} and status = '1'
+  </select>
+  <!-- 通过用户代码查学生信息 -->
+  <select id="getStudentByUserId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	 SELECT p.parentId,a.classId FROM ${db_name_hisCommonData}${termInfoId}.t_student a 
+	 LEFT JOIN ${db_name_hisCommonData}${termInfoId}.`t_parent` p ON a.`stdId`=p.`studentId` where a.stdId  = #{userId}
+	  ORDER BY p.`parentId` ASC LIMIT 1 ;
+  </select>
+  <!-- 通过用户代码查老师属于那些机构 -->
+  <select id="getOrgListByUserId" parameterType="com.alibaba.fastjson.JSONObject" resultType="Long">
+	  	select a.orgId from ${db_name_hisCommonData}${termInfoId}.t_org_member a,${db_name_hisCommonData}${termInfoId}.t_orginfo b where a.userid = #{userId} and a.orgid = b.id
+  </select>
+  <!-- 通过用户代码查老师授课信息 -->
+  <select id="getTeacherCourseListByUserId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	select * from ${db_name_hisCommonData}${termInfoId}.T_Teacher_Course a where teacherId = #{userId}
+  </select>
+  <!-- 通过用户代码查学生信息 -->
+  <select id="getAccountByUserId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	SELECT a.* FROM ${db_name_hisCommonData}${termInfoId}.t_account a 
+			LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_user u ON u.`accountId`=a.`id` 
+			WHERE u.`id`=#{userId} AND a.`status`=1 AND u.`status`=1;
+  </select>
+  <!-- 通过用户代码查家长信息 -->
+  <select id="getParentByUserId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	select a.* from ${db_name_hisCommonData}${termInfoId}.t_parent a where a.parentId  = #{userId};
+  </select>
+  
+<!-- getAccountBatch   begin zxy 20160201 --> 
+  <select id="getAccountBatch" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+    	SELECT IFNULL(b.deanOfOrgIds,"") AS deanOfOrgIds,
+IFNULL(a.orgIds,"")AS orgIds ,t2.extId as extAccountId,t2.`accountId`, t2.id,t2.role,t1.`accountName`,t1.`gender`,t1.`name` ,t1.idNumber,t1.extId as extUserId
+FROM ${db_name_hisCommonData}${termInfoId}.t_user t2 
+LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_account t1 ON t1.id = t2.accountId AND t1.status = '1' 
+LEFT JOIN 
+   ( SELECT GROUP_CONCAT(o1.orgId) AS orgIds,o1.`userId` 
+   FROM  ${db_name_hisCommonData}${termInfoId}.`t_org_member` o1 
+    GROUP BY o1.`userId`)a 
+ON a.userId=t2.`id`
+LEFT JOIN (
+  SELECT GROUP_CONCAT(o2.orgId) AS deanOfOrgIds,o2.`headerId`  AS userId
+   FROM  ${db_name_hisCommonData}${termInfoId}.`t_org_header` o2 
+    GROUP BY o2.`headerId`
+)b
+ON b.userId=t2.`id`
+	<if test="ids != null and ids != '' and ids.size() > 0">
+       	where t1.id in
+      		<foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+         		#{item}
+      		</foreach>  
+   	</if> 
+  </select>
+    <!-- getAccountBatch查询教师信息 -->
+  <select id="queryTeacherRoleByUserId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  	 SELECT t.teacherId,IFNULL(GROUP_CONCAT(c.`id`),'') AS deanOfClassIds,t.empno
+	 FROM ${db_name_hisCommonData}${termInfoId}.T_Teacher t   
+	 LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_class c ON t.`teacherId`=c.`headTeacherId` AND t.`schoolId`=c.`schoolId`AND c.`status`='1'
+	 WHERE t.`schoolId`=#{schoolId} 
+	 <if test="userIds != null and userIds != '' and userIds.size() > 0">
+        	 AND t.teacherId IN
+       		<foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+	 GROUP BY t.`teacherId`;
+   </select>
+ 
+  <select id="queryTeacherCourseList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  SELECT * FROM    ${db_name_hisCommonData}${termInfoId}.`t_teacher_course` tc 
+   <where>
+   <if test="userIds != null and userIds != '' and userIds.size() > 0">
+        	  tc.`teacherId` IN 
+       		<foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+    </where> 
+   </select>
+   <!-- getAccountBatch通过用户代码查学生信息 -->
+  <select id="queryStudentListByUserId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	SELECT a.`isYouth`,a.`stdId` AS id,a.`classId`,IFNULL(p.`parentId`,'')AS parentId,IFNULL(a.`schoolNumber`,'')AS schoolNumber,IFNULL(a.`stdNumber`,'')AS stdNumber FROM ${db_name_hisCommonData}${termInfoId}.t_student a 
+	  	LEFT JOIN ${db_name_hisCommonData}${termInfoId}.`t_parent` p ON a.`stdId`=p.`studentId`
+	  	WHERE
+	  	 a.`schoolId`=#{schoolId} and
+	  	 a.stdId  in  
+	  	 <foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          	#{item}
+     	 </foreach>	
+  </select>
+  <select id="queryStaffListByUserId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+   	 SELECT t.`staffId`,IFNULL(t.`empno`,'')AS empno FROM ${db_name_hisCommonData}${termInfoId}.`t_sstaff` t
+   	  WHERE t.`schoolId`=#{schoolId} and
+	  	 t.`staffId`  in  
+	  	 <foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          	#{item}
+     	 </foreach>	
+  </select>
+   <select id="queryManagerListByUserId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+   	 SELECT t.`managerId`,IFNULL(t.`empno`,'')AS empno FROM ${db_name_hisCommonData}${termInfoId}.`T_SchoolManager` t
+   	  WHERE t.`schoolId`=#{schoolId} and
+	  	 t.`managerId`  in  
+	  	 <foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          	#{item}
+     	 </foreach>	
+  </select>
+  <select id="queryStudentNameListByUserId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+   	SELECT u.id AS studentId,a.name AS studentName FROM ${db_name_hisCommonData}${termInfoId}.t_user u 
+   	LEFT JOIN
+      ${db_name_hisCommonData}${termInfoId}.t_account a ON a.id=u.accountId AND a.status='1'
+      WHERE u.status='1' and 
+	  	 u.id  in  
+	  	 <foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          	#{item}
+     	 </foreach>	
+   </select>
+ <!-- getAccountBatch  zxy end --> 
+  
+   <!-- 通过用户代码查老师授课信息 -->
+  <select id="queryTeacherCourseByUserId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	select * from ${db_name_hisCommonData}${termInfoId}.T_Teacher_Course a 
+	  	<where> 
+	  	<if test="userIds != null and userIds != '' and userIds.size() > 0">
+        	teacherId in
+       		<foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+    	</where>
+  </select>
+  <!-- 通过用户代码查学生信息 -->
+  <select id="queryAccountListByUserId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	select a.* from ${db_name_hisCommonData}${termInfoId}.t_account a  where a.status = '1'
+	  	<if test="userIds != null and userIds != '' and userIds.size() > 0">
+        	and a.id in
+       		<foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+  </select>
+  <!-- 通过用户代码查家长信息 -->
+  <select id="queryParentListByUserId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  	<!-- select a.* from ${db_name_hisCommonData}${termInfoId}.t_parent a where
+	  	<if test="userIds != null and userIds != '' and userIds.size() > 0">
+        	a.parentId in
+       		<foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>  -->
+    	SELECT t.`parentId`,t.`studentId`,t.`prole`,t.`classId`,t2.`accountId` FROM ${db_name_hisCommonData}${termInfoId}.t_parent t
+		LEFT JOIN  ${db_name_hisCommonData}${termInfoId}.t_user t2 ON t.`parentId`=t2.`id` AND t2.status = '1'
+		<if test="userIds != null and userIds != '' and userIds.size() > 0">
+        	WHERE t.`parentId` in
+       		<foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>	
+  </select> 
+   <select id="getUserBatchById" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	  SELECT u.id,u.role,u.accountId,a.idNumber,a.id AS accountId,a.name,a.accountName,u.extId as extAccountId,a.extId as extUserId FROM ${db_name_hisCommonData}${termInfoId}.t_user u
+       LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_account a ON a.id=u.accountId
+       WHERE 
+	  	 u.status=1 and  a.status=1 and 
+	  	 u.id  in  
+	  	 <foreach collection="userIds" index="index" item="item" open="("   separator="," close=")">
+          	#{item}
+     	 </foreach>	
+  </select>
+
+</mapper>

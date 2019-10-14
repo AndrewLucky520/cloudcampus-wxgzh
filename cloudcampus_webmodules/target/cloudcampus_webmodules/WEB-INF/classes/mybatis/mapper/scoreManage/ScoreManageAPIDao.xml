@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.talkweb.scoreManage.dao.ScoreManageAPIDao">
+
+    <select id="getScoreIdAndNameList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT d.kslcdm AS examId, d.xnxq AS examTermInfo, d.kslcmc AS examName, d.autoIncr
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo} d
+		WHERE d.xxdm = #{data.xxdm} AND d.xnxq = #{data.xnxq} 
+		<if test="data.nj != null">
+			AND EXISTS (
+				SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo_nj} n
+				WHERE d.kslcdm = n.kslcdm AND d.xxdm = n.xxdm AND d.xnxq = n.xnxq
+					AND nj = #{data.nj}
+			)
+		</if>
+		ORDER BY d.cdate DESC
+    </select>
+    
+    <select id="ifExistsScoreInfo" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+		SELECT 1
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} 
+		WHERE kslc = #{data.kslc} AND xxdm = #{data.xxdm} AND xnxq = #{data.xnxq}
+		<if test="data.bhList != null">
+			AND bh IN
+			<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.kmdmList != null">
+			AND kmdm IN
+			<foreach collection="data.kmdmList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+		LIMIT 1
+    </select>
+    
+    <select id="queryScoreInfo" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT xh AS accountId, bh AS classId, kmdm AS subjectId, IFNULL(cj, 0) AS score 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo}
+			WHERE kslc = #{data.kslc} AND xxdm = #{data.xxdm} 
+			<if test="data.bhList != null">
+				AND bh IN
+				<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+					#{item}
+				</foreach>
+			</if>
+			<if test="data.kmdm != null">
+				AND kmdm = #{data.kmdm}
+			</if>
+			<if test="data.kmdmList != null">
+				AND kmdm IN
+				<foreach collection="data.kmdmList" open="(" separator="," close=")" item="item">
+					#{item}
+				</foreach>
+			</if>
+	</select>
+</mapper>

@@ -1,0 +1,1520 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.timetable.dao.TimetableDao">
+	 
+  <select id="getTimetable" parameterType="hashmap" resultType="JSONObject">
+		SELECT TimetableId AS timetableId,TimetableName AS timetableName,DATE_FORMAT(CreateTime,'%Y-%m-%d') AS createTime,
+		CreateTime AS sort, Published AS published,CONCAT(SchoolYear,TermName) AS termInfoId FROM ${db_name_timetable}.T_crca_timetable 
+		WHERE SchoolId = #{schoolId} AND ((TermName = #{termName} AND SchoolYear = #{schoolYear})
+		<if test="lastYear!=null and lastYear!='' and lastTerm!=null and lastTerm!=''">
+		         OR (TermName = #{lastTerm} AND SchoolYear = #{lastYear}) 
+		</if>
+		)
+	   <choose>
+        <when test='exclude!=null and  exclude =="Y"'>
+              <if test="published!=null and published!=''  ">
+				AND Published != #{published}
+		      </if>
+        </when>
+        <otherwise>
+           <if test="published!=null and published!=''  ">
+				AND Published = #{published}
+		   </if>
+        </otherwise>
+       </choose>
+		 
+		<if test="timetableId!=null and timetableId!=''">
+				AND TimetableId = #{timetableId}
+		</if>
+		<if test="notTimetableId!=null and notTimetableId!=''">
+				AND TimetableId != #{notTimetableId}
+		</if>		
+		ORDER BY sort DESC
+  </select>
+  
+  <select id="getTimetableXnxq" parameterType="hashmap" resultType="String">
+		SELECT CONCAT(SchoolYear,TermName) AS yearTerm FROM ${db_name_timetable}.T_crca_timetable 
+		WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId}
+  </select>
+  
+  <insert id="addTimetable" parameterType="hashmap">
+        INSERT INTO ${db_name_timetable}.T_crca_timetable (TimetableId,SchoolId,SchoolYear,TermName,TimetableName,Published,CreateTime) 
+        VALUES (#{timetableId}, #{schoolId}, #{schoolYear}, #{termName},#{timetableName},#{published},#{createTime})
+  </insert>
+
+  <delete id="deleteTimetable" parameterType="JSONObject" statementType="CALLABLE">
+		call ${db_name_timetable}.proc_delete_allTimetableInfo(#{schoolId},#{timetableId});
+  </delete> 
+  
+  <insert id="copyTimetable" parameterType="JSONObject" statementType="CALLABLE">
+		call ${db_name_timetable}.proc_copy_allTimetableInfo(#{schoolId},#{fromTimetableId},#{toTimetableId});
+  </insert>
+  
+  <insert id="copyTimetable_V2" parameterType="JSONObject" statementType="CALLABLE">
+		call ${db_name_timetable}.proc_copy_allTimetableInfo_V2(#{schoolId},#{fromTimetableId},#{toTimetableId},#{gradeIds},#{classIds});
+  </insert>
+  
+  <update id="updateTimetable" parameterType="JSONObject">
+		UPDATE  ${db_name_timetable}.T_crca_timetable
+		<set>
+			<if test="timetableName!=null and timetableName!=''">
+				TimetableName=#{timetableName},
+			</if>
+			<if test="sameForAll!=null and sameForAll!=''">
+				sameForAll=#{sameForAll},
+			</if>
+			<if test="halfAtLastDay!=null and halfAtLastDay!=''">
+				halfAtLastDay=#{halfAtLastDay},
+			</if>
+			<if test="published!=null and published!=''">
+				published=#{published},
+			</if>
+			<if test="dayOfStart!=null and dayOfStart!=''">
+				DayOfStart=#{dayOfStart},
+			</if>
+			<if test="maxDaysForWeek!=null and maxDaysForWeek!=''">
+				MaxDaysForWeek=#{maxDaysForWeek}
+			</if>			
+		</set>		
+		    WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId}
+  </update>
+  
+  <update id="updateTimetableCheck" parameterType="hashmap">
+		UPDATE ${db_name_timetable}.T_crca_timetable SET IsNeedCheck = 1 
+		WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId}
+  </update>
+  
+  <delete id="deleteGradeList" parameterType="JSONObject"  >
+		DELETE FROM ${db_name_timetable}.t_crca_gradeset WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId} 
+        <if test="gradeIds!=null">
+	        AND GradeId NOT IN
+			<foreach collection="gradeIds" index="index" item="item" open="(" separator="," close=")">
+				${item}
+			</foreach>
+	    </if>
+	    <if test="gradeIdList!=null">
+	        AND GradeId IN
+			<foreach collection="gradeIdList" index="index" item="item" open="(" separator="," close=")">
+				${item}
+			</foreach>
+	    </if>
+  </delete>
+       
+  <insert id="insertGradeList" parameterType="java.util.List">
+        INSERT INTO ${db_name_timetable}.t_crca_gradeset (TimetableId,SchoolId,GradeId,AMLessonNum,PMLessonNum) VALUES    
+        <foreach collection="list"  item="item" index="index" separator=",">
+		   (#{item.timetableId}, #{item.schoolId}, #{item.gradeId}, #{item.amLessonNum}, #{item.pmLessonNum}) 	   
+		</foreach>    
+  </insert>
+ 
+  <resultMap type="JSONObject" id="sectionResult">
+  		<result column="SchoolYear" property="schoolYear"/>
+		<result column="MaxDaysForWeek" property="maxDaysForWeek"/>
+		<result column="halfAtLastDay" property="halfAtLastDay"/>
+		<result column="DayOfStart" property="dayOfStart"/>
+		<result column="Published" property="isArrange"/>
+		<collection property="rows" javaType="java.util.List" resultMap="gradeSets"/>
+  </resultMap> 
+  <resultMap type="JSONObject" id="gradeSets">
+		<result column="GradeId" property="gradeId"/>
+		<result column="AMLessonNum" property="amLessonNum"/>
+		<result column="PMLessonNum" property="pmLessonNum"/>
+  </resultMap>
+  <select id="getTimetableSection" parameterType="JSONObject" resultMap="sectionResult">
+		SELECT a.SchoolYear,a.MaxDaysForWeek,a.halfAtLastDay,a.DayOfStart,a.Published,b.GradeId,b.AMLessonNum,
+		b.PMLessonNum FROM ${db_name_timetable}.T_crca_timetable a LEFT JOIN ${db_name_timetable}.t_crca_gradeset b 
+		ON a.TimetableId = b.TimetableId WHERE a.SchoolId = #{schoolId} AND a.TimetableId = #{timetableId}
+		<if test="gradeId!=null and gradeId!=''">
+		    AND b.GradeId = #{gradeId}
+		</if>
+		ORDER BY b.GradeId DESC
+  </select> 
+  
+  <select id="getTimetableSections" parameterType="JSONObject" resultType="JSONObject">
+		SELECT a.SchoolYear,a.MaxDaysForWeek,a.halfAtLastDay,a.DayOfStart,a.Published,b.GradeId,b.AMLessonNum,
+		b.PMLessonNum FROM ${db_name_timetable}.T_crca_timetable a LEFT JOIN ${db_name_timetable}.t_crca_gradeset b 
+		ON a.TimetableId = b.TimetableId WHERE a.SchoolId = #{schoolId} AND a.TimetableId = #{timetableId}
+		ORDER BY b.GradeId DESC
+  </select> 
+  
+  <select id="getTotalNum" resultType="JSONObject" parameterType="JSONObject">
+		SELECT a.MaxDaysForWeek AS totalMaxDays, max(b.AMLessonNum+b.PMLessonNum) AS totalMaxLesson,max(b.AMLessonNum) AS amLessonNum,
+		a.MaxDaysForWeek*max(b.AMLessonNum+b.PMLessonNum)-(case when a.halfAtLastDay is null then 0 else a.halfAtLastDay*b.PMLessonNum end) 
+		AS totalNum FROM ${db_name_timetable}.T_crca_timetable a LEFT JOIN ${db_name_timetable}.t_crca_gradeset b ON a.TimetableId = b.TimetableId
+		WHERE a.TimetableId = #{timetableId} AND a.SchoolId = #{schoolId} 
+		<if test="gradeId!=null and gradeId!=''">
+		    AND b.GradeId = #{gradeId}
+		</if> 
+  </select>
+     
+  <update id="insertTimetableList" parameterType="java.util.List">
+        INSERT INTO ${db_name_timetable}.T_CRCA_timetable_list(TimetableId,SchoolId,ClassId,CourseId,DayOfWeek,LessonOfDay,
+        IsAdvance,CourseType,WalkGroupId) VALUES    
+        <foreach collection="list"  item="item" index="index" separator=",">
+		   (#{item.timetableId}, #{item.schoolId}, #{item.classId}, #{item.courseId}, #{item.dayOfWeek},
+		    #{item.lessonOfDay}, #{item.isAdvance}, #{item.courseType}, #{item.walkGroupId}) 	   
+		</foreach>
+		on duplicate key update IsAdvance=1,WalkGroupId=VALUES(WalkGroupId);
+  </update>
+  
+  <resultMap type="JSONObject" id="arrangeResult">			
+		<result column="TimetableId" property="timetableId"/>
+		<result column="SchoolId" property="schoolId"/>
+		<result column="WalkGroupId" property="walkGroupId"/>	
+		<result column="CourseId" property="courseId"/>	
+		<collection property="classList" javaType="java.util.List" resultMap="walkClasses"/>
+		<collection property="rows" javaType="java.util.List" resultMap="walkDayLesson"/>
+  </resultMap> 
+  <resultMap type="JSONObject" id="walkClasses">
+		<result column="ClassId" property="classId"/>
+  </resultMap>
+  <resultMap type="JSONObject" id="walkDayLesson">
+		<result column="DayOfWeek" property="dayOfWeek"/>
+	    <result column="LessonOfDay" property="lessonOfDay"/>	
+  </resultMap>
+  <select id="getTimetableList" resultMap="arrangeResult" parameterType="JSONObject">
+		SELECT TimetableId,SchoolId,ClassId,CourseId,DayOfWeek,LessonOfDay,IsAdvance,WalkGroupId 
+		FROM ${db_name_timetable}.T_CRCA_timetable_list 
+		WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId} and isDelete=0 
+		<if test="isAdvance!=null and isAdvance!=''">
+		        AND IsAdvance = #{isAdvance} 
+		</if>	
+		<if test="courseId!=null and courseId!=''">
+		        AND CourseId = #{courseId}
+		</if>
+		<if test="classIdList!=null">
+			<foreach collection="classIdList"  item="classId" index="index" separator="or" open="AND (" close=")">
+				    ClassId = #{classId} 	   
+			</foreach>
+		</if>				
+  </select> 
+  
+  <select id="getAdvanceCourses" resultType="String" parameterType="JSONObject">
+		SELECT distinct(CourseId) FROM ${db_name_timetable}.T_CRCA_timetable_list 
+		WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId} and isDelete=0 
+		<if test="isAdvance!=null and isAdvance!=''">
+		        AND IsAdvance = #{isAdvance} 
+		</if>
+		<foreach collection="classIdList"  item="classId" index="index" separator="or" open="AND (" close=")">
+			    ClassId = #{classId} 	   
+		</foreach>
+  </select>
+   
+  <delete id="deleteTimetableList" parameterType="JSONObject">
+		DELETE FROM ${db_name_timetable}.T_CRCA_timetable_list 
+		WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId}
+		<if test="isAdvance!=null and isAdvance!=''">
+		        AND IsAdvance = #{isAdvance} 
+		</if>
+		<choose>
+		    <when test="walkGroupId!=null and walkGroupId!=''">
+				AND WalkGroupId = #{walkGroupId}
+		    </when >
+		    <otherwise>
+		        <if test="courseId!=null and courseId!=''">
+		            AND CourseId = #{courseId}
+			    </if>
+				<if test="courseIdList!=null">
+			        AND CourseId in
+					<foreach collection="courseIdList" index="index" item="item" open="(" separator="," close=")">
+						${item}
+					</foreach>
+			    </if>
+		        <if test="classIdList!=null">
+					AND ClassId in
+					<foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+						${item}
+					</foreach>
+				</if>	
+				<if test="classId!=null and classId!=''">
+			        AND ClassId = #{classId} 
+			    </if>
+			    <if test="pageMaxDay!=null and pageMaxDay!=''">
+			        AND DayOfWeek >= #{pageMaxDay} 
+			    </if>
+			    <if test="pageMaxLesson!=null and pageMaxLesson!=''">
+			        AND LessonOfDay >= #{pageMaxLesson} 
+			    </if>
+			</otherwise>
+		</choose>	
+  </delete>
+  
+  <select id="getTimetablePartList" parameterType="JSONObject" resultType="JSONObject">
+		SELECT DayOfWeek AS dayOfWeek,LessonOfDay AS lessonOfDay,CourseId AS courseId 
+		FROM ${db_name_timetable}.T_CRCA_timetable_list 
+		WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId} and isDelete=0 
+		<if test="isAdvance!=null and isAdvance!=''">
+		        AND IsAdvance = #{isAdvance} 
+		</if>	
+		<if test="classIdList!=null">
+		    <foreach collection="classIdList"  item="classId" index="index" separator="or" open="AND (" close=")">
+		        ClassId = #{classId} 	   
+		    </foreach>
+		</if>		
+  </select>
+   
+  <resultMap type="JSONObject" id="taskResult">
+		<result column="ClassId" property="classId"/>
+	    <collection property="courseInfo" javaType="java.util.List" resultMap="lessonResult"/>		
+  </resultMap> 
+  <resultMap type="JSONObject" id="lessonResult">
+		<result column="CourseId" property="courseId"/>
+		<result column="WeekNum" property="weekNum"/>
+		<result column="NearNum" property="nearNum"/>
+		<collection property="teacherIds" javaType="java.util.List" resultMap="teacherResult"/>		
+  </resultMap>
+  <resultMap type="JSONObject" id="teacherResult">
+		<result column="TeacherId" property="teacherId"/>
+  </resultMap>
+  <select id="getTeachingTasks" parameterType="JSONObject" resultMap="taskResult">
+		SELECT a.ClassId,a.CourseId,a.WeekNum,a.nearNum,b.TeacherId FROM ${db_name_timetable}.T_CRCA_Task a 
+		LEFT JOIN ${db_name_timetable}.T_CRCA_Task_TeacherSet b ON a.TaskId = b.TaskId WHERE a.SchoolId = #{schoolId} 
+		AND a.TimetableId = #{timetableId}
+		<if test="classIdList!=null">
+			AND a.ClassId in
+			<foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+				${item}
+			</foreach>
+		</if>
+		<if test="sort!=null and sort!=''">
+		    ORDER BY ${sort}
+		</if>	
+  </select>
+  
+  <resultMap type="JSONObject" id="taskCombination">
+		<result column="cLesson" property="classCourse"/>
+		<result column="TaskId" property="taskId"/>
+		<result column="ClassId" property="classId"/>
+		<result column="CourseId" property="courseId"/>
+		<collection property="teacherIds" javaType="java.util.List" resultMap="taskTeachers"/>		
+  </resultMap>
+  <resultMap type="JSONObject" id="taskTeachers">
+		<result column="TeacherId" property="teacherId"/>
+  </resultMap>
+  <select id="getTeachingTaskImbody" parameterType="JSONObject" resultMap="taskCombination">
+		SELECT CONCAT(a.ClassId,a.CourseId) AS cLesson,a.ClassId,a.CourseId,a.TaskId,b.TeacherId FROM ${db_name_timetable}.T_CRCA_Task a 
+		LEFT JOIN ${db_name_timetable}.T_CRCA_Task_TeacherSet b ON a.TaskId = b.TaskId WHERE a.SchoolId = #{schoolId} 
+		AND a.TimetableId = #{timetableId}
+		<if test="classId!=null and classId!=''">
+		    AND a.ClassId = #{classId}
+		</if>
+		<if test="courseId!=null and courseId!=''">
+		    AND a.CourseId = #{courseId}
+		</if>	
+		<if test="courseIdList!=null">
+		    AND a.CourseId in
+			<foreach collection="courseIdList" index="index" item="item" open="(" separator="," close=")">
+				${item}
+			</foreach>
+		</if>
+		<if test="classIdList!=null">
+			AND a.ClassId in
+			<foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+				${item}
+			</foreach>
+		</if>	  
+  </select>
+  
+  
+  <select  id="getTimetableByTeacherId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+          SELECT  DISTINCT a.TimetableId  from  ${db_name_timetable}.T_CRCA_Task a
+          LEFT JOIN ${db_name_timetable}.T_CRCA_Task_TeacherSet b
+           on (a.TaskId = b.TaskId and a.SchoolId = b.SchoolId)
+          where a.SchoolId = #{schoolId} and b.TeacherId = #{teacherId}
+          AND a.TimetableId in
+		  <foreach collection="timetableList" index="index" item="item" open="(" separator="," close=")">
+				'${item}'
+		  </foreach>
+  </select>
+  
+  <update id="updateTeachingTask" parameterType="JSONObject">
+        UPDATE ${db_name_timetable}.T_CRCA_Task SET WeekNum = #{weekNum},NearNum = #{nearNum} WHERE SchoolId = #{schoolId} 
+        AND TimetableId = #{timetableId} AND TaskId = #{taskId}
+  </update>
+  
+  <insert id="insertTeachingTask" parameterType="JSONObject">
+        INSERT INTO ${db_name_timetable}.T_CRCA_Task (TaskId,TimetableId,SchoolId,ClassId,CourseId,WeekNum,NearNum,Priority) 
+        VALUES (#{taskId},#{timetableId},#{schoolId},#{classId},#{courseId},#{weekNum},#{nearNum},#{priority})
+  </insert>
+  
+  <delete id="deleteTeachingTaskById" parameterType="JSONObject">
+        DELETE FROM ${db_name_timetable}.T_CRCA_Task WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId} AND 
+        TaskId in
+		<foreach collection="taskIdList" index="index" item="item" open="(" separator="," close=")">
+			'${item}'
+		</foreach>     
+  </delete>
+  
+  <delete id="deleteTeachingTask" parameterType="JSONObject">
+        DELETE FROM ${db_name_timetable}.T_CRCA_Task WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId}       
+		<if test="courseIdList!=null">
+		    AND CourseId in
+			<foreach collection="courseIdList" index="index" item="item" open="(" separator="," close=")">
+				${item}
+			</foreach>
+		</if>
+		AND ClassId in
+		<foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+			${item}
+		</foreach>	  
+  </delete>
+ 
+  <delete id="deleteTaskTeachers" parameterType="JSONObject">
+        DELETE FROM ${db_name_timetable}.T_CRCA_Task_Teacherset WHERE SchoolId = #{schoolId}       
+		<choose>
+		   <when test="taskId!=null and taskId!=''">
+		         AND TaskId = #{taskId}
+		   </when>
+		   <when test="taskIdList!=null">
+		         AND TaskId in
+				<foreach collection="taskIdList" index="index" item="item" open="(" separator="," close=")">
+					'${item}'
+				</foreach>
+		  </when>
+		  <otherwise>
+		        AND TaskId not in (SELECT TaskId FROM ${db_name_timetable}.T_CRCA_Task WHERE SchoolId = #{schoolId})
+		  </otherwise>
+		</choose>
+  </delete>   
+
+  <update id="updateTaskTeachers" parameterType="java.util.List">
+        INSERT INTO ${db_name_timetable}.T_CRCA_Task_Teacherset (TaskId,SchoolId,TeacherId) VALUES    
+        <foreach collection="list" item="item" index="index" separator=",">
+		   (#{item.taskId}, #{item.schoolId}, #{item.teacherId}) 	   
+		</foreach>
+		ON DUPLICATE KEY UPDATE TeacherId=VALUES(TeacherId)
+  </update>
+     
+  <resultMap type="JSONObject" id="teachingTaskResult">			
+		<result column="TimetableId" property="timetableId"/>
+		<result column="SchoolId" property="schoolId"/>
+		<result column="ClassId" property="classId"/>	
+		<collection property="rows" javaType="java.util.List" resultMap="taskCourses"/>
+  </resultMap> 
+  <resultMap type="JSONObject" id="taskCourses">
+		<result column="CourseId" property="courseId"/>	
+  </resultMap>
+  <select id="getTeachingTaskCourse" parameterType="JSONObject" resultMap="teachingTaskResult">
+		SELECT TimetableId,SchoolId,ClassId,CourseId FROM ${db_name_timetable}.t_crca_task 
+		WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId}
+		AND ClassId in
+		<foreach collection="classIdList" index="index" item="item" open="("	separator="," close=")">
+			${item}
+		</foreach>
+		ORDER BY -CourseId DESC
+  </select> 
+  
+  <resultMap type="JSONObject" id="walkthroughResult">			
+		<result column="TimetableId" property="timetableId"/>
+		<result column="SchoolId" property="schoolId"/>
+		<result column="ClassId" property="classId"/>
+		<result column="gradeIds" property="gradeIds"/>	
+		<collection property="rows" javaType="java.util.List" resultMap="walkthroughCourses"/>
+  </resultMap> 
+  <resultMap type="JSONObject" id="walkthroughCourses">
+		<result column="CourseId" property="courseId"/>	
+  </resultMap>
+  <select id="getWalkthroughCourse" parameterType="JSONObject" resultMap="walkthroughResult">
+		SELECT a.TimetableId,a.SchoolId,a.ClassId,a.CourseId,GROUP_CONCAT(b.GradeId) AS gradeIds 
+		FROM ${db_name_timetable}.t_crca_task a LEFT JOIN ${db_name_timetable}.t_crca_gradeset b 
+		ON a.TimetableId = b.TimetableId WHERE a.SchoolId = #{schoolId} AND a.TimetableId = #{timetableId}
+		GROUP BY a.ClassId,a.CourseId ORDER BY -a.CourseId DESC
+  </select>
+  
+  <resultMap type="JSONObject" id="monoCourseResult">			
+		<result column="CourseId" property="courseId"/>			
+		<collection property="monoLessonIdList" javaType="java.util.List" resultMap="monoClassList"/>
+  </resultMap> 
+  <resultMap type="JSONObject" id="monoClassList">
+		<result column="ClassId" property="classId"/>
+  </resultMap>
+  <select id="getMonoTaskCourse" parameterType="JSONObject" resultMap="monoCourseResult">
+		SELECT ClassId,CourseId FROM ${db_name_timetable}.t_crca_task WHERE SchoolId = #{schoolId} 
+		AND TimetableId = #{timetableId} AND ClassId in
+		<foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+				${item}
+		</foreach>
+		AND WeekNum like "%.5%" ORDER BY -CourseId DESC
+  </select>  
+
+  <select id="getSetNumList" parameterType="JSONObject" resultType="JSONObject">
+		SELECT ClassId AS classId,sum(WeekNum) AS setNum FROM ${db_name_timetable}.T_CRCA_Task 
+		where SchoolId = #{schoolId} AND TimetableId = #{timetableId} GROUP BY ClassId;
+  </select>  
+  
+  <select id="getRuleCourseIds" parameterType="JSONObject" resultType="String">
+		SELECT CourseId AS courseId FROM ${db_name_timetable}.T_CRCA_Rule_Course where SchoolId = #{schoolId} AND 
+		GradeId = #{gradeDM};
+  </select>
+  
+  <insert id="addCourseRule" parameterType="JSONObject">
+        INSERT INTO ${db_name_timetable}.T_CRCA_Rule_Course (CourseRuleId,SchoolId,GradeId,CourseId,MaxClassNum,AMMaxNum,PMMaxNum,CourseLevel
+        ) VALUES (#{courseRuleId},#{schoolId},#{gradeDM},#{courseId},#{maxNum},#{amMaxNum},#{pmMaxNum},#{courseLevel}) 	   
+  </insert>
+  
+  <delete id="deleteCourseRule" parameterType="JSONObject">
+        DELETE FROM ${db_name_timetable}.T_CRCA_Rule_Course WHERE SchoolId = #{schoolId} AND CourseRuleId = #{courseRuleId}
+  </delete>
+   
+  <select id="getCourseRuleId" parameterType="JSONObject" resultType="String">
+		SELECT CourseRuleId AS courseRuleId FROM ${db_name_timetable}.T_CRCA_Rule_Course where SchoolId = #{schoolId} 
+		<if test="gradeDM!=null and gradeDM!=''">
+		    AND GradeId=#{gradeDM}
+		</if>	
+		<if test="courseId!=null and courseId!=''">
+		    AND CourseId = #{courseId}
+		</if>
+  </select>
+  
+  <delete id="deleteCourseFixed" parameterType="JSONObject">
+        DELETE FROM ${db_name_timetable}.T_CRCA_Rule_CourseFixed WHERE SchoolId = #{schoolId} AND CourseRuleId = #{courseRuleId}
+  </delete>
+  <insert id="insertCourseFixed" parameterType="java.util.List">
+        INSERT INTO ${db_name_timetable}.T_CRCA_Rule_CourseFixed (CourseRuleId,SchoolId,RuleType,DayOfWeek,LessonOfDay) VALUES    
+        <foreach collection="list"  item="item" index="index" separator=",">
+		   (#{item.courseRuleId}, #{item.schoolId}, #{item.ruleType}, #{item.dayOfWeek}, #{item.lessonOfDay}) 	   
+		</foreach>
+  </insert>
+  
+  <resultMap type="JSONObject" id="ruleResult">			
+		<result column="CourseId" property="courseId"/>
+	    <result column="MaxClassNum" property="maxNum"/>
+		<result column="AMMaxNum" property="amMaxNum"/>
+		<result column="PMMaxNum" property="pmMaxNum"/>
+		<result column="CourseLevel" property="courseLevel"/>
+		<collection property="rows" javaType="java.util.List" resultMap="courseDayLesson"/>
+  </resultMap> 
+  <resultMap type="JSONObject" id="courseDayLesson">
+		<result column="RuleType" property="ruleType"/>
+		<result column="DayOfWeek" property="dayOfWeek"/>
+		<result column="LessonOfDay" property="lessonOfDay"/>
+  </resultMap>
+  <select id="getCourseRule" parameterType="JSONObject" resultMap="ruleResult">
+		SELECT a.CourseId,a.MaxClassNum,a.AMMaxNum,a.PMMaxNum,a.CourseLevel,b.RuleType,b.DayOfWeek,b.LessonOfDay 
+		FROM ${db_name_timetable}.T_CRCA_Rule_Course a LEFT JOIN ${db_name_timetable}.T_CRCA_Rule_CourseFixed b 
+		ON a.CourseRuleId = b.CourseRuleId WHERE a.SchoolId = #{schoolId} AND a.CourseId = #{courseId}
+		AND a.GradeId = #{gradeDM};
+  </select> 
+
+  <select id="getRuleTeacher" parameterType="JSONObject" resultType="String">
+		SELECT distinct(TeacherId) AS teacherId from ${db_name_timetable}.T_CRCA_Rule_Teacher WHERE SchoolId = #{schoolId} 
+		AND TimetableId = #{timetableId};
+  </select>
+    
+  <select id="getTeacherRule" parameterType="JSONObject" resultType="JSONObject">		
+		SELECT a.TeacherGroupId AS ruleId,'' AS maxPerDay,a.groupname AS name,'0' AS ruleType,b.dayOfWeek,b.lessonOfDay,c.teacherId AS memberId,
+		'00' AS type,a.CreateTime AS sort FROM ${db_name_timetable}.t_crca_rule_teachergroup a LEFT JOIN ${db_name_timetable}.t_crca_rule_teachergroup_fixed b 
+		ON a.TeacherGroupId=b.TeacherGroupId LEFT JOIN ${db_name_timetable}.t_crca_rule_teachergroupmember c 
+		ON a.TeacherGroupId=c.TeacherGroupId WHERE a.SchoolId = #{schoolId} AND a.TimetableId = #{timetableId}
+        UNION ALL
+        SELECT a.teacherid AS ruleId,a.MaxPerDay AS maxPerDay,'' AS name,b.ruleType AS ruleType,b.dayOfWeek,b.lessonOfDay,'' AS memberId,
+        '01' AS type,a.CreateTime AS sort FROM ${db_name_timetable}.t_crca_rule_teacher a LEFT JOIN ${db_name_timetable}.t_crca_rule_teacherfixed b 
+        ON a.teacherRuleId=b.teacherRuleId WHERE a.SchoolId = #{schoolId} AND a.TimetableId = #{timetableId}
+        UNION ALL
+        SELECT a.teacherid AS ruleId,a.MaxPerDay AS maxPerDay,'' AS name,'0' as ruleType,c.dayOfWeek,c.lessonOfDay,'' AS memberId,
+        '10' as type,a.CreateTime AS sort FROM ${db_name_timetable}.t_crca_rule_teacher a INNER JOIN ${db_name_timetable}.t_crca_rule_teachergroupmember b 
+        ON a.timetableId=b.timetableId AND a.teacherId=b.teacherId INNER JOIN ${db_name_timetable}.t_crca_rule_teachergroup_fixed c 
+        ON b.TeacherGroupId=c.TeacherGroupId WHERE a.SchoolId = #{schoolId} AND a.TimetableId = #{timetableId}
+        ORDER BY sort       		
+  </select> 
+  
+  <select id="getTeacherRuleId" parameterType="JSONObject" resultType="String">
+		SELECT TeacherRuleId AS teacherRuleId FROM ${db_name_timetable}.T_CRCA_Rule_Teacher WHERE SchoolId = #{schoolId} 
+		AND TimetableId = #{timetableId}
+		<if test="teacherId!=null and teacherId!=''">
+		    AND TeacherId = #{teacherId}
+		</if>		
+  </select>
+  
+  <update id="updateTeacherRule" parameterType="JSONObject">
+        INSERT INTO ${db_name_timetable}.T_CRCA_Rule_Teacher (TeacherRuleId,SchoolId,TimetableId,TeacherId,
+        MaxPerDay,CreateTime) VALUES (#{teacherRuleId}, #{schoolId}, #{timetableId}, #{teacherId}, #{maxPerDay}, 
+        #{createTime}) ON DUPLICATE KEY UPDATE MaxPerDay=VALUES(MaxPerDay);       
+  </update>
+  
+  <delete id="deleteTeacherRuleFixed" parameterType="String">
+        DELETE FROM ${db_name_timetable}.T_CRCA_Rule_TeacherFixed WHERE SchoolId = #{schoolId} 
+        <choose>
+		   <when test="teacherRuleId!=null and teacherRuleId!=''">
+                 AND TeacherRuleId = #{teacherRuleId};
+		   </when>
+		   <otherwise>
+		        AND TeacherRuleId not in (SELECT TeacherRuleId FROM ${db_name_timetable}.T_CRCA_Rule_Teacher WHERE SchoolId = #{schoolId} )
+		   </otherwise>
+		</choose>     
+  </delete>
+  
+  <insert id="insertTeacherRuleFixed" parameterType="java.util.List">
+        INSERT INTO ${db_name_timetable}.T_CRCA_Rule_TeacherFixed (TeacherRuleId,SchoolId,RuleType,DayOfWeek,LessonOfDay) 
+        VALUES    
+        <foreach collection="list"  item="item" index="index" separator=",">
+		   (#{item.teacherRuleId}, #{item.schoolId}, #{item.ruleType}, #{item.dayOfWeek}, #{item.lessonOfDay}) 	   
+		</foreach>
+  </insert>  
+  
+  <delete id="deleteTeacherRule" parameterType="JSONObject">
+        DELETE FROM ${db_name_timetable}.T_CRCA_Rule_Teacher WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId}  
+        <if test="teacherId!=null and teacherId!=''">
+            AND TeacherId = #{teacherId}
+		</if> 
+		<if test="teacherIdList!=null">
+		    <foreach collection="teacherIdList" item="teacherId" index="index" separator="or" open="AND (" close=")">
+		        TeacherId = #{teacherId} 	   
+		    </foreach>
+		</if>	   
+  </delete>
+ 
+  <update id="updateTeacherGroup" parameterType="JSONObject">
+        INSERT INTO ${db_name_timetable}.t_crca_rule_teachergroup (TeacherGroupId,TimetableId,SchoolId,GroupName,CreateTime) VALUES 
+        (#{teachergroupId}, #{timetableId}, #{schoolId}, #{groupName}, #{createTime}) ON DUPLICATE KEY UPDATE GroupName=VALUES(GroupName)
+  </update>
+  
+  <insert id="insertTeacherGroupMembers" parameterType="java.util.List">
+        INSERT INTO ${db_name_timetable}.t_crca_rule_teachergroupmember (TeacherGroupId,SchoolId,TimetableId,TeacherId) 
+        VALUES    
+        <foreach collection="list"  item="item" index="index" separator=",">
+		   (#{item.teachergroupId}, #{item.schoolId}, #{item.timetableId}, #{item.teacherId}) 	   
+		</foreach>
+  </insert>
+  
+  <insert id="insertTeacherGroupFixed" parameterType="java.util.List">
+        INSERT INTO ${db_name_timetable}.t_crca_rule_teachergroup_fixed (TeacherGroupId,SchoolId,TimetableId,DayOfWeek,LessonOfDay) 
+        VALUES    
+        <foreach collection="list"  item="item" index="index" separator=",">
+		   (#{item.teachergroupId}, #{item.schoolId}, #{item.timetableId}, #{item.dayOfWeek}, #{item.lessonOfDay}) 	   
+		</foreach>
+  </insert>
+   
+  <delete id="deleteTeacherGroup" parameterType="JSONObject">
+        DELETE FROM ${db_name_timetable}.t_crca_rule_teachergroup WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId} 
+        AND TeacherGroupId = #{teachergroupId}    
+  </delete>
+  
+  <delete id="delTeacherGroupFixed" parameterType="JSONObject">
+        DELETE FROM ${db_name_timetable}.t_crca_rule_teachergroup_fixed WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId} 
+        AND TeacherGroupId = #{teachergroupId}             
+  </delete>
+  
+  <delete id="delTeacherGroupMembers" parameterType="JSONObject">
+        DELETE FROM ${db_name_timetable}.t_crca_rule_teachergroupmember WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId} 
+        AND TeacherGroupId = #{teachergroupId}          
+  </delete>
+  
+  <insert id="addClassGroup" parameterType="JSONObject">
+        INSERT INTO ${db_name_timetable}.T_CRCA_Rule_Class (ClassRuleId,TimetableId,SchoolId,CourseId,ClassGroupId,
+        ClassGroupName,CreateTime) VALUES (#{classRuleId}, #{timetableId}, #{schoolId}, #{courseId},#{classGroupId},
+        #{classGroupName},#{createTime});
+  </insert>
+  
+  <insert id="addFixedClassGroup" parameterType="java.util.List">
+        INSERT INTO ${db_name_timetable}.T_CRCA_Rule_ClassFixed (ClassRuleId,SchoolId,ClassId) 
+        VALUES    
+        <foreach collection="list"  item="item" index="index" separator=",">
+		   (#{item.classRuleId}, #{item.schoolId}, #{item.classId}) 	   
+		</foreach>
+  </insert>
+  
+  <resultMap type="JSONObject" id="fixedClassResult">
+        <result column="ClassRuleId" property="classRuleId"/>			
+		<result column="CourseId" property="courseId"/>
+		<result column="ClassGroupId" property="classGroupId"/>
+		<result column="ClassGroupName" property="classGroupName"/>		
+		<collection property="classList" javaType="java.util.List" resultMap="fixedClasses"/>
+  </resultMap> 
+  <resultMap type="JSONObject" id="fixedClasses">
+		<result column="ClassId" property="classId"/>
+  </resultMap>
+  <select id="getFixedClassGroup" parameterType="JSONObject" resultMap="fixedClassResult">
+		SELECT a.ClassRuleId,a.CourseId,a.ClassGroupId,a.ClassGroupName,b.ClassId FROM ${db_name_timetable}.T_CRCA_Rule_Class 
+		a INNER JOIN ${db_name_timetable}.T_CRCA_Rule_ClassFixed b ON a.ClassRuleId = b.ClassRuleId 
+		WHERE a.SchoolId = #{schoolId} AND a.TimetableId = #{timetableId} ORDER BY a.CreateTime
+  </select> 
+  
+  <select id="getClassGroup" parameterType="JSONObject" resultType="String">
+		SELECT ClassRuleId AS classRuleId FROM ${db_name_timetable}.T_CRCA_Rule_Class WHERE SchoolId = #{schoolId} 
+		AND TimetableId = #{timetableId} AND CourseId = #{courseId} ORDER BY CreateTime
+  </select> 
+  
+  <delete id="deleteClassGroup" parameterType="JSONObject">
+		DELETE FROM ${db_name_timetable}.T_CRCA_Rule_Class WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId} 
+		AND ClassGroupId = #{classGroupId}
+  </delete>
+  
+  <update id="updateClassGroupName"  parameterType="JSONObject">          
+        UPDATE ${db_name_timetable}.T_CRCA_Rule_Class SET ClassGroupName = #{classGroupName} 
+        WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId} AND ClassRuleId = #{classRuleId} AND CourseId = #{courseId}      
+  </update>  
+  
+  <delete id="deleteClassFixed" parameterType="JSONObject">
+		DELETE FROM ${db_name_timetable}.T_CRCA_Rule_ClassFixed WHERE classRuleId IN (SELECT ClassRuleId 
+		FROM ${db_name_timetable}.T_CRCA_Rule_Class WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId} 
+		AND ClassGroupId = #{classGroupId}) 
+		<if test="classId!=null and classId!=''">
+		    AND ClassId = #{classId}
+		</if>
+		<if test="classIdList!=null">
+		    AND ClassId in
+			<foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+					${item}
+			</foreach>
+		</if>		
+  </delete> 
+  
+  <insert id="addMonoWeek" parameterType="JSONObject">
+        INSERT INTO ${db_name_timetable}.t_crca_task_roundcourse (TimetableId,SchoolId,CourseId1,CourseId2,GradeId,ClassIds) 
+        VALUES (#{timetableId}, #{schoolId}, #{courseIdOne}, #{courseIdTwo}, #{gradeId}, #{classIds})
+  </insert>
+  
+  <delete id="deleteMonoWeek" parameterType="JSONObject">
+		DELETE FROM ${db_name_timetable}.t_crca_task_roundcourse WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId} 
+		AND CourseId1 = #{courseIdOne} AND CourseId2 = #{courseIdTwo} AND GradeId = #{gradeId}
+  </delete>
+  
+  <update id="updateMonoWeekClass" parameterType="JSONObject">
+        UPDATE ${db_name_timetable}.t_crca_task_roundcourse SET ClassIds=#{classIds} WHERE SchoolId = #{schoolId} 
+		AND TimetableId = #{timetableId} AND CourseId1 = #{courseIdOne} AND CourseId2 = #{courseIdTwo} AND GradeId = #{gradeId}  
+  </update>
+  
+  <update id="updateMonoWeek" parameterType="java.util.List">
+		INSERT INTO ${db_name_timetable}.t_crca_task_roundcourse (TimetableId,SchoolId,CourseId1,CourseId2,GradeId,ClassIds) 
+		VALUES 
+		<foreach collection="list"  item="item" index="index" separator=",">
+		   (#{item.timetableId},#{item.schoolId},#{item.courseIdOne},#{item.courseIdTwo},#{item.gradeId},#{item.classIds}) 	   
+		</foreach>
+		ON DUPLICATE KEY UPDATE ClassIds=VALUES(ClassIds);
+  </update>
+  
+  <select id="getMonoWeekList" parameterType="JSONObject" resultType="JSONObject">
+		SELECT CourseId1 AS courseIdOne,CourseId2 AS courseIdTwo,ClassIds AS classIds,GradeId AS gradeId,SchoolId AS schoolId,
+		TimetableId AS timetableId FROM ${db_name_timetable}.t_crca_task_roundcourse WHERE SchoolId = #{schoolId} 
+		AND TimetableId = #{timetableId} 
+		<if test="gradeId!=null and gradeId!=''">
+		    AND GradeId = #{gradeId}
+		</if>	
+  </select> 
+  
+  <select id="getGroundRuleSum" parameterType="hashmap" resultType="JSONObject">
+  		SELECT SubjectId AS subjectId,count(SubjectId) AS totalNum FROM ${db_name_timetable}.t_crca_rule_ground 
+  		WHERE SchoolId=#{schoolId} AND TimetableId=#{timetableId} GROUP BY SubjectId
+  </select>
+  
+  <update id="updateGroundRule" parameterType="JSONObject">
+        UPDATE ${db_name_timetable}.t_crca_rule_ground SET SubjectId=#{subjectId},
+        UsedGradeIds=#{usedGradeIds},MaxClassNum=#{maxClassNum} WHERE SchoolId = #{schoolId} 
+		AND TimetableId = #{timetableId} AND GroundRuleId = #{ruleGroundId}    
+  </update>
+  
+  <insert id="insertGroundRule" parameterType="JSONObject">
+        INSERT INTO ${db_name_timetable}.t_crca_rule_ground (SchoolId,TimetableId,GroundRuleId,SubjectId,
+        UsedGradeIds,MaxClassNum) VALUES (#{schoolId},#{timetableId},#{groundRuleId},#{subjectId},#{usedGradeIds},
+        #{maxClassNum})     
+  </insert>
+  
+  <delete id="deleteGroundRule" parameterType="JSONObject">
+		DELETE FROM ${db_name_timetable}.t_crca_rule_ground WHERE SchoolId = #{schoolId} 
+		AND TimetableId = #{timetableId} AND GroundRuleId = #{ruleGroundId} 
+  </delete>
+     
+  <resultMap type="JSONObject" id="roundResult">			
+		<result column="TimetableId" property="timetableId"/>
+		<result column="SchoolId" property="schoolId"/>
+		<result column="CourseId" property="courseId"/>
+		<result column="gradeIds" property="gradeIds"/>	
+		<collection property="rows" javaType="java.util.List" resultMap="roundCourses"/>
+  </resultMap> 
+  <resultMap type="JSONObject" id="roundCourses">
+		<result column="ClassId" property="classId"/>	
+  </resultMap>
+  <select id="getRoundruleCourse" parameterType="JSONObject" resultMap="roundResult">
+		SELECT a.TimetableId,a.SchoolId,a.ClassId,a.CourseId,GROUP_CONCAT(b.GradeId) AS gradeIds 
+		FROM ${db_name_timetable}.t_crca_task a LEFT JOIN ${db_name_timetable}.t_crca_gradeset b 
+		ON a.TimetableId = b.TimetableId WHERE a.SchoolId = #{schoolId} AND a.TimetableId = #{timetableId}
+		GROUP BY a.ClassId,a.CourseId ORDER BY -a.CourseId DESC
+  </select> 
+  
+   <!-- 获取全校的单双周分组设置 -->
+  <select id="getEvenOddWeekGroupList" parameterType="JSONObject" resultType="JSONObject">
+		SELECT gradeId,CourseId1,CourseId2,ClassIds FROM ${db_name_timetable}.t_crca_task_roundcourse 
+		WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId}  
+  </select> 
+   
+  <resultMap type="JSONObject" id="researchResult">
+        <result column="ResearchId" property="researchId"/>			
+		<result column="TimetableId" property="timetableId"/>
+		<result column="SchoolId" property="schoolId"/>
+		<result column="TeacherGroupName" property="teacherGroupName"/>	
+		<collection property="rows" javaType="java.util.List" resultMap="researchFixed"/>
+		<collection property="teacherList" javaType="java.util.List" resultMap="researchTeachers"/>	
+  </resultMap> 
+  <resultMap type="JSONObject" id="researchFixed">
+		<result column="DayOfWeek" property="dayOfWeek"/>
+	    <result column="LessonOfDay" property="lessonOfDay"/>	
+  </resultMap>
+   <resultMap type="JSONObject" id="researchTeachers">
+		<result column="TeacherId" property="teacherId"/>
+  </resultMap>
+  <select id="getResearchWorksList" parameterType="JSONObject" resultMap="researchResult">
+		SELECT a.ResearchId,a.TimetableId,a.SchoolId,a.TeacherGroupName,b.DayOfWeek,b.LessonOfDay,c.TeacherId 
+		FROM ${db_name_timetable}.t_crca_researchwork a LEFT JOIN ${db_name_timetable}.t_crca_research_fixed b ON a.ResearchId = b.ResearchId 
+		LEFT JOIN ${db_name_timetable}.t_crca_research_teacher c ON a.ResearchId = c.ResearchId where a.SchoolId = #{schoolId} 
+		AND a.timetableId = #{timetableId} 
+		<if test="researchId!=null and researchId!=''">
+		    AND a.ResearchId = #{researchId}
+		</if>
+  </select> 
+  
+  <delete id="deleteResearchWork" parameterType="JSONObject">
+		DELETE FROM ${db_name_timetable}.T_CRCA_researchwork WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId} 
+		AND ResearchId = #{researchId};
+  </delete>
+  
+  <delete id="deleteResearchFixed" parameterType="JSONObject">
+		DELETE FROM ${db_name_timetable}.T_CRCA_research_fixed WHERE SchoolId = #{schoolId} AND ResearchId = #{researchId};
+  </delete>
+  
+  <delete id="deleteResearchTeach" parameterType="JSONObject">
+		DELETE FROM ${db_name_timetable}.T_CRCA_research_teacher WHERE SchoolId = #{schoolId} AND ResearchId = #{researchId};
+  </delete>
+  
+  <!-- 
+  <insert id="insertResearchWork" parameterType="JSONObject">
+        INSERT INTO ${db_name_timetable}.T_CRCA_researchwork (ResearchId,TimetableId,SchoolId,TeacherGroupName) 
+        VALUES (#{researchId}, #{timetableId}, #{schoolId}, #{teacherGroupName});
+  </insert>  -->
+  
+  <update id="updateResearchWork" parameterType="JSONObject">
+        INSERT INTO ${db_name_timetable}.T_CRCA_researchwork (ResearchId,TimetableId,SchoolId,TeacherGroupName) 
+        VALUES (#{researchId}, #{timetableId}, #{schoolId}, #{teacherGroupName}) 
+        ON DUPLICATE KEY UPDATE TeacherGroupName=VALUES(TeacherGroupName);       
+  </update>
+  
+  <insert id="insertResearchFixed" parameterType="java.util.List">
+        INSERT INTO ${db_name_timetable}.T_CRCA_research_fixed (ResearchId,SchoolId,DayOfWeek,LessonOfDay) 
+        VALUES    
+        <foreach collection="list"  item="item" index="index" separator=",">
+		   (#{item.researchId}, #{item.schoolId}, #{item.dayOfWeek}, #{item.lessonOfDay}) 	   
+		</foreach>
+  </insert>
+  
+  <insert id="insertResearchTeacher" parameterType="java.util.List">
+        INSERT INTO ${db_name_timetable}.T_CRCA_research_teacher (ResearchId,SchoolId,TeacherId) 
+        VALUES    
+        <foreach collection="list"  item="item" index="index" separator=",">
+		   (#{item.researchId}, #{item.schoolId}, #{item.teacherId}) 	   
+		</foreach>
+  </insert>
+  
+  <select id="getTimetableByDay" parameterType="JSONObject" resultType="JSONObject">
+		SELECT a.ClassId AS classId,a.CourseId AS courseId,c.TeacherId AS teacherId,a.DayOfWeek AS dayOfWeek,a.LessonOfDay AS lessonOfDay,
+		a.CourseType AS courseType FROM ${db_name_timetable}.t_crca_timetable_list a LEFT JOIN ${db_name_timetable}.t_crca_task b ON a.TimetableId=b.TimetableId  and a.isDelete=0 
+		AND a.SchoolId=b.SchoolId AND a.CourseId=b.CourseId AND a.ClassId=b.ClassId LEFT join ${db_name_timetable}.T_CRCA_Timetable d 
+		on a.schoolId=d.SchoolId and a.TimetableId=d.TimetableId LEFT JOIN ${db_name_timetable}.t_crca_task_teacherset c ON b.TaskId = c.TaskId 
+		WHERE a.SchoolId=#{schoolId} AND a.DayOfWeek=#{dayOfWeek}
+		<if test="timetableId!=null and timetableId!=''">
+		    AND a.TimetableId = #{timetableId}
+		</if>
+		<if test="xnxq!=null and xnxq!=''">
+		    AND concat(d.SchoolYear,d.TermName)=#{xnxq}
+		</if> 
+		<if test="classId!=null and classId!=''">
+		    AND a.ClassId = #{classId}
+		</if>
+		<if test="teacherId!=null and teacherId!=''">
+		    AND c.TeacherId = #{teacherId}
+		</if>
+		AND d.Published=1;
+  </select> 
+  
+  <select id="getArrangeTimetableInfo" parameterType="hashmap" resultType="JSONObject">
+		SELECT *,MaxDaysForWeek as maxDaysForWeek FROM ${db_name_timetable}.T_crca_timetable WHERE SchoolId = #{schoolId} and TimetableId = #{timetableId};
+  </select>
+  
+  <select id="getTaskByTimetable" parameterType="hashmap" resultType="JSONObject">
+		SELECT * FROM ${db_name_timetable}.T_CRCA_Task a left join ${db_name_timetable}.T_CRCA_Task_TeacherSet b 
+			on a.TaskId = b.TaskId WHERE a.SchoolId = #{schoolId} and a.TimetableId = #{timetableId}
+		<if test="classIds!=null and classIds!='' and classIds.size!=0">
+			and a.ClassId in
+			<foreach collection="classIds" index="index" item="item" open="("	separator="," close=")">
+				'${item}'
+			</foreach>
+		</if>
+		<if test="courseIds!=null ">
+			and a.courseId in
+			<foreach collection="courseIds" index="index" item="item" open="("	separator="," close=")">
+				'${item}'
+			</foreach>
+		</if>
+		<if test="teacherId!=null">
+			and b.teacherId = #{teacherId}
+		</if>
+		<if test="classId!=null ">
+			and a.classId=#{classId}
+		</if>
+		order by ClassId,CourseId asc
+  </select>
+  
+  <select id="getArrangeGradeSetList" parameterType="hashmap" resultType="JSONObject">
+		SELECT * FROM ${db_name_timetable}.T_CRCA_GradeSet WHERE SchoolId = #{schoolId} and TimetableId = #{timetableId}
+		<if test="gradeIds!=null and gradeIds!=''">
+			and GradeId in
+			<foreach collection="gradeIds" index="index" item="item" open="("	separator="," close=")">
+				'${item}'
+			</foreach>
+		</if>
+  </select>
+  
+  <select id="getTaskTeacherByTaskId" parameterType="hashmap" resultType="JSONObject">
+		SELECT * FROM ${db_name_timetable}.T_CRCA_Task_TeacherSet WHERE SchoolId = #{schoolId} and TaskId = #{taskId}		
+  </select>
+  
+  <select id="getRuleCourseList" parameterType="hashmap" resultType="JSONObject">
+		SELECT * FROM ${db_name_timetable}.T_CRCA_Rule_Course WHERE SchoolId = #{schoolId} 
+		<if test="gradeIds!=null and gradeIds!=''">
+			and GradeId in
+			<foreach collection="gradeIds" index="index" item="item" open="("	separator="," close=")">
+				'${item}'
+			</foreach>
+		</if>
+  </select>
+  
+  <select id="getRuleCourseFixedByRuleId" parameterType="hashmap" resultType="JSONObject">
+		SELECT * FROM ${db_name_timetable}.T_CRCA_Rule_CourseFixed WHERE SchoolId = #{schoolId} and CourseRuleId = #{courseRuleId}
+  </select>
+  
+  <select id="getRuleCourseFixedByRuleIds" parameterType="hashmap" resultType="JSONObject">
+		SELECT * FROM ${db_name_timetable}.T_CRCA_Rule_CourseFixed WHERE SchoolId = #{schoolId} 
+		
+		<if test="ruleIds!=null and ruleIds!=''">
+			and CourseRuleId in
+			<foreach collection="ruleIds" index="index" item="item" open="("	separator="," close=")">
+				'${item}'
+			</foreach>
+		</if>		
+  </select>
+  
+  <select id="getRuleTeacherList" parameterType="hashmap" resultType="JSONObject">
+		SELECT * FROM ${db_name_timetable}.T_CRCA_Rule_Teacher WHERE SchoolId = #{schoolId} and TimetableId = #{timetableId}
+
+  </select>
+  
+  <select id="getRuleTeacherFixedByRuleId" parameterType="hashmap" resultType="JSONObject">
+		SELECT * FROM ${db_name_timetable}.T_CRCA_Rule_TeacherFixed WHERE SchoolId = #{schoolId} and TeacherRuleId = #{teacherRuleId}
+
+  </select>
+  
+  <select id="getRuleClassList" parameterType="hashmap" resultType="JSONObject">
+		SELECT * FROM ${db_name_timetable}.T_CRCA_Rule_Class WHERE SchoolId = #{schoolId} and TimetableId = #{timetableId}
+
+  </select>
+  
+  <select id="getRuleClassFixedByRuleId" parameterType="hashmap" resultType="JSONObject">
+		SELECT * FROM ${db_name_timetable}.T_CRCA_Rule_ClassFixed WHERE SchoolId = #{schoolId} and ClassRuleId = #{classRuleId}
+		
+  </select>
+  
+  <select id="getResearchWorkList" parameterType="hashmap" resultType="JSONObject">
+		SELECT * FROM ${db_name_timetable}.T_CRCA_ResearchWork a inner join ${db_name_timetable}.T_CRCA_Research_Teacher b 
+		on a.ResearchId = b.ResearchId inner join ${db_name_timetable}.T_CRCA_Research_Fixed c on a.ResearchId= c.ResearchId WHERE a.SchoolId = #{schoolId} and a.TimetableId = #{timetableId}
+  </select>
+  
+  <select id="getAdvanceArrangeList" parameterType="hashmap" resultType="JSONObject">
+		SELECT * FROM ${db_name_timetable}.T_CRCA_Timetable_List 
+		WHERE SchoolId = #{schoolId} and TimetableId = #{timetableId} and IsAdvance = 1	 and isDelete=0 
+  </select>
+  
+  <select id="getLeftArrangeList" parameterType="hashmap" resultType="JSONObject">
+		SELECT * FROM ${db_name_timetable}.T_CRCA_Timetable_List
+		WHERE SchoolId = #{schoolId} and TimetableId = #{timetableId} and IsAdvance = 0 and  isDelete=0 
+  </select>
+  
+  <select id="getArrangeTimetableList" parameterType="hashmap" resultType="JSONObject">
+		SELECT * FROM ${db_name_timetable}.T_CRCA_Timetable_List a 
+		WHERE a.SchoolId = #{schoolId} and a.TimetableId = #{timetableId} and a.IsDelete=0 
+		<if test="classes!=null">
+			and a.classId in 
+			 <foreach collection="classes" index="index" item="item" open="("	separator="," close=")">
+				'${item}'
+			</foreach>
+		</if>
+		<if test="courseIds!=null">
+			and a.courseId in 
+			 <foreach collection="courseIds" index="index" item="item" open="("	separator="," close=")">
+				'${item}'
+			</foreach>
+		</if>
+		<if test="classId!=null">
+			and a.classId = #{classId}
+		</if>
+  </select>
+  
+  <insert id="saveTimetable"  parameterType="hashmap">
+  		insert into ${db_name_timetable}.T_CRCA_Timetable_List 
+  		(TimetableId, SchoolId, ClassId, CourseId, DayOfWeek, LessonOfDay, IsAdvance)
+  		values (
+	  		#{timetableId},
+	        #{schoolId},
+	        #{classId},
+	        #{courseId},
+	        #{dayOfWeek},
+	        #{lessonOfDay},
+	        #{isAdvance}
+  		)
+		
+  </insert>
+  
+    <insert id="saveTimetableBatch"  parameterType="java.util.List">
+  		insert into ${db_name_timetable}.T_CRCA_Timetable_List (TimetableId, SchoolId, ClassId, CourseId, DayOfWeek,LessonOfDay, IsAdvance, CourseType,McGroupId)
+  		
+		<foreach collection="list" item="item" index="index" separator="union all" >  
+		   select #{item.timetableId},
+		          #{item.schoolId},
+		          #{item.classId},
+		          #{item.courseId},
+		          #{item.dayOfWeek},
+		          #{item.lessonOfDay},
+		          #{item.isAdvance},
+		          #{item.courseType},
+		          #{item.mcGroupId}
+		   from dual
+		</foreach>
+		
+  </insert>
+  
+  <update id="updateGeneratedGrade" parameterType="hashmap">
+  		update ${db_name_timetable}.T_CRCA_GradeSet set Generated = 1 where SchoolId = #{schoolId} and TimetableId = #{timetableId}
+		<if test="gradeIds!=null and gradeIds!=''">
+			and GradeId in
+			<foreach collection="gradeIds" index="index" item="item" open="("	separator="," close=")">
+				'${item}'
+			</foreach>
+		</if>
+  </update>
+  
+  <insert id="addArrangeTimetable" parameterType="hashmap">
+        insert into ${db_name_timetable}.T_CRCA_Timetable_List 
+        (TimetableId, SchoolId, ClassId, CourseId, DayOfWeek, LessonOfDay, IsAdvance,courseType,mcGroupId)
+        VALUES (#{timetableId}, #{schoolId}, #{classId}, #{courseId}, #{day},#{lesson},#{isAdvance},#{courseType},#{mcGroupId})
+  </insert>
+  
+  <insert id="addArrangeTimetableBatch" parameterType='java.util.List' >
+  
+        insert into ${db_name_timetable}.T_CRCA_Timetable_List (TimetableId, SchoolId, ClassId, CourseId, DayOfWeek, LessonOfDay, IsAdvance,courseType,mcGroupId)
+        VALUES 
+  		<foreach collection="list" item="item" index="index" separator=",">
+	        (#{item.timetableId}, #{item.schoolId}, #{item.classId}, #{item.courseId},
+	         #{item.day},#{item.lesson},#{item.isAdvance},#{item.courseType},#{item.mcGroupId})
+  		</foreach>
+  </insert>
+  
+  <delete id="deleteArrangeTimetable" parameterType="hashmap">
+		DELETE FROM ${db_name_timetable}.T_CRCA_Timetable_List WHERE SchoolId = #{schoolId} and TimetableId = #{timetableId} 
+		and CourseId =#{courseId}
+		<if test="mcGroupId==null">
+			and ClassId = #{classId} 
+		</if>
+		<if test="mcGroupId!=null">
+			and mcGroupId = #{mcGroupId}
+		</if>
+		and DayOfWeek = #{day} and LessonOfDay = #{lesson}  
+		<if test="breakRule==0">
+			and isAdvance  &lt;&gt;  1 
+		</if>
+  </delete>
+  
+  <update id="insertArrangeTimetableHigh" parameterType="java.util.List">
+		insert into   ${db_name_timetable}.T_CRCA_Timetable_List values
+		 <foreach collection="list"  item="item" index="index" separator=",">
+		   (#{item.TimetableId}, #{item.SchoolId}, #{item.ClassId}, #{item.CourseId}, #{item.DayOfWeek},
+		    #{item.LessonOfDay}, #{item.IsAdvance},#{item.IsDelete}, #{item.CourseType}, #{item.WalkGroupId},#{item.McGroupId}) 	   
+		</foreach>
+		on duplicate key update IsDelete=1;
+  </update>
+  <delete id="deleteArrangeTimetableHigh" parameterType="hashmap">
+		DELETE FROM ${db_name_timetable}.T_CRCA_Timetable_List WHERE SchoolId = #{SchoolId} 
+		and TimetableId = #{TimetableId} 
+		and CourseId =#{CourseId}
+		and ClassId = #{ClassId} 
+		and DayOfWeek = #{DayOfWeek} and LessonOfDay = #{LessonOfDay}  
+  </delete>
+  <select id="getTeacherTimetable" parameterType="hashmap" resultType="JSONObject">
+  		select * from ${db_name_timetable}.T_CRCA_Timetable_List a 
+  		inner join ${db_name_timetable}.T_CRCA_Task b on a.SchoolId=b.SchoolId and a.TimetableId=b.TimetableId and a.ClassId=b.ClassId and a.CourseId=b.CourseId 
+  		inner join ${db_name_timetable}.T_CRCA_Timetable e on  a.schoolId=e.SchoolId and a.TimetableId=e.TimetableId
+  		left join ${db_name_timetable}.T_CRCA_Task_TeacherSet c on b.TaskId=c.TaskId where a.SchoolId=#{SchoolId} and a.TimetableId=#{timetableId}
+  		and a.isDelete=0 and c.TeacherId in
+ 	 <foreach collection="teacherIds" index="index" item="item" open="("	separator="," close=")">
+			'${item}'
+		</foreach>
+  </select>
+  
+  <select id="getMaxLessonNum" parameterType="hashmap" resultType="JSONObject">
+  		select max(AMLessonNum) as amln,max(PMLessonNum) as pmln from ${db_name_timetable}.T_CRCA_GradeSet where  SchoolId=#{SchoolId}
+  		
+  		and GradeId in
+  		<foreach collection="gradeIds" index="index" item="item" open="("	separator="," close=")">
+			'${item}'
+		</foreach>
+  
+  </select>
+  
+  <resultMap type="JSONObject" id="classtimetable">	
+		<result column="TimetableName" property="TimetableName"/>
+		<result column="MaxDaysForWeek" property="MaxDaysForWeek"/>
+		<result column="halfAtLastDay" property="halfAtLastDay"/>
+		<result column="ClassId" property="ClassId"/>
+		<result column="CourseId" property="CourseId"/>
+		<result column="DayOfWeek" property="DayOfWeek"/>
+		<result column="LessonOfDay" property="LessonOfDay"/>
+		<result column="IsAdvance" property="IsAdvance"/>
+		<result column="CourseType" property="CourseType"/>
+		<result column="WeekNum" property="WeekNum"/>
+		<result column="NearNum" property="NearNum"/>
+		<collection property="rows" javaType="java.util.List" resultMap="teacherIds"/>
+  </resultMap> 
+  <resultMap type="JSONObject" id="teacherIds">
+		<result column="TeacherId" property="TeacherId"/>
+  </resultMap>
+  <select id="getClassTimetable" parameterType="hashmap" resultMap="classtimetable">
+  		select * from ${db_name_timetable}.T_CRCA_Timetable_List a  inner join
+  		${db_name_timetable}.T_CRCA_Timetable e on  a.schoolId=e.SchoolId and a.TimetableId=e.TimetableId and a.isDelete=0 
+  		inner join ${db_name_timetable}.T_CRCA_Task d on d.TimetableId=a.TimetableId and d.SchoolId=a.SchoolId and d.ClassId=a.ClassId and d.CourseId=a.CourseId
+  		LEFT join ${db_name_timetable}.T_CRCA_Task_TeacherSet w on w.TaskId=d.TaskId
+  		 where a.SchoolId=#{schoolId} and a.TimetableId=#{timetableId}
+  		and a.ClassId in
+		<foreach collection="ClassIds" index="index" item="item" open="("	separator="," close=")">
+			'${item}'
+		</foreach>
+  
+  </select>
+  <select id="getTimetablePie" parameterType="hashmap" resultType="JSONObject">
+  		select * from ${db_name_timetable}.T_CRCA_Timetable_List a  inner join
+  		${db_name_timetable}.T_CRCA_Timetable e on  a.schoolId=e.SchoolId and a.TimetableId=e.TimetableId and a.isDelete=0 
+  		inner join ${db_name_timetable}.T_CRCA_Task d on d.TimetableId=a.TimetableId and d.SchoolId=a.SchoolId and d.ClassId=a.ClassId and d.CourseId=a.CourseId
+  		LEFT join ${db_name_timetable}.T_CRCA_Task_TeacherSet w on w.TaskId=d.TaskId
+  		 where a.SchoolId=#{schoolId} and a.TimetableId=#{timetableId}
+  		 and a.ClassId in
+  		 <foreach collection="ClassIds" index="index" item="item" open="("	separator="," close=")">
+			'${item}'
+		</foreach>
+  
+  </select>
+  
+   <select id="getGradeSet" parameterType="hashmap" resultType="JSONObject">
+  		select * from ${db_name_timetable}.T_CRCA_GradeSet 
+  		 where SchoolId=#{schoolId} and TimetableId=#{timetableId}
+  		 <if test="GradeId!=null and GradeId!=''">
+  			and  GradeId in
+  		<foreach collection="GradeId" index="index" item="item" open="(" separator="," close=")">
+			'${item}'
+		</foreach>
+		</if>
+  
+  </select>
+  <delete id="deleteTimetableByClass" parameterType="JSONObject"  >
+		DELETE FROM ${db_name_timetable}.T_CRCA_Timetable_List WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId} 
+		
+		and ClassId in
+		<foreach collection="classIds" index="index" item="item" open="("	separator="," close=")">
+			'${item}'
+		</foreach>
+  </delete>
+  
+  <update id="updateGeneratedTimetable" parameterType="hashmap">
+  		update ${db_name_timetable}.t_crca_timetable set Published = 1,IsNeedCheck=0 where SchoolId = #{schoolId} and TimetableId = #{timetableId}
+
+  </update>
+  <update id="updateTimetableCheckStatus"  parameterType="hashmap">
+  		update ${db_name_timetable}.t_crca_timetable set  IsNeedCheck=#{#isNeedCheck} where SchoolId = #{schoolId} and TimetableId = #{timetableId}
+  </update>
+  
+  <delete id="clearArrangeTimetable" parameterType="JSONObject"  >
+		DELETE FROM ${db_name_timetable}.T_CRCA_Timetable_List WHERE 
+		SchoolId = #{schoolId} AND TimetableId = #{timetableId}  
+		<if test="subsql!=null">
+			and ${subsql}
+		</if>
+		and IsAdvance  &lt;&gt;  1 
+  </delete>
+   <update id="deleteAllTpAjust" parameterType='hashmap' statementType="CALLABLE">
+		call ${db_name_timetable}.proc_del_deleteAllTpAjust
+		(#{xn},#{xq},#{schoolId},#{timetableId});
+  </update>
+  
+  
+  <select id="getTimeByTeacher" parameterType="hashmap" resultType="JSONObject">
+  		SELECT * from ${db_name_timetable}.T_CRCA_Timetable_List a 
+  		inner join ${db_name_timetable}.T_CRCA_Task b on a.SchoolId=b.SchoolId and a.TimetableId=b.TimetableId and a.ClassId=b.ClassId and a.CourseId=b.CourseId  and a.isDelete=0 
+  		inner join ${db_name_timetable}.T_CRCA_Timetable e on  a.schoolId=e.SchoolId and a.TimetableId=e.TimetableId
+  		left join ${db_name_timetable}.T_CRCA_Task_TeacherSet c on b.TaskId=c.TaskId where a.SchoolId=#{SchoolId} and concat(e.SchoolYear,e.TermName)=#{xnxq}
+  		and c.TeacherId =#{teacherIds} and e.Published=1
+		 ORDER   BY CreateTime desc limit 1
+  </select>
+  	
+  	
+  	<select id="getByTeacherTime" parameterType="hashmap" resultType="JSONObject">
+  		SELECT * from ${db_name_timetable}.T_CRCA_Timetable_List a 
+  		inner join ${db_name_timetable}.T_CRCA_Task b on a.SchoolId=b.SchoolId and a.TimetableId=b.TimetableId and a.ClassId=b.ClassId and a.CourseId=b.CourseId  and a.isDelete=0 
+  		inner join ${db_name_timetable}.T_CRCA_Timetable e on  a.schoolId=e.SchoolId and a.TimetableId=e.TimetableId 
+  		left join ${db_name_timetable}.T_CRCA_Task_TeacherSet c on b.TaskId=c.TaskId where a.SchoolId=#{SchoolId}  and concat(e.SchoolYear,e.TermName)=#{xnxq} and a.TimetableId=#{timetableId}
+  		and c.TeacherId =#{teacherIds} and e.Published=1  ORDER   BY a.ClassId asc
+  </select>
+  	<select id="getTeacherResearch" parameterType="hashmap" resultType="JSONObject">
+  		SELECT *from ${db_name_timetable}.t_crca_researchwork a INNER JOIN ${db_name_timetable}.t_crca_research_teacher  b on a.ResearchId=b.ResearchId and a.SchoolId=b.SchoolId
+		INNER JOIN ${db_name_timetable}.t_crca_research_fixed c on b.ResearchId=c.ResearchId and b.SchoolId=c.SchoolId 
+		where a.SchoolId=#{schoolId} and a.TimetableId=#{timetableId}
+  </select>
+  
+  <select id="getRuleTeachersInHasArrage" parameterType="hashmap" resultType="JSONObject">
+  		SELECT a.ClassId,a.CourseId,a.DayOfWeek,a.LessonOfDay,c.`TeacherId` FROM 
+		${db_name_timetable}.t_crca_timetable_list a INNER JOIN	
+		${db_name_timetable}.t_crca_task b ON a.schoolId=#{schoolId} AND a.`TimetableId`=b.`TimetableId` AND a.`TimetableId`=#{timetableId}
+		
+		AND  a.`ClassId`=b.`ClassId` AND a.`CourseId`=b.`CourseId`	 and a.isDelete=0 
+		
+		INNER JOIN ${db_name_timetable}.T_CRCA_TASK_TEACHERSET c ON c.`SchoolId`=#{schoolId} AND c.`TaskId`=b.`TaskId`
+  	
+  </select>
+  
+  <update id="updateTimetablePrintSet" parameterType="JSONObject">
+        INSERT INTO ${db_name_timetable}.t_crca_timetableprintset(TimetableId,SchoolId,
+        type,title,BottomNote1,BottomNote2,BottomNote3,PrintStyle) VALUES 
+		   (#{timetableId}, #{schoolId}, #{type}, #{title}, #{bottomNote1},
+		    #{bottomNote2}, #{bottomNote3}, #{printStyle}) 
+		   ON DUPLICATE KEY UPDATE title=VALUES(title),BottomNote1=VALUES(BottomNote1),
+		BottomNote2=VALUES(BottomNote2),BottomNote3=VALUES(BottomNote3),PrintStyle=VALUES(PrintStyle)
+  </update>
+  
+  <select id="getTimetablePrintSet" parameterType="JSONObject" resultType="JSONObject">
+		SELECT title,BottomNote1 AS bottomNote1,BottomNote2 AS bottomNote2,BottomNote3 AS bottomNote3,PrintStyle AS printStyle 
+		FROM ${db_name_timetable}.t_crca_timetableprintset WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId} AND type = #{type}
+  </select>
+  
+  <!--  课表v2.0 start 2015年9月23日 -->
+  <select id="getTimetableGradeList" parameterType="hashmap" resultType="JSONObject">
+  		select gradeId from ${db_name_timetable}.t_crca_gradeset 
+  		where `SchoolId`=#{schoolId} AND TimetableId=#{timetableId}
+  </select>
+  <select id="getTimetableSubjectList" parameterType="hashmap" resultType="JSONObject">
+  		select distinct courseId from  ${db_name_timetable}.t_crca_task
+  		where `SchoolId`=#{schoolId} AND TimetableId=#{timetableId}
+  		<if test="classIds!=null">
+  			and classId in
+  			<foreach collection="classIds" index="index" item="item" open="("	separator="," close=")">
+			'${item}'
+			</foreach>
+  		</if>
+  </select>
+  
+  <select id="getTimetableTeacherList" parameterType="hashmap" resultType="JSONObject">
+  		SELECT DISTINCT  TeacherId FROM  ${db_name_timetable}.t_crca_task_teacherset
+		WHERE `SchoolId`=#{schoolId} AND taskId IN(
+	  		select distinct taskId from  ${db_name_timetable}.t_crca_task
+	  		where `SchoolId`=#{schoolId} AND TimetableId=#{timetableId}
+	  		<if test="classIds!=null">
+	  			and classId in
+	  			<foreach collection="classIds" index="index" item="item" open="("	separator="," close=")">
+				'${item}'
+				</foreach>
+	  		</if>
+	  		<if test="subjectId!=null">
+	  			and CourseId=#{subjectId}
+	  		</if>
+		)
+  </select>
+  <select id="getTaskClassList" parameterType="JSONObject" resultType="String">
+		SELECT ClassId AS classId FROM ${db_name_timetable}.t_crca_task 
+		WHERE SchoolId = #{schoolId} AND TimetableId = #{timetableId}
+		AND ClassId in
+		<foreach collection="classIdList" index="index" item="item" open="("	separator="," close=")">
+			${item}
+		</foreach>
+		<if test="subjectId!=null">
+  		    AND CourseId = #{subjectId} 
+  	    </if>
+  </select> 
+  <select id="getTimetableForWeekList" parameterType="hashmap" resultType="JSONObject">
+  	select * from  ${db_name_timetable}.t_crca_timetable
+  	where `SchoolId`=#{schoolId} AND TimetableId=#{timetableId}
+  </select>
+  <!-- 批量删除操作周段内的调课结果 -->
+  <update id="delMutilTmpAjstResult" parameterType="hashmap" >
+  	delete from  ${db_name_timetable}.t_crca_temporaryadjustresult
+  	where `SchoolId`=#{schoolId} AND TimetableId=#{timetableId}
+  	<if test="weekOfEnd==0">
+  		and Week=#{week}
+  	</if>
+  	<if test="weekOfEnd!=0">
+  		and Week &gt;= #{week} and week	&lt;=#{weekOfEnd}
+  	</if>
+  	<if test="groupId!=null">
+  		and groupId = #{groupId}
+  	</if>
+  </update>
+  <select id="getTemporaryAjustList" parameterType="hashmap" resultType="JSONObject">
+  	select * from  ${db_name_timetable}.t_crca_temporaryadjustresult
+  	where `SchoolId`=#{schoolId} AND TimetableId=#{timetableId}
+  	<if test="weekOfEnd==0 and week!=0">
+  		and Week=#{week} order by  dayOfWeek,Published 
+  	</if>
+  	<if test="weekOfEnd!=0 and weekOfEnd!=null">
+  		and Week &gt;= #{week} and Week	&lt;=#{weekOfEnd}
+  	</if>
+  	<if test="classId!=null">
+  		and classId = #{classId}
+  	</if>
+  	<if test="classes!=null">
+			and classId in
+			<foreach collection="classes" index="index" item="item" open="("	separator="," close=")">
+			'${item}'
+			</foreach>
+	</if>
+	<if test="weekOfEnd==null and week!=0">
+  		and Week=#{week} order by  dayOfWeek,Published 
+  	</if>
+  </select>
+  <!-- 获取本周之前的组课表 -->
+  <select id="getWeekAgoTb"  parameterType="hashmap" resultType="com.talkweb.timetable.arrangement.domain.TCRCATemporaryAdjustResult">
+  	select * from  ${db_name_timetable}.t_crca_temporaryadjustresult
+  	where `SchoolId`=#{schoolId} AND TimetableId=#{timetableId}
+  	<if test=" week!=0">
+  		and Week &lt; #{week}   
+  	</if>
+  	<if test="groupId!=null">
+  		and groupId = #{groupId}
+  	</if>
+  </select>
+  <select id="getTemporaryAjustRecord" parameterType="hashmap" resultType="JSONObject">
+  	select * from  ${db_name_timetable}.t_crca_temporaryadjustrecord
+  	where `SchoolId`=#{schoolId} AND TimetableId=#{timetableId}
+  	<if test="weekOfEnd==0">
+  		and Week=#{week}
+  	</if>
+  	<if test="weekOfEnd!=0">
+  		and Week &gt;= #{week} and Week	&lt;=#{weekOfEnd}
+  	</if>
+  	<if test="cxAdjustType!=null">
+  		and AdjustType in ('11','12','13','14')
+  	</if>
+  	
+  	 order by RecordTime desc
+  </select>
+ <update id="deleteMultiTpTbRecord" parameterType='java.util.List' >
+  		delete from  ${db_name_timetable}.t_crca_temporaryadjustresult where  
+  		<foreach collection="list" item="item" index="index" separator=" or ">
+  			(SchoolId=#{item.SchoolId} and TimetableId=#{item.TimetableId}
+				and Week=#{item.Week} and GradeId=#{item.GradeId} and 
+				ClassId=#{item.ClassId} and SubjectId=#{item.SubjectId}
+				and DayOfWeek=#{item.DayOfWeek} and LessonOfDay=#{item.LessonOfDay} )
+  		</foreach>
+  </update>
+  <update id="deleteMultiTmpRecord" parameterType='java.util.List'>
+  		delete from  ${db_name_timetable}.t_crca_temporaryadjustrecord where  
+  		<foreach collection="list" item="item" index="index" separator=" or ">
+  			( RecordID=#{item})
+  		</foreach>
+  </update>
+  <update id="updateAdjustRecordPublished" parameterType='JSONObject'>
+  		update ${db_name_timetable}.t_crca_temporaryadjustrecord  set Published=1,
+  		PublishTeachers = #{PublishTeachers} where
+  		SchoolId=#{SchoolId} and timetableId=#{TimetableId} 
+  		and Week &gt;= #{Week} and ClassId=#{ClassId} 
+  		and GroupId = #{GroupId}
+  		 and Step=#{Step}
+  		and AdjustType = #{AdjustType} 
+  </update>
+  <update id="updateAdjustResultPublished" parameterType='JSONObject'>
+  		update ${db_name_timetable}.t_crca_temporaryadjustresult  set Published=1,
+  		PublishTeachers = #{PublishTeachers}  where
+  		SchoolId=#{SchoolId} and timetableId=#{TimetableId} 
+  		and Week &gt;= #{Week} and ClassId=#{ClassId} 
+  		and SubjectId=#{SubjectId} and dayOfWeek=#{DayOfWeek}
+  		and lessonOfDay = #{LessonOfDay} 
+  		and GroupId = #{GroupId}
+  </update>
+  <update id="updateAutoArrangeResult" parameterType='hashmap'>
+  	update ${db_name_timetable}.t_crca_timetable set arrangeResult=#{rsMsg}
+  	where 	SchoolId=#{schoolId} and timetableId=#{timetableId}
+  </update>
+  <select id="getDuplicatePubGrades" parameterType='hashmap'  resultType="JSONObject">
+  	SELECT GROUP_CONCAT(c.gradeId) AS gradeIds,c.TimetableName as timetableName FROM(
+	  	SELECT a.timetableId,a.gradeId,b.TimetableName,b.Published,b.SchoolYear,b.TermName FROM 
+	  	${db_name_timetable}.t_crca_gradeset a 
+	  	INNER JOIN ${db_name_timetable}.t_crca_timetable b ON a.SchoolId=#{schoolId} AND a.timetableId=b.timetableId 
+	  	WHERE  b.Published='2' AND b.TimetableId!=#{timetableId}
+		AND CONCAT(b.SchoolYear,b.TermName)=#{xnxq} AND a.timetableId=b.timetableId
+		AND a.gradeid IN(
+			SELECT gradeid FROM ${db_name_timetable}.t_crca_gradeset  WHERE SchoolId=#{schoolId} and TimetableId=#{timetableId}
+			)  
+		) c 
+	GROUP BY  c.timetableId
+  </select>
+  <!-- 查询班级所关联的最新课表 -->
+  <select id="getTimetableForAppClass" parameterType='hashmap'  resultType="JSONObject">
+  		SELECT * FROM ${db_name_timetable}.`t_crca_timetable` WHERE SchoolId=#{schoolId} 
+  		AND CONCAT(SchoolYear,TermName)=#{xnxq} and
+  		Published='2'  AND TimetableId in (SELECT DISTINCT TimetableId 
+				FROM ${db_name_timetable}.`t_crca_task` WHERE SchoolId=#{schoolId} AND classid=#{classId})
+		ORDER BY CreateTime DESC LIMIT 0,1
+  </select>
+  <!-- 查询教师所关联的最新课表    + 新做 班级关联 -->
+  <select id="getTimetableForAppClassList" parameterType='hashmap'  resultType="JSONObject">
+  		SELECT * FROM ${db_name_timetable}.`t_crca_timetable` WHERE SchoolId=#{schoolId} 
+  		AND CONCAT(SchoolYear,TermName)=#{xnxq} and
+  		Published=2  AND TimetableId IN 
+  		<if test="onlyClass!=null">
+  		 (SELECT DISTINCT a.TimetableId 
+				FROM ${db_name_timetable}.`t_crca_timetable_list` a	
+				 where a.ClassId = #{classId} and a.SchoolId=#{schoolId}
+		  )
+  		</if>
+  		<if test="onlyClass==null">
+  		       (SELECT DISTINCT a.TimetableId 
+				FROM ${db_name_timetable}.`t_crca_task` a	
+				inner join ${db_name_timetable}.t_crca_task_teacherset b
+				on a.SchoolId=#{schoolId} AND  a.taskId=b.taskId and b.teacherId=#{teacherId})
+  		</if>
+		ORDER BY CreateTime DESC LIMIT 0,1
+  </select>
+  <!-- 查询教师所教班级 -->
+  <select id="getTimetableForAppClassListSub" parameterType='hashmap'  resultType="JSONObject">
+  		SELECT GROUP_CONCAT(a.`ClassId`) as classes,GROUP_CONCAT(a.`CourseId`) AS courseIds
+  		 FROM ${db_name_timetable}.t_crca_task a 
+			INNER JOIN ${db_name_timetable}.t_crca_task_teacherset b
+				ON  a.`SchoolId`=#{schoolId} AND a.`TaskId`=b.`TaskId` 
+				AND a.`TimetableId`=#{timetableId}
+				AND b.`TeacherId`=#{teacherId}
+  </select>
+  <!--  课表v2.0 end   -->
+  <select id="getRuleGroundList" parameterType='hashmap'  resultType="JSONObject">
+  		select * from ${db_name_timetable}.t_crca_rule_ground 
+  		where SchoolId=#{schoolId} AND TimetableId=#{timetableId} ORDER BY SubjectId
+  </select>
+  
+  <!-- 获取教师组规则 -->
+  <select id="getTeacherGroupRules" parameterType='hashmap'  resultType="JSONObject">
+  		select a.TeacherGroupId,b.DayOfWeek,b.LessonOfDay		
+  		from ${db_name_timetable}.T_CRCA_Rule_TeacherGroup a
+  		inner join ${db_name_timetable}.T_CRCA_Rule_TeacherGroup_Fixed b on a.TeacherGroupId = b.TeacherGroupId
+  		where a.SchoolId = #{schoolId} and a.TimetableId = #{timetableId}
+  </select>
+  
+  <!-- 获取教师组相关成员 -->
+  <select id="getTeacherRelatedGroups" parameterType='hashmap'  resultType="JSONObject">
+  		select TeacherId,TeacherGroupId from ${db_name_timetable}.T_CRCA_Rule_TeacherGroupMember
+  		where 
+  		SchoolId = #{schoolId} and  TimetableId = #{timetableId} 
+  		<if test="groups!=null">
+  			and teacherGroupId in 
+  			<foreach collection="groups" index="index" item="item" open="(" separator="," close=")">
+				'${item}'
+			</foreach>
+  		</if>
+  </select>
+  <!-- 获取临时调课组设置  -->
+  <select id="getTempAjustGroupList"  parameterType='hashmap'  resultType="com.talkweb.timetable.arrangement.domain.TCRCATemporaryAdjustGroupInfo">
+  
+  		select * from ${db_name_timetable}.T_CRCA_TemporaryAdjustGroupInfo where xn=#{xn} and xqm=#{xq}
+  		
+  		and SchoolId = #{schoolId} and  TimetableId = #{timetableId} 
+  </select>
+  <!-- 获取单个临时调课组设置  -->
+  <select id="getSingleTempAjustGroup"  parameterType='hashmap'  resultType="com.talkweb.timetable.arrangement.domain.TCRCATemporaryAdjustGroupInfo">
+  
+  		select * from ${db_name_timetable}.T_CRCA_TemporaryAdjustGroupInfo where xn=#{xn} and xqm=#{xq}
+  		
+  		and SchoolId = #{schoolId} and  TimetableId = #{timetableId} and groupId = #{groupId}
+  		
+  		limit 0,1
+  </select>
+  <!-- 获取临时调课组设置  -->
+  <select id="getTempAjustGroupParam"  parameterType='hashmap'  resultType="com.talkweb.timetable.arrangement.domain.TCRCATemporaryAdjustGroupParam">
+  
+  		select * from ${db_name_timetable}.t_crca_temporaryadjustgroupparam where xn=#{xn} and xqm=#{xq}
+  		
+  		and SchoolId = #{schoolId} and  TimetableId = #{timetableId} 
+  </select>
+   <!-- 获取单个组临时调课组设置  -->
+  <select id="getSingleTempAjustGroupParam"  parameterType='hashmap'  resultType="com.talkweb.timetable.arrangement.domain.TCRCATemporaryAdjustGroupParam">
+  
+  		select * from ${db_name_timetable}.t_crca_temporaryadjustgroupparam where xn=#{xn} and xqm=#{xq}
+  		
+  		and SchoolId = #{schoolId} and  TimetableId = #{timetableId} and groupId = #{groupId}
+  		<if test="weekOfEnd==0">
+	  		and Week=#{week}
+	  	</if>
+	  	<if test="weekOfEnd!=0">
+	  		and Week &gt;= #{week} and week	&lt;=#{weekOfEnd}
+	  	</if>
+  </select>
+  
+  <update id="updateCheckGroupExist" parameterType='hashmap' statementType="CALLABLE">
+		call ${db_name_timetable}.proc_del_uselessGroup(#{xn},#{xq},#{schoolId},#{timetableId},#{groupId});
+  </update>
+  
+  	<update id='batchInsertTCRCATemporaryAdjustGroupInfoList' parameterType='java.util.List' > insert into ${db_name_timetable}.t_crca_temporaryadjustgroupinfo(xn,xqm,SchoolId,TimetableId,GroupId,GroupStep,GroupMinWeek,GroupMaxWeek,IsCrossClass,NotStartOperate,NotStartCancel) values  <foreach collection="list" item="item" index="index" separator=",">(#{item.xn},#{item.xqm},#{item.SchoolId},#{item.TimetableId},#{item.GroupId},#{item.GroupStep},#{item.GroupMinWeek},#{item.GroupMaxWeek},#{item.IsCrossClass},#{item.NotStartOperate},#{item.NotStartCancel}) </foreach> on duplicate key update xn=values(xn),xqm=values(xqm),SchoolId=values(SchoolId),TimetableId=values(TimetableId),GroupId=values(GroupId),GroupStep=values(GroupStep),GroupMinWeek=values(GroupMinWeek),GroupMaxWeek=values(GroupMaxWeek),IsCrossClass=values(IsCrossClass),NotStartOperate=values(NotStartOperate),NotStartCancel=values(NotStartCancel)</update> 
+	<update id='batchInsertTCRCATemporaryAdjustGroupParamList' parameterType='java.util.List' > insert into ${db_name_timetable}.t_crca_temporaryadjustgroupparam(xn,xqm,SchoolId,TimetableId,GroupId,Week,GroupMoveTimes,GroupStep) values  <foreach collection="list" item="item" index="index" separator=",">(#{item.xn},#{item.xqm},#{item.SchoolId},#{item.TimetableId},#{item.GroupId},#{item.Week},#{item.GroupMoveTimes},#{item.GroupStep}) </foreach> on duplicate key update xn=values(xn),xqm=values(xqm),SchoolId=values(SchoolId),TimetableId=values(TimetableId),GroupId=values(GroupId),Week=values(Week),GroupMoveTimes=values(GroupMoveTimes),GroupStep=values(GroupStep)</update> 
+	<update id='batchInsertTCRCATemporaryAdjustRecordList' parameterType='java.util.List' > insert into ${db_name_timetable}.t_crca_temporaryadjustrecord(SchoolId,TimetableId,RecordId,RelatedRecordIds,Week,WeekOfStart,WeekOfEnd,GradeId,ClassId,OriginalSubject,TargetSubject,OriginalDay,OriginalLesson,TargetDay,TargetLesson,OriginalTeachers,TargetTeachers,AdjustType,RecordTime,GroupId,Step,PublishTeachers,Published) values  <foreach collection="list" item="item" index="index" separator=",">(#{item.SchoolId},#{item.TimetableId},#{item.RecordId},#{item.RelatedRecordIds},#{item.Week},#{item.WeekOfStart},#{item.WeekOfEnd},#{item.GradeId},#{item.ClassId},#{item.OriginalSubject},#{item.TargetSubject},#{item.OriginalDay},#{item.OriginalLesson},#{item.TargetDay},#{item.TargetLesson},#{item.OriginalTeachers},#{item.TargetTeachers},#{item.AdjustType},#{item.RecordTime},#{item.GroupId},#{item.Step},#{item.PublishTeachers},#{item.Published}) </foreach> on duplicate key update SchoolId=values(SchoolId),TimetableId=values(TimetableId),RecordId=values(RecordId),RelatedRecordIds=values(RelatedRecordIds),Week=values(Week),WeekOfStart=values(WeekOfStart),WeekOfEnd=values(WeekOfEnd),GradeId=values(GradeId),ClassId=values(ClassId),OriginalSubject=values(OriginalSubject),TargetSubject=values(TargetSubject),OriginalDay=values(OriginalDay),OriginalLesson=values(OriginalLesson),TargetDay=values(TargetDay),TargetLesson=values(TargetLesson),OriginalTeachers=values(OriginalTeachers),TargetTeachers=values(TargetTeachers),AdjustType=values(AdjustType),RecordTime=values(RecordTime),GroupId=values(GroupId),Step=values(Step), PublishTeachers=values(PublishTeachers),Published=values(Published)</update> 
+	<update id='batchInsertTCRCATemporaryAdjustResultList' parameterType='java.util.List' > insert into ${db_name_timetable}.t_crca_temporaryadjustresult(SchoolId,TimetableId,Week,GradeId,ClassId,SubjectId,DayOfWeek,LessonOfDay,Teachers,CourseType,McGroupId,WeekOfStart,WeekOfEnd,FromTeachers,FromSubjectId,FromDayOfWeek,FromLessonOfDay,AdjustType,Published,GroupId,PublishTeachers) values  <foreach collection="list" item="item" index="index" separator=",">(#{item.SchoolId},#{item.TimetableId},#{item.Week},#{item.GradeId},#{item.ClassId},#{item.SubjectId},#{item.DayOfWeek},#{item.LessonOfDay},#{item.Teachers},#{item.CourseType},#{item.McGroupId},#{item.WeekOfStart},#{item.WeekOfEnd},#{item.FromTeachers},#{item.FromSubjectId},#{item.FromDayOfWeek},#{item.FromLessonOfDay},#{item.AdjustType},#{item.Published},#{item.GroupId},#{item.PublishTeachers}) </foreach> on duplicate key update SchoolId=values(SchoolId),TimetableId=values(TimetableId),Week=values(Week),GradeId=values(GradeId),ClassId=values(ClassId),SubjectId=values(SubjectId),DayOfWeek=values(DayOfWeek),LessonOfDay=values(LessonOfDay),Teachers=values(Teachers),CourseType=values(CourseType),McGroupId=values(McGroupId),WeekOfStart=values(WeekOfStart),WeekOfEnd=values(WeekOfEnd),FromTeachers=values(FromTeachers),FromSubjectId=values(FromSubjectId),FromDayOfWeek=values(FromDayOfWeek),FromLessonOfDay=values(FromLessonOfDay),AdjustType=values(AdjustType),Published=values(Published),GroupId=values(GroupId), PublishTeachers=values(PublishTeachers)</update> 
+
+	<update id="createTableTimetableSchedule" statementType="STATEMENT">
+		CREATE TABLE if not exists ${db_name_timetable}.t_crca_timetable_schedule (
+			`timetable_id` varchar(255),
+			`section_id` varchar(255),
+			`start_time` varchar(10),
+			`end_time` varchar(10),
+			`pycc`	smallint(2),	
+			 PRIMARY KEY (`timetable_id`,`section_id`,`pycc`)			
+		)
+	</update>
+	<update id="insertSchoolTimetableSchedule" parameterType="java.util.List">
+		insert into ${db_name_timetable}.t_crca_timetable_schedule 
+		(timetable_id,section_id,start_time,end_time,pycc)
+		values 
+		<foreach collection="list" item="item" index="index" separator=",">
+		 	(#{item.timetableId},#{item.sectionId},#{item.startTime},#{item.endTime},#{item.pycc})
+    	</foreach>
+	</update>
+	<select id="getSchoolTimetableSchedule" resultType="java.util.HashMap" parameterType="JSONObject">
+		select section_id as sectionId,start_time as startTime,end_time as endTime from ${db_name_timetable}.t_crca_timetable_schedule 
+		where timetable_id = #{timetableId} and pycc=#{pycc}
+	</select>
+	<update id="updateSchoolTimetableSchedule" parameterType="java.util.List">
+		update ${db_name_timetable}.t_crca_timetable_schedule set 
+		<foreach collection="list" item="item" index="index" separator=",">
+		 	(start_time= #{item.startTime}, end_time = #{item.endTime})
+    		where timetable_id = #{item.timetableId} and pycc = #{item.pycc} and section_id = #{item.sectionId}
+    	</foreach>	
+	</update>
+	<update id="deleteSchoolTimetableSchedule" parameterType='JSONObject'>
+  		delete from  ${db_name_timetable}.t_crca_timetable_schedule where  
+  		timetable_id = #{timetableId} and pycc = #{pycc}
+    </update>
+    
+    <update id="deleteNoRecordAjst"  parameterType='JSONObject'>
+    	delete from  ${db_name_timetable}.t_crca_temporaryadjustresult
+    	where  SchoolId = #{schoolId} and  TimetableId = #{timetableId} and groupId = #{groupId}
+  		and week = #{week}
+    </update>
+    
+    <select id="selectLatestPublishedTimetable" parameterType="java.util.Map" resultType="JSONObject">
+    	SELECT * FROM ${db_name_timetable}.t_crca_timetable
+		WHERE SchoolId=#{schoolId} 
+			AND TermName=#{termName} AND SchoolYear=#{schoolYear} AND Published='2' LIMIT 0,1;
+    </select>
+    
+    <select id="getClassTimetableList" parameterType="java.util.HashMap" resultType="JSONObject">
+    	select t.ClassId,cl.className,te.TeacherId,le.`name`,t.CourseId,t.WeekNum,cl.gradeId from ${db_name_timetable}.t_crca_task t 
+		inner join ${db_name_timetable}.t_crca_task_teacherset te on te.TaskId=t.TaskId
+		inner join ${db_name_csCurCommonData}${termInfoId}.t_class cl on cl.id = t.ClassId
+		inner join ${db_name_csCurCommonData}${termInfoId}.t_lessoninfo le on le.id = t.CourseId
+		where t.TimetableId = #{timetableId} and t.SchoolId = ${schoolId}
+		ORDER BY t.ClassId
+    </select>
+    
+    <select id="getTimetableDetailById" parameterType="java.util.HashMap" resultType="JSONObject">
+    	select t.SchoolYear,t.TimetableName,t.DayOfStart from ${db_name_timetable}.t_crca_timetable t where t.TimetableId=#{timetableId}
+		and t.SchoolId=#{schoolId}
+    </select>
+</mapper>

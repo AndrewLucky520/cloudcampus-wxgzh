@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.talkweb.student.dao.StudentManageDao">  
+
+	<resultMap type="com.talkweb.student.domain.business.TSsStudent" id="studentMap">
+		<result column="user_xh" property="userXh"/>
+	</resultMap>
+	
+	<parameterMap type="com.talkweb.student.domain.business.TSsStudent" id="studentParam">
+	</parameterMap>
+
+	<!-- 查询指定学校的学生信息列表（条件查询） -->
+	<select id="getStudentListSTU" parameterType="hashmap" resultType="JSONObject" >
+		select t.xh,t.xjh,t.xm,t.sfzh,t.csrq,x.mc as xbm,s.bjmc as bh,t.user_xh,t.fqlxdh,t.mqlxdh,t.pycc from ${zhx_conn}.t_ss_student t
+		inner join ${zhx_conn}.t_ss_studenrol a on a.xh = t.xh
+		left join ${zhx_conn}.t_dm_xb x on x.dm = t.xbm
+		inner join ${zhx_conn}.t_ss_class s on s.bh = t.bh
+		<where>
+			t.xxdm = #{xxdm}
+			<if test="sfzx!=null and sfzx!=''">
+				and a.sfzx=#{sfzx}
+			</if>
+			<if test="bhList!=null and bhList!=''">
+				and a.bh in
+				<foreach collection="bhList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test="bhList == null and bh!=''">
+				and a.bh = #{bh}
+			</if>
+			<if test="xn!=null and xn!=''">
+				and a.xn=#{xn}
+			</if>
+			<if test="xqm!=null and xqm!=''">
+				and a.xqm=#{xqm}
+			</if>
+			<if test="njList!=null and njList!=''">
+				and s.synj in
+				<foreach collection="njList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test="njList==null and synj!=''">
+				and s.synj = #{synj}
+			</if>
+			<if test="xm!=null and xm!=''">
+				and (t.xm like CONCAT('%','${xm}','%') or t.xjh like CONCAT('%','${xm}','%'))
+			</if>
+		</where>	
+	</select>
+	
+	<!-- 添加学生 -->
+	<insert id="addStudentInfo" parameterMap="studentParam">
+		insert into ${zhx_conn}.t_ss_student
+		(
+			xh,xjh,xxdm,user_xh,xm,sfzh,csrq,xbm,nj,bh,fqlxdh,mqlxdh,sfzx,parentsysid,pycc
+		)
+		values
+		(
+			#{xh},#{xjh},#{xxdm},#{userXh},#{xm},#{sfzh},#{csrq},#{xbm},#{nj},#{bh},#{fqlxdh},#{mqlxdh},#{sfzx},#{parentsysid},#{pycc}
+		)
+	</insert>
+	
+	<!-- 查询单个学生 -->
+	<select id="getStudentById" parameterType="String" resultMap="studentMap">
+		select t.xh,t.xjh,t.xm,t.sfzh,t.csrq,t.xbm,t.bh,t.nj,t.user_xh,t.fqlxdh,t.mqlxdh,t.sfzx,t.pycc,t.xxdm
+		from ${zhx_conn}.t_ss_student t
+		where t.xh = #{xh}
+	</select>
+	
+	<!-- 修改学生信息 -->
+	<update id="updateStudent3" parameterMap="studentParam">
+		update ${zhx_conn}.t_ss_student set
+		xjh=#{xjh},user_xh=#{userXh},xm=#{xm},sfzh=#{sfzh},csrq=#{csrq},xbm=#{xbm},
+		bh=#{bh},fqlxdh=#{fqlxdh},mqlxdh=#{mqlxdh},sfzx=#{sfzx},nj=#{nj}
+		where xh = #{xh}
+	</update>
+	
+	<!-- 添加学生注册信息 -->
+	<insert id="addStudenrol" parameterType="hashmap">
+		insert into ${zhx_conn}.t_ss_studenrol
+		(
+			xn,xqm,xxdm,xh,bh,sfzx
+		)
+		values
+		(
+			#{xn},#{xqm},#{xxdm},#{xh},#{bh},#{sfzx}
+		)
+	</insert>
+
+	<!-- 删除学生信息 -->
+	<delete id="deleteStudent" parameterType="list">
+		delete from ${zhx_conn}.t_ss_student 
+		where xh in
+			<foreach collection="list" index="index" item="item" open="("
+				separator="," close=")">
+				#{item}
+			</foreach>
+	</delete>
+	
+	<!-- 删除学生注册信息 -->
+	<delete id="deleteStudenrol" parameterType="list">
+		delete from ${zhx_conn}.t_ss_studenrol 
+		where xh in
+			<foreach collection="list" index="index" item="item" open="("
+				separator="," close=")">
+				#{item}
+			</foreach>
+	</delete>
+	
+	<!-- 删除指定学生的指定学年学期的注册信息 -->
+	<delete id="deleteStudenrolByXh" parameterType="hashmap">
+		delete from ${zhx_conn}.t_ss_studenrol where xh=#{xh} and xn=#{xn} and xqm=#{xqm}
+	</delete>
+	
+	<!-- 修改学生注册信息 -->
+	<update id="updateStudenrol" parameterType="hashmap">
+		update ${zhx_conn}.t_ss_studenrol  set sfzx = #{sfzx} where xh = #{xh}
+	</update>
+	
+	<!-- 通过班号查询单个班级的学制 -->
+	<select id="getXzInfoByBh" parameterType="String" resultType="hashmap">
+		select xz from ${zhx_conn}.t_ss_class where bh = #{bh}
+	</select>
+	
+	<!-- 查询指定学生的注册表中的最大的学年学期信息 -->
+	<select id="getMaxXnxqByXh" parameterType="String" resultType="hashmap">
+		select max(xn) as xn,xqm  from ${zhx_conn}.t_ss_studenrol where xh=#{xh}
+	</select>
+</mapper>

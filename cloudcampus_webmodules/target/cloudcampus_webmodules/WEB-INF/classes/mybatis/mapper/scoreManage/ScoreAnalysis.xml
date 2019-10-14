@@ -1,0 +1,727 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.scoreManage.dao.ScoreAnalysisDao">
+	<!-- 获取总分及总分分数段规则设置 -->
+	<select id="getZfAndSz" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.nj, a.fs, a.bl, a.zhqjbl, a.fz, a.zdytext, a.zhqjfz, a.dkbl, a.dkzhqjbl, b.zf, b.fzdm
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_zfqjsz} a
+				INNER JOIN (
+					SELECT kslc, xxdm, xnxq, nj, fzdm, SUM(CASE WHEN (mf IS NULL or mf = 0) THEN 100 ELSE mf END) AS zf 
+						FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoremf} 
+					WHERE kslc = #{data.kslc} AND xxdm = #{data.xxdm} AND xnxq = #{data.xnxq}
+						GROUP BY kslc, xxdm, xnxq, nj, fzdm
+				) b
+			ON a.fzdm = b.fzdm AND a.nj = b.nj AND a.kslc = b.kslc AND a.xxdm = b.xxdm AND a.xnxq = b.xnxq
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} 
+	</select>
+	
+	<!-- 获取单科满分设置 -->
+	<select id="getDkMf" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT a.nj, a.fzdm, a.kmdm, IFNULL(b.mf, 100) AS mf 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoretjmk} a
+				LEFT OUTER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoremf} b 
+					ON a.kslc = b.kslc AND a.xxdm = b.xxdm AND a.xnxq = b.xnxq AND a.nj = b.nj 
+						AND a.fzdm = b.fzdm AND a.kmdm = b.kmdm
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} 
+	</select>
+	
+	<!-- 获取竞赛成绩 -->
+	<select id="getXsjsCjList" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.gm.CompetitionStu">
+		SELECT xxdm, kslc, xh, kmdm, xnxq 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_competitionstu} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</select>
+	
+	<!-- 获取考试的合并科目 -->
+	<select id="getSynthScoreListF" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.gm.SynthScore">
+		SELECT kslc, xxdm, nj, fzdm, kmdm, dykm, xnxq 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore}
+		where xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</select>
+	
+	<!-- 获取所有年级下科目及类别 用于等第设置 -->
+	<select id="getAllKmInLcForDD" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT kmdm, 1 AS kmlb, nj, null as dykm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoretjmk} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}  
+		UNION ALL
+		SELECT DISTINCT kmdm, 2 AS kmlb, nj, dykm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</select>
+	
+	<!-- 获取文理分组下统计科目 -->
+	<select id="getTjKmInWl"  parameterType="splitDbAndTableRule"  resultType="JSONObject">
+		SELECT fzdm AS wlfz, kmdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoretjmk}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} 
+	</select>
+	
+	<!-- 获取不参与学号 -->
+	<select id="getBcytjXhList" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT xh 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_xscjbtj} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}   
+	</select>
+	
+	<!-- 获取统计条件参数 如舞弊、缺考等 -->
+	<select id="getCondionParam" parameterType="hashmap" resultType="JSONObject">
+		SELECT xxdm, qk, wb, lf
+			FROM ${db_name_scoreManage_global}.t_gm_scorestatterm
+		WHERE xxdm = #{xxdm}
+	</select>
+	
+	<!-- 获取所有等第设置 -->
+	<select id="getAllDdsz" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT b.nj, a.dm, a.mc AS djmc, b.kmdm, IFNULL(b.bl, 0) AS bl, IFNULL(b.cj, 0) AS zscj, IFNULL(b.rs, 0) AS rs
+			FROM ${db_name_scoreManage_global}.t_gm_scoreleveltemplatename a 
+ 				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreleveltemplate} b 
+ 					ON a.dm = b.dm
+ 		WHERE b.kslc = #{data.kslc} AND b.xxdm = #{data.xxdm} AND b.xnxq = #{data.xnxq} 
+ 			AND b.kmdm IS NOT NULL AND b.kmdm != ''
+ 		ORDER BY CAST(a.dm AS UNSIGNED)
+	</select>
+	
+	<!-- 获取优秀率合格率、低分率设置参数 -->
+	<select id="getSectionParam" parameterType="hashmap" resultType="JSONObject">
+		SELECT xxdm, dm, fs, mc, fzbfb, flag
+			FROM ${db_name_scoreManage_global}.t_gm_jxpgscoresection
+		WHERE xxdm = #{xxdm}
+	</select>
+	
+	<!-- 获取文理分组与班级分组 -->
+	<select id="getWlfzAndBjfz" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.nj, b.bmfz AS bjfz, a.bmfz AS wlfz 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} b 
+					ON b.ssfz = a.bmfz AND b.kslc = a.kslc AND b.xxdm = a.xxdm AND b.xnxq = a.xnxq 
+						AND b.lb = '02' AND a.nj = b.nj
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} AND a.lb = '01'
+	</select>
+	
+	<!-- 获取文理分组下的科目 -->
+	<select id="getKmInWlfz" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT 0 AS isHb, a.bmfz AS wlfz, b.kmdm, a.nj, null AS dykm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoretjmk} b 
+					ON a.nj = b.nj AND a.kslc = b.kslc AND a.bmfz = b.fzdm
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} AND a.lb = '01'
+		UNION ALL 
+		SELECT 1 AS isHb, a.bmfz AS wlfz, b.kmdm, a.nj, b.dykm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} b 
+					ON b.kslc = a.kslc AND a.xxdm = b.xxdm AND a.xnxq = b.xnxq AND b.fzdm = a.bmfz AND a.nj = b.nj
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} AND a.lb = '01'
+	</select>
+	
+	<!-- 获取排名区间 -->
+	<select id="getScoreRankDistribute" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT nj, fzdm AS wlfz, pmfbdm, pmfbsx, pmfbxx 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankdistribute} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} 
+			ORDER BY pmfbxx 
+	</select>
+	
+	<!-- 获取对比考试伦次 -->
+	<select id="getDbKslc" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.gm.Dbkslc">
+		SELECT dbkslc, dbxnxq 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_dbkslc} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} 
+	</select>
+	
+	<!-- 获取对比考试的学生总分排名 -->
+	<select id="getAllScoreRank" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT xh, zf, bjpm, njpm, kslc, xxdm, xnxq
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</select>
+	
+	<!-- 获取对比考试的学生单科排名 -->
+	<select id="getSingleSubjectRank" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT xh, kmdm, cj, bjpm, njpm, kslc, xxdm, xnxq
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</select>
+	
+	<!-- 获取上次考试 班级统计结果 -->
+	<select id="getOldLcClassStatic"  parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT kslc, xxdm, bh, ckrs, tjrs, pjf, pjffc, bzc, zgf, zdf, bzf, yxl, yxrs, yxlc, yxlpm, hgl, hgrs, hglc, 
+			hglpm, dfl, dfrs, dflc, dflpm, jzsrs, qnsrs, pm, mf, ldxs, qfd, jxxg, ldpm, bzcpm, qfdpm, xnxq
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</select>
+	
+	<!-- 获取上次考试 班级科目统计结果 -->
+	<select id="getOldLcClassKmStatic"  parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT kslc, xxdm, bh, kmdm, ckrs, tjrs, pjf, pjffc, bzc, yxl, yxrs, yxlc, yxlpm, hgl, hgrs, hglc, hglpm, dfl, 
+			dfrs, dflc, dflpm, jzsrs, qnsrs, zgf, zdf, bzf, pm, mf, ldxs, qfd, jxxg, ldpm, bzcpm, qfdpm, xnxq
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics_mk} 
+ 		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</select>
+	
+	<!-- 获取班级报告参数设置 -->
+	<select id="getSarSetBJList" parameterType="hashmap" resultType="com.talkweb.scoreManage.po.sar.SettingBJ">
+		SELECT xxdm, dm, szz FROM ${db_name_scoreManage_global}.t_sar_setting_bj WHERE xxdm = #{xxdm}
+	</select>
+	
+	<!-- 班级统计表是否存在相应的数据 -->
+	<select id="ifExistsDataFromScoreClassStatistics" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+		SELECT 1 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} 
+		WHERE kslc = #{data.kslc} AND xxdm = #{data.xxdm} AND xnxq = #{data.xnxq}
+			AND bh IN
+			<foreach collection="data.relatedBj" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		LIMIT 1
+	</select>
+	
+	<!-- 获取班级标准分跟踪 -->
+	<select id="getBjBzfGz" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT kslc, kslc AS kslcdm, bh, bzf, #{data.kslcmc} AS kslcmc
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} 
+		WHERE xxdm = #{data.xxdm} AND xnxq = #{data.xnxq} AND kslc = #{data.kslc}
+	</select>
+	
+	<!-- 获取班级科目标准分跟踪 -->
+	<select id="getBjBzfGzKm" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT kslc, kslc AS kslcdm, bh, kmdm, bzf, #{data.kslcmc} AS kslcmc
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics_mk}
+		WHERE xxdm = #{data.xxdm} AND xnxq = #{data.xnxq} AND kslc = #{data.kslc}
+	</select>
+	
+	<!-- 获取学生报告参数设置 -->
+	<select id="getSarSetStuList" parameterType="hashmap" resultType="JSONObject">
+		SELECT xxdm, dm, tsydm, szz FROM ${db_name_scoreManage_global}.t_sar_setting_stu WHERE xxdm = #{xxdm};
+	</select>
+	
+	<!-- 获取范围统计设置 -->
+	<select id="getFwszList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT 1 AS type, nj, bmfz AS wlfz, NULL AS bh, NULL AS bjfz, fw, fs 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} 
+		WHERE fs IS NOT NULL AND fw IS NOT NULL AND lb = '01' AND xxdm = #{data.xxdm}
+			AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+		UNION ALL
+		SELECT 2 AS type, b.nj, b.bmfz AS wlfz, a.bh, NULL AS bjfz, a.fw, NULL AS fs 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} a 
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} b 
+					ON a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.xnxq = b.xnxq AND a.bmfz = b.bmfz
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq}
+			AND a.fw IS NOT NULL AND a.fw != 0 
+	</select>
+	
+	<!-- 获取本次考试学生的单科成绩以及合并科目成绩 -->
+	<select id="getSingleSubjectScore" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT 0 AS isHb, d.xh, d.kmdm, NULL AS dykm, d.cj, e.nj, d.bh, g.bmfz AS bjfz, e.bmfz AS wlfz, d.tsqk 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} d 
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} e 
+					ON d.xnxq = e.xnxq AND d.xxdm = e.xxdm AND d.kslc = e.kslc AND e.lb = '01' AND e.nj = d.nj
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} g 
+					ON d.xnxq = g.xnxq AND d.xxdm = g.xxdm AND g.kslc = e.kslc AND g.lb = '02' AND g.ssfz = e.bmfz 
+						AND g.nj = e.nj 
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} f 
+					ON d.xnxq = f.xnxq AND d.xxdm = f.xxdm AND d.kslc = f.kslc AND d.bh = f.bh AND g.bmfz = f.bmfz 
+		WHERE d.xnxq = #{data.xnxq} AND d.xxdm = #{data.xxdm} AND d.kslc = #{data.kslc}    
+	</select>
+	
+	<!-- 获取本次考试的所有班级 bjmc nj -->
+	<select id="getAllExamClass" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT b.bh, c.bmfz AS bjfz, c.fzmc AS bjfzmc, d.bmfz AS wlfz  
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} b  
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} c 
+					ON c.xxdm = b.xxdm AND c.xnxq = b.xnxq AND c.kslc = b.kslc AND c.bmfz = b.bmfz AND c.lb = '02'
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} d 
+					ON d.xxdm = c.xxdm AND d.xnxq = c.xnxq AND d.kslc = c.kslc AND d.bmfz = c.ssfz AND d.lb = '01'
+		WHERE b.xxdm = #{data.xxdm} AND b.kslc = #{data.kslc} AND b.xnxq = #{data.xnxq}
+	</select>
+	
+	
+	<!-- 批量保存等级序列权重 -->
+	<insert id="insertScoreLevelSequnceBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorelevelsequnce}
+			(kslc, xxdm, nj, djxllb, djxl, djqz, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.nj}, #{item.djxllb}, #{item.djxl}, #{item.djqz}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE djqz = VALUES(djqz)
+	</insert>
+	
+	<!-- 保存总分设置 -->
+	<insert id="insertScoreDistributeBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoredistribute}
+			(kslc, xxdm, dm, fbdm, fbsx, fbxx, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.dm}, #{item.fbdm}, #{item.fbsx}, #{item.fbxx}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE dm = VALUES(dm), fbxx = VALUES(fbxx), fbsx = VALUES(fbsx)
+	</insert>
+	
+	<!-- 保存总分区间设置 -->
+	<insert id="insertZfmfqjBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_zfmfqj}
+			(kslc, xxdm, nj, fzdm, dm, mf, flag, xnxq) 
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.nj}, #{item.fzdm}, #{item.dm}, #{item.mf}, #{item.flag}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE mf = VALUES(mf), flag = VALUES(flag)
+	</insert>
+	
+	<!-- 保存科目总分设置 -->
+	<insert id="insertKmmfqjBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_kmmfqj}
+			(kslc, xxdm, nj, fzdm, dm, mf, flag, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.nj}, #{item.fzdm}, #{item.dm}, #{item.mf}, #{item.flag}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE dm = VALUES(dm), mf = VALUES(mf)
+	</insert>
+	
+	<!-- 保存科目满分区间设置 -->
+	<insert id="insertScoreDistributeKmBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoredistribute_km}
+			(kslc, xxdm, dm, fbdm, fbsx, fbxx, xnxq) 
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.dm}, #{item.fbdm}, #{item.fbsx}, #{item.fbxx}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE fbxx = VALUES(fbxx), fbsx = VALUES(fbsx)
+	</insert>
+	
+	<!--批量表》 批量插入 保存结果部分 start -->
+	<insert id="insertScoreStuStatisticsRankBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank}
+			(kslc, xxdm, xh, zf, djxl, djxl2, djxl3, bjpm, njpm, bjpmgz, njpmgz, dbkslc, dbxnxq, 
+				sftj, bzzcj, bzbjpm, bznjpm, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.xh}, #{item.zf}, #{item.djxl}, #{item.djxl2}, #{item.djxl3}, 
+				#{item.bjpm}, #{item.njpm}, #{item.bjpmgz}, #{item.njpmgz}, #{item.dbkslc}, #{item.dbxnxq}, #{item.sftj}, 
+				#{item.bzzcj}, #{item.bzbjpm}, #{item.bznjpm}, #{item.xnxq})
+		</foreach>
+	</insert>
+	
+	<insert id="insertScoreStuStatisticsRankMkBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk}
+			(kslc, xxdm, xh, kmdm, cj, dj, bjpm, njpm, bjpmgz, njpmgz, sftj, bzcj, bzbjpm, bznjpm, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.xh}, #{item.kmdm}, #{item.cj}, #{item.dj}, #{item.bjpm}, #{item.njpm}, 
+				#{item.bjpmgz}, #{item.njpmgz}, #{item.sftj}, #{item.bzcj}, #{item.bzbjpm}, #{item.bznjpm}, #{item.xnxq})
+		</foreach>
+	</insert>
+	
+	<insert id="insertScoreClassStatisticsBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics}
+			(kslc, xxdm, bh, ckrs, tjrs, pjf, pjffc, bzc, zgf, zdf, bzf, yxl, yxrs, yxlc, yxlpm, hgl, hgrs, hglc, 
+				hglpm, dfl, dfrs, dflc, dflpm, jzsrs, qnsrs, pm, mf, ldxs, qfd, jxxg, ldpm, bzcpm, qfdpm, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.bh}, #{item.ckrs}, #{item.tjrs}, #{item.pjf}, #{item.pjffc}, #{item.bzc}, 
+				#{item.zgf}, #{item.zdf}, #{item.bzf}, #{item.yxl}, #{item.yxrs}, #{item.yxlc}, #{item.yxlpm}, #{item.hgl}, 
+				#{item.hgrs}, #{item.hglc}, #{item.hglpm}, #{item.dfl}, #{item.dfrs}, #{item.dflc}, #{item.dflpm}, 
+				#{item.jzsrs}, #{item.qnsrs}, #{item.pm}, #{item.mf}, #{item.ldxs}, #{item.qfd}, #{item.jxxg}, #{item.ldpm}, 
+				#{item.bzcpm}, #{item.qfdpm}, #{item.xnxq})
+		</foreach>
+	</insert>
+	
+	<insert id="insertScoreClassStatisticsMkBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics_mk}
+			(kslc, xxdm, bh, kmdm, ckrs, tjrs, pjf, pjffc, bzc, yxl, yxrs, yxlc, yxlpm, hgl, hgrs, hglc, hglpm, dfl, 
+				dfrs, dflc, dflpm, jzsrs, qnsrs, zgf, zdf, bzf, pm, mf, ldxs, qfd, jxxg, ldpm, bzcpm, qfdpm, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.bh}, #{item.kmdm}, #{item.ckrs}, #{item.tjrs}, #{item.pjf}, #{item.pjffc}, 
+				#{item.bzc}, #{item.yxl}, #{item.yxrs}, #{item.yxlc}, #{item.yxlpm}, #{item.hgl}, #{item.hgrs}, #{item.hglc}, 
+				#{item.hglpm}, #{item.dfl}, #{item.dfrs}, #{item.dflc}, #{item.dflpm}, #{item.jzsrs}, #{item.qnsrs}, 
+				#{item.zgf}, #{item.zdf}, #{item.bzf}, #{item.pm}, #{item.mf}, #{item.ldxs}, #{item.qfd}, #{item.jxxg}, 
+				#{item.ldpm}, #{item.bzcpm}, #{item.qfdpm}, #{item.xnxq})
+		</foreach>
+	</insert>
+	
+	<insert id="insertScoreClassDistributeBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassdistribute}
+			(kslc, xxdm, bh, dm, fbdm, rs, ljrs, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.bh}, #{item.dm}, #{item.fbdm}, #{item.rs}, #{item.ljrs}, #{item.xnxq})
+		</foreach>
+	</insert>
+
+	<insert id="insertScoreClassDistributeMkBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassdistribute_mk}
+			(kslc, xxdm, bh, kmdm, dm, fbdm, rs, ljrs, xnxq)
+		values
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.bh}, #{item.kmdm}, #{item.dm}, #{item.fbdm}, #{item.rs}, #{item.ljrs}, 
+				#{item.xnxq})
+		</foreach>
+	</insert>
+
+	<insert id="insertScoreRankStatisticsBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankstatistics}
+			(kslc, xxdm, bh, pmfbdm, rs, ljrs, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.bh}, #{item.pmfbdm}, #{item.rs}, #{item.ljrs}, #{item.xnxq})
+		</foreach>
+	</insert>
+
+	<insert id="insertScoreRankStatisticsMk" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankstatistics_mk}
+			(kslc, xxdm, bh, kmdm, pmfbdm, rs, ljrs, xnxq)
+		values
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.bh}, #{item.kmdm}, #{item.pmfbdm}, #{item.rs}, #{item.ljrs}, #{item.xnxq})
+		</foreach>
+	</insert>
+	
+	<insert id="insertScoreGroupStatisticsMkBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoregroupstatistics_mk}
+			(kslc, xxdm, fzdm, kmdm, ckrs, tjrs, pjf, pjffc, bzc, yxl, yxrs, yxlc, hgl, hgrs, hglc, dfl, 
+				dfrs, dflc, ldxs, qfd, jzsrs, qnsrs, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.fzdm}, #{item.kmdm}, #{item.ckrs}, #{item.tjrs}, #{item.pjf}, 
+				#{item.pjffc}, #{item.bzc}, #{item.yxl}, #{item.yxrs}, #{item.yxlc}, #{item.hgl}, #{item.hgrs}, 
+				#{item.hglc}, #{item.dfl}, #{item.dfrs}, #{item.dflc}, #{item.ldxs}, #{item.qfd}, #{item.jzsrs}, 
+				#{item.qnsrs}, #{item.xnxq})
+		</foreach>
+	</insert>
+	
+	<insert id="insertScoreGroupStatisticsBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoregroupstatistics}
+			(kslc, xxdm, fzdm, pjf, pjffc, ckrs, tjrs, bzc, yxl, yxrs, yxlc, hgl, hgrs, hglc, dfl, dfrs, 
+				dflc, jzsrs, qnsrs, dlxs, qfd, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.fzdm}, #{item.pjf}, #{item.pjffc}, #{item.ckrs}, #{item.tjrs}, 
+				#{item.bzc}, #{item.yxl}, #{item.yxrs}, #{item.yxlc}, #{item.hgl}, #{item.hgrs}, #{item.hglc}, 
+				#{item.dfl}, #{item.dfrs}, #{item.dflc}, #{item.jzsrs}, #{item.qnsrs}, #{item.dlxs}, #{item.qfd}, 
+				#{item.xnxq})
+		</foreach>
+	</insert>
+	
+	<insert id="insertScoreStuBzfBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestubzf}
+			(kslc, xxdm, xh, bzf, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.xh}, #{item.bzf}, #{item.xnxq})
+		</foreach>
+	</insert>
+	
+	<insert id="insertScoreStuBzfMkBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestubzf_mk}
+			(kslc, xxdm, xh, kmdm, bzf, xnxq) 
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.xh}, #{item.kmdm}, #{item.bzf}, #{item.xnxq})
+		</foreach>
+	</insert>
+
+	<insert id="insertScoreStuJzsqnsBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestujzsqns}
+			(kslc, xxdm, xh, lb, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.xh}, #{item.lb}, #{item.xnxq})
+		</foreach>
+	</insert>
+
+	<insert id="insertScoreStuJzsqnsMkBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestujzsqns_mk}
+			(kslc, xxdm, kmdm, xh, lb, xnxq) 
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.kmdm}, #{item.xh}, #{item.lb}, #{item.xnxq})
+		</foreach>
+	</insert>
+	
+	<insert id="insertScoreClassStatisticsRangeBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics_range}
+			(kslc, xxdm, bh, ckrs, tjrs, pjf, pjffc, bzc, zgf, zdf, bzf, yxl, yxrs, yxlc, yxlpm, hgl, hgrs, 
+				hglc, hglpm, dfl, dfrs, dflc, dflpm, jzsrs, qnsrs, pm, mf, ldxs, qfd, jxxg, ldpm, bzcpm, qfdpm, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.bh}, #{item.ckrs}, #{item.tjrs}, #{item.pjf}, #{item.pjffc}, #{item.bzc}, 
+				#{item.zgf}, #{item.zdf}, #{item.bzf}, #{item.yxl}, #{item.yxrs}, #{item.yxlc}, #{item.yxlpm}, #{item.hgl}, 
+				#{item.hgrs}, #{item.hglc}, #{item.hglpm}, #{item.dfl}, #{item.dfrs}, #{item.dflc}, #{item.dflpm}, 
+				#{item.jzsrs}, #{item.qnsrs}, #{item.pm}, #{item.mf}, #{item.ldxs}, #{item.qfd}, #{item.jxxg}, #{item.ldpm}, 
+				#{item.bzcpm}, #{item.qfdpm}, #{item.xnxq})
+		</foreach>
+	</insert>
+	
+	<insert id="insertScoreGroupStatisticsMkRange" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoregroupstatistics_mk_range}
+			(kslc, xxdm, fzdm, kmdm, ckrs, tjrs, pjf, pjffc, bzc, yxl, yxrs, yxlc, hgl, hgrs, hglc, dfl, dfrs, dflc, 
+				ldxs, qfd, jzsrs, qnsrs, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.fzdm}, #{item.kmdm}, #{item.ckrs}, #{item.tjrs}, #{item.pjf}, #{item.pjffc}, 
+				#{item.bzc}, #{item.yxl}, #{item.yxrs}, #{item.yxlc}, #{item.hgl}, #{item.hgrs}, #{item.hglc}, #{item.dfl}, 
+				#{item.dfrs}, #{item.dflc}, #{item.ldxs}, #{item.qfd}, #{item.jzsrs}, #{item.qnsrs}, #{item.xnxq})
+		</foreach>
+	</insert>
+	
+	<insert id="insertScoreGroupStatisticsRangeBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoregroupstatistics_range}
+			(kslc, xxdm, fzdm, ckrs, tjrs, pjf, pjffc, bzc, yxl, yxrs, yxlc, hgl, hgrs, hglc, dfl, dfrs, dflc, 
+				jzsrs, qnsrs, ldxs, qfd, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.fzdm}, #{item.ckrs}, #{item.tjrs}, #{item.pjf}, #{item.pjffc}, 
+				#{item.bzc}, #{item.yxl}, #{item.yxrs}, #{item.yxlc}, #{item.hgl}, #{item.hgrs}, #{item.hglc}, 
+				#{item.dfl}, #{item.dfrs}, #{item.dflc}, #{item.jzsrs}, #{item.qnsrs}, #{item.ldxs}, #{item.qfd}, 
+				#{item.xnxq})
+		</foreach>
+	</insert>
+
+	<insert id="insertClassScoreLevelMkBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelmk}
+			(kslc, xxdm, bh, kmdm, djdm, dj, rs, bl, lc, pm, ljrs, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.bh}, #{item.kmdm}, #{item.djdm}, #{item.dj}, #{item.rs}, 
+				#{item.bl}, #{item.lc}, #{item.pm}, #{item.ljrs}, #{item.xnxq})
+		</foreach>
+	</insert>
+
+	<insert id="insertGroupScoreLevelMkBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_groupscorelevelmk}
+			(kslc, xxdm, fzdm, kmdm, djdm, dj, rs, bl, lc, ljrs, rsc, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.fzdm}, #{item.kmdm}, #{item.djdm}, #{item.dj}, #{item.rs}, 
+				#{item.bl}, #{item.lc}, #{item.ljrs}, #{item.rsc}, #{item.xnxq})
+		</foreach>
+	</insert>
+
+	<insert id="insertClassScoreLevelSequnceBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelsequnce}
+			(kslc, xxdm, bh, djxllb, djxl, rs, ljrs, bl, pm, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.bh}, #{item.djxllb}, #{item.djxl}, #{item.rs}, #{item.ljrs}, 
+				#{item.bl}, #{item.pm}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE rs = VALUES(rs), ljrs = VALUES(ljrs), bl = VALUES(bl), pm = VALUES(pm)
+	</insert>
+
+	<insert id="insertScoreClassStatisticsMkRange" parameterType="splitDbAndTableRule" > 
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics_mk_range}
+			(kslc, xxdm, bh, kmdm, ckrs, tjrs, pjf, pjffc, pm, bzc, yxl, yxrs, yxlc, yxlpm, hgl, hgrs, hglc, 
+				hglpm, dfl, dfrs, dflc, dflpm, mf, ldxs, qfd, jxxg, ldpm, bzcpm, qfdpm, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.bh}, #{item.kmdm}, #{item.ckrs}, #{item.tjrs}, #{item.pjf}, #{item.pjffc}, 
+				#{item.pm}, #{item.bzc}, #{item.yxl}, #{item.yxrs}, #{item.yxlc}, #{item.yxlpm}, #{item.hgl}, #{item.hgrs}, 
+				#{item.hglc}, #{item.hglpm}, #{item.dfl}, #{item.dfrs}, #{item.dflc}, #{item.dflpm}, #{item.mf}, 
+				#{item.ldxs}, #{item.qfd}, #{item.jxxg}, #{item.ldpm}, #{item.bzcpm}, #{item.qfdpm}, #{item.xnxq})
+		</foreach>
+	</insert> 
+	
+	<insert id="insertAnalysisReportStuBatch" parameterType="splitDbAndTableRule" > 
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_sar_analysisreport_stu}
+			(xxdm, kslc, xh, cjd, jbtsy, tbtsy, kmylsj, kmyltsy, xnxq) 
+		VALUES  
+		<foreach collection="data" item="item" separator=",">
+			(#{item.xxdm}, #{item.kslc}, #{item.xh}, #{item.cjd}, #{item.jbtsy}, #{item.tbtsy}, 
+				#{item.kmylsj}, #{item.kmyltsy}, #{item.xnxq})
+		</foreach>
+	</insert>
+	
+	<insert id="insertAnalysisReportNjBatch" parameterType="splitDbAndTableRule" > 
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_sar_analysisreport_nj}
+			(xxdm, kslc, nj, fzdm, bjtsy, pjfdbb, yxldbb, hgldbb, ddzdbb, pmdbb, kmtsy, kmdbb, jstsy, jskmdbb, xnxq) 
+		VALUES  
+		<foreach collection="data" item="item" separator=",">
+			(#{item.xxdm}, #{item.kslc}, #{item.nj}, #{item.fzdm}, #{item.bjtsy}, #{item.pjfdbb}, #{item.yxldbb}, 
+				#{item.hgldbb}, #{item.ddzdbb}, #{item.pmdbb}, #{item.kmtsy}, #{item.kmdbb}, #{item.jstsy}, 
+				#{item.jskmdbb}, #{item.xnxq})
+		</foreach>
+	</insert> 
+	
+	<insert id="insertAnalysisReportBjBatch" parameterType="splitDbAndTableRule" > 
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_sar_analysisreport_bj}
+			(xxdm, kslc, bh, ksqk, xsycqk, cjgzsj, mcdrs, zfdrs, reportdata, xnxq) 
+		VALUES  
+		<foreach collection="data" item="item" index="index" separator=",">
+			(#{item.xxdm}, #{item.kslc}, #{item.bh}, #{item.ksqk}, #{item.xsycqk}, #{item.cjgzsj}, #{item.mcdrs}, 
+				#{item.zfdrs}, #{item.reportdata}, #{item.xnxq})
+		</foreach>
+	</insert> 
+	
+	<!-- 批量保存分析竞赛结果 -->
+	<insert id="insertCompetitionStuStatisticsBatch" parameterType="splitDbAndTableRule" > 
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_competitionstustatistics}
+			(xxdm, kslc, fzdm, kmdm, kmzmc, pjf, yxrs, yxl, hgrs, hgl, xnxq) 
+		VALUES  
+		<foreach collection="data" item="item" index="index" separator=",">
+			(#{item.xxdm}, #{item.kslc}, #{item.fzdm}, #{item.kmdm}, #{item.kmzmc}, #{item.pjf}, #{item.yxrs}, #{item.yxl}, 
+				#{item.hgrs}, #{item.hgl}, #{item.xnxq})
+		</foreach>
+	</insert> 
+	
+	<insert id="insertAppStudentScoreReportBatch" parameterType="splitDbAndTableRule" >
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_appstudentscorereport}
+	   		(SchoolId, ExamId, StudentId, ReportData, termInfoId)
+		VALUES 
+		<foreach collection="data" item="item" index="index" separator=",">
+	    	(#{item.SchoolId}, #{item.ExamId}, #{item.StudentId}, #{item.ReportData}, #{item.termInfoId})
+	    </foreach>
+	</insert> 
+	
+	
+	
+	
+	<delete id="deleteScoreStuStatisticsRank" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreStuStatisticsRankMk" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreClassStatistics" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreClassStatisticsMk" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics_mk} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreClassDistribute" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassdistribute} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreDistribute" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoredistribute} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreDistributeKm" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoredistribute_km} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreClassDistributeMk" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassdistribute_mk} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreRankStatistics" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankstatistics} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreRankStatisticsMk" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankstatistics_mk} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreGroupStatisticsMk" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoregroupstatistics_mk} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreGroupStatistics" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoregroupstatistics} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreStuBzf" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestubzf}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreStuBzfMk" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestubzf_mk} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreStuJzsqns" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestujzsqns} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreStuJzsqnsMk" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestujzsqns_mk} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreClassStatisticsRange" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics_range}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreClassStatisticsMkRange" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics_mk_range}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreGroupStatisticsMkRange" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoregroupstatistics_mk_range}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreGroupStatisticsRange" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoregroupstatistics_range} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteClassScoreLevelMk" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelmk}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteGroupScoreLevelMk" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_groupscorelevelmk} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteClassScoreLevelSequnce" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_classscorelevelsequnce}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteScoreLevelSequnce" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorelevelsequnce}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteAnalysisReportNj" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_sar_analysisreport_nj}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteAnalysisReportBj" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_sar_analysisreport_bj}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteAnalysisReportStu" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_sar_analysisreport_stu}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteCompetitionStuStatistics" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_competitionstustatistics}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	</delete>
+	
+	<delete id="deleteAppStudentScoreReport" parameterType="splitDbAndTableRule">
+  		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_appstudentscorereport} 
+  		WHERE schoolId = #{data.xxdm} AND examId = #{data.kslc} AND termInfoId = #{data.xnxq}
+	</delete>
+</mapper>

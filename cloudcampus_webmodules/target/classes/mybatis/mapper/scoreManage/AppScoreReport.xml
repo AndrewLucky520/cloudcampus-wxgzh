@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.talkweb.scoreReport.dao.AppScoreReportDao">
+    <!-- 读取学生的校内考试和班级测试的所有考试列表 -->
+    <select id="getAppExamList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.kslcdm AS examId, a.xnxq AS termInfoId, a.kslcmc AS examName, a.autoIncr, '1' AS examType, 
+			'1' AS scoreDataType, a.fbtime AS time, a.fbpmflag AS isShow 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo} a 
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.fbflag = '1'
+		UNION ALL
+		SELECT a.ExamId AS examId, a.termInfoId, a.ExamName AS examName, a.autoIncr, '2' AS examType, 
+			a.ScoreDataType AS scoreDataType, a.PublicTime AS time, '1' AS isShow 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexaminfo} a 
+		WHERE a.schoolId = #{data.xxdm} AND a.termInfoId = #{data.xnxq} AND a.ScoreDataType = '1' AND IsPublic = '1' 
+		UNION ALL
+		SELECT a.ExamId AS examId, a.termInfoId, a.ExamName AS examName, a.autoIncr, '3' AS examType, 
+			a.ScoreDataType AS scoreDataType, a.PublicTime AS time, '1' AS isShow 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexaminfo} a 
+		WHERE a.schoolId = #{data.xxdm} AND a.termInfoId = #{data.xnxq} AND a.ScoreDataType = '2' AND a.IsPublic='1'
+    </select>
+    
+    <select id="ifExistsStuInExamScore" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+    	<choose>
+    		<when test="data.examType == 1">
+    			SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo}
+				WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+					AND xh = #{data.xh} 
+				<if test="data.bh != null">
+					AND bh = #{data.bh}
+				</if>
+				LIMIT 1
+    		</when>
+    		<when test="data.examType == 2">
+    			SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore} 
+				WHERE ExamId = #{data.kslc} AND SchoolId = #{data.xxdm} AND termInfoId = #{data.xnxq}
+					AND StudentId = #{data.xh} 
+				<if test="data.bh != null">
+					AND ClassId = #{data.bh}
+				</if>
+				LIMIT 1
+    		</when>
+    		<when test="data.examType == 3">
+    			SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscoreinfo} 
+				WHERE examId = #{data.kslc} AND schoolId = #{data.xxdm} AND termInfoId = #{data.xnxq}
+					AND StudentId = #{data.xh} 
+				<if test="data.bh != null">
+					AND ClassId = #{data.bh}
+				</if>
+				LIMIT 1
+    		</when>
+    	</choose>
+    </select>
+    
+    
+    <select id="ifExistsClassOrStuInExamScore" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+          SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo}
+          WHERE kslc = #{data.kslc} 
+          <if test='data.classId!=null and data.classId != "" '>
+              and bh = #{data.classId}
+          </if>
+          <if test=' data.studentId!=null and  data.studentId != "" '>
+              and xh = #{data.studentId}
+          </if>
+          limit 1
+    </select>
+    
+    <!-- 这里是系统导入与自定义导入一起的 -->
+    <select id="ifExistsClassExamScore"  parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+          SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamrelative}
+          WHERE ExamId = #{data.kslc} 
+             <if test='data.classId!=null and data.classId != "" '>
+              and ClassId = #{data.classId}
+          </if>
+          limit 1
+    </select>
+ 
+    
+    
+    
+      <!-- 获取班内考试总分情况：总分，总分等第，考试成就 -->
+	<select id="getClassExamTotalScoreInfoList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT ExamId AS examId, StudentId AS studentId, TotalScore AS totalScore, TotalScoreRank AS totalScoreRank, 
+			SurpassRatio AS surpassRatio
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_studenttotalscorestatistics} 
+		WHERE SchoolId = #{data.xxdm} AND ExamId = #{data.kslc} AND termInfoId = #{data.xnxq} 
+			AND StudentId = #{data.xh} AND ClassId = #{data.bh}
+    </select>
+    
+      <!-- 获取统考考试总分情况：总分，总分等第，考试成就 -->
+    <select id="getOfficialExamTotalScoreInfoList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT #{data.kslcmc} AS examName, a.kslc AS examId, a.xh AS studentId, a.zf AS totalScore, 
+			a.bjpm AS classRank, a.djxl AS totalScoreLevel 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} a
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq}
+			AND a.xh = #{data.xh}
+    </select>
+    
+    <!-- 获取统考考试总分成就：比如多少人 -->
+    <select id="getOfficialExamAchievementList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.kslc AS examId, a.xh AS studentId, a.bjpm AS classRank, b.tjrs AS statisNum, b.ckrs AS joinNum
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} a  
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} b 
+					ON a.xnxq = b.xnxq AND a.xxdm = b.xxdm AND a.kslc = b.kslc AND b.bh = #{data.bh}
+						AND a.xh = #{data.xh}
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}
+    </select>
+    
+     <!-- 获取校内考试学生报告 -->
+    <select id="getOfficailAppStudentReport" parameterType="splitDbAndTableRule" resultType="String">
+		SELECT a.ReportData FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_appstudentscorereport} a 
+		WHERE a.ExamId = #{data.kslc} AND a.termInfoId = #{data.xnxq} AND a.SchoolId = #{data.xxdm}
+			AND a.StudentId = #{data.xh}
+		LIMIT 1
+    </select>
+    
+	<select id="selectSchoolExamSubjectScoreList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.kmdm AS subjectId, a.cj AS score 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a 
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq}
+			AND a.xh = #{data.xh}
+	</select>
+	
+	<!-- 获取当前考试前5次考试,并且包含当前考试 -->
+	<select id="getFrontFiveSchoolExamList" parameterType="Map" resultType="JSONObject">
+		SELECT a.kslcdm, a.autoIncr , a.kslcmc
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo} a
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.fbflag = '1' AND a.cdate &lt;= #{data.cdate}
+			ORDER BY a.cdate DESC 
+	</select>
+	
+	<select id="getSchoolExamList" parameterType="Map" resultType="JSONObject">
+	     select kslc , autoIncr , examName , examType , publicTime , examType
+	     from (
+	     select a.ExamId as kslc , a.autoIncr , a.ExamName as examName, a.PublicTime  as publicTime, a.examType
+	     from ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexaminfo} a
+	     where a.SchoolId =  #{data.schoolId} and a.isPublic = '1'
+	     <if test=' data.examId !=null and data.examId != "" '>
+	          AND a.ExamId = #{data.examId}
+	     </if>
+	     union 
+	     select  b.kslcdm as kslc, b.autoIncr , b.kslcmc  as examName, b.fbtime as publicTime , '0' as examType
+	     from  ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo} b
+	     where  b.xxdm = #{data.schoolId} AND b.fbflag = '1'  
+	     <if test=' data.examId !=null and data.examId != "" '>
+	          AND b.kslcdm = #{data.examId}
+	     </if>
+	     ) c
+	     ORDER BY c.publicTime desc 
+	</select>
+	
+	<!-- 获取插入查阅情况 -->
+	<insert id="insertExamView" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_studentscorereporttrace}
+    		(SchoolId, ExamId, StudentId, classId, accountId, viewFlag, termInfoId)
+		VALUES
+			(#{data.SchoolId}, #{data.ExamId}, #{data.StudentId}, #{data.classId}, #{data.accountId}, 
+				#{data.viewFlag}, #{data.termInfoId})
+		ON DUPLICATE KEY UPDATE viewFlag = VALUES(viewFlag), classId = VALUES(classId)
+	</insert>
+	
+	<!-- 获取学生单科成绩列表 -->
+	<select id="selectClassExamEverSubjectScore" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.subjectId, a.score
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore} a 
+		WHERE a.ExamId = #{data.examId} AND a.SchoolId = #{data.schoolId} AND a.termInfoId = #{data.termInfoId} 
+			AND a.studentId = #{data.studentId} 
+		ORDER BY CAST(subjectId AS UNSIGNED) ASC;
+	</select>
+
+	<!-- 获取学生总分成绩列表 -->
+	<select id="selectClassExamTotalScore" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.StudentId AS studentId, a.TotalScore AS totalScore, a.ClassId AS classId, a.SurpassRatio AS surpassRatio
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_studenttotalscorestatistics} a
+		WHERE a.ExamId = #{data.examId} AND a.SchoolId = #{data.schoolId} AND a.termInfoId = #{data.termInfoId}
+			AND a.studentId = #{data.studentId}
+		LIMIT 1
+	</select>
+	
+	<!-- 获取学生班级总分统计分析结果成绩列表 -->
+	<select id="selectClassExamClassTotalScore" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.ExamId AS examId, a.SchoolId AS schoolId, a.ClassTotalScoreAverScore AS classTotalScoreAverScore, 
+			a.ClassTopTotalScore AS classTopTotalScore, a.TopOneScore AS topOneScore, a.topTwoScore, a.topThreeScore 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classtotalscorestatistics} a
+		WHERE a.ExamId = #{data.examId} AND a.SchoolId = #{data.schoolId} AND a.termInfoId = #{data.termInfoId} 
+			AND a.ClassId = #{data.classId} 
+	</select>
+
+	<!-- 获取班内测试科目列表 -->
+	<select id="selectClassExamSubjectList" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT subjectId FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubject} a 
+		WHERE a.ExamId = #{data.examId} AND a.SchoolId = #{data.schoolId} AND a.termInfoId = #{data.termInfoId}
+		ORDER BY subjectId ASC
+	</select>
+	
+	<!-- 自定义考试某学生的成绩-->
+	<select id="selectCustomScoreByStudentId" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.ProjectId AS projectId, b.ProjectName AS projectName, a.Score AS score 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscoreinfo} a 
+				LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscore} b 
+					ON a.ExamId = b.ExamId AND a.SchoolId = b.SchoolId AND a.termInfoId = b.termInfoId
+						AND a.ProjectId = b.ProjectId 
+		WHERE a.SchoolId = #{data.schoolId} AND a.ExamId = #{data.examId} AND a.termInfoId = #{data.termInfoId}
+			AND a.StudentId = #{data.studentId}
+		ORDER BY b.Col, b.Row
+	</select>
+	
+	<!-- h5 老师查看考试列表 -->
+	<select id="selectTeacherExamSoreList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.kslcdm AS examId, a.kslcmc AS examName, a.xnxq AS termInfoId, a.autoIncr, '1' AS examType, a.cdate AS time,
+			'1' AS showViewButton, IFNULL(a.external, '0') AS externals,a.counter
+	    	FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo} a 
+	    WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.fbteaflag = '1'
+		UNION ALL
+       	SELECT a.examId, a.examName, a.termInfoId, a.autoIncr, '2' AS examType, a.createTime AS time, 
+       		'1' AS showViewButton, '0' AS external,a.counter
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexaminfo} a 
+		WHERE a.schoolId = #{data.xxdm} AND a.termInfoId = #{data.xnxq} AND a.isPublic = 1 
+			AND examType = 1
+		UNION ALL
+		SELECT a.examId, a.examName, a.termInfoId, a.autoIncr, '3' AS examType, a.createTime AS time, '0' AS showViewButton,
+      		'0' AS external,a.counter
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexaminfo} a 
+		WHERE a.schoolId = #{data.xxdm} AND a.termInfoId = #{data.xnxq} AND examType = 2 AND a.isPublic = 1 
+	</select>
+	  
+	<select id="getBhListFromStatistics" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT bh
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics}
+		WHERE kslc = #{data.kslc} AND xxdm = #{data.xxdm} AND xnxq = #{data.xnxq}
+			AND bh IN
+			<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+	</select>
+
+	<select id="getClassIdFromClassExamRelative" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT ClassId
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamrelative}
+		WHERE ExamId = #{data.kslc} AND SchoolId = #{data.xxdm} AND termInfoId = #{data.xnxq}
+			AND ClassId IN
+			<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+	</select>
+	
+	<select id="getClassIdFromCustomScoreInfo" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT a.ClassId
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamrelative} a
+				LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscoreinfo} b
+					ON a.ExamId = b.ExamId AND a.SchoolId = b.SchoolId AND a.termInfoId = b.termInfoId 
+						AND a.ClassId = b.ClassId
+		WHERE a.ExamId = #{data.kslc} AND a.SchoolId = #{data.xxdm} AND a.termInfoId = #{data.xnxq}
+			AND a.ClassId IN
+			<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+	</select>
+	
+	<!-- 家长查阅情况 -->
+	<select id="selectParentViewList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT classId, SUM(CASE WHEN viewFlag = 0 THEN 1 ELSE 0 END) AS parentNoViewNum,
+			SUM(CASE WHEN viewFlag = 1 THEN 1 ELSE 0 END) AS parentViewedNum
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_studentscorereporttrace} 
+		WHERE ExamId = #{data.kslc} AND termInfoId = #{data.xnxq} AND SchoolId = #{data.xxdm} 
+			AND classId IN 
+			<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		GROUP BY classId
+	</select>
+	
+	 <!-- 校考参考人数 -->
+	<select id="selectSchoolExamCount" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.ckrs AS count, a.bh AS classId
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} a
+		WHERE kslc = #{data.kslc} AND xxdm = #{data.xxdm} AND xnxq = #{data.xnxq}
+			AND bh IN 
+			<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+	</select>
+	
+	<!-- 班级小考 参考人数 -->
+	<select id="selectClassExamCount" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT ClassId AS classId, COUNT(DISTINCT StudentId) AS count
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore} 
+		WHERE SchoolId = #{data.xxdm} AND termInfoId = #{data.xnxq} AND ExamId = #{data.kslc}
+			AND ClassId IN
+			<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		GROUP BY ClassId
+	</select>
+	 
+	  <!-- 班级自定义 参考人数 -->
+	<select id="selectCustomExamCount" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT ClassId AS classId, COUNT(DISTINCT StudentId) AS count
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscoreinfo}
+		WHERE SchoolId = #{data.xxdm} AND termInfoId = #{data.xnxq} AND ExamId = #{data.kslc}
+			AND ClassId IN 
+			<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		GROUP BY classId
+	</select>
+	
+	<!-- 校考的 app 报告-->
+	<select id="selectClassReportViewList" parameterType="splitDbAndTableRule" resultType="java.lang.String">
+		SELECT reportdata 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_sar_analysisreport_bj} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} AND bh = #{data.bh}
+	</select>
+
+	<!-- 校考参考学生 -->
+	<select id="selectSchoolExamUser" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT xh 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} 
+		WHERE xxdm = #{data.xxdm} AND xnxq = #{data.xnxq} AND kslc = #{data.kslc} AND bh = #{data.bh}
+	</select>
+	
+	<!-- 班级小考学生 -->
+	<select id="selectClassExamUser" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT StudentId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore}  
+		WHERE SchoolId = #{data.schoolId} AND ExamId = #{data.examId} AND termInfoId = #{data.termInfoId}
+			AND ClassId = #{data.classId}
+	</select>
+
+	<!-- 自定义考试学生 -->
+	<select id="selectCustomExamUser" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT StudentId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscoreinfo} 
+		WHERE SchoolId = #{data.schoolId} AND ExamId = #{data.examId} AND termInfoId = #{data.termInfoId}
+			AND ClassId = #{data.classId}
+	</select>
+	
+	<!-- 家长查阅情况 -->
+	<select id="selectParentView" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT StudentId
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_studentscorereporttrace}  
+		WHERE SchoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId} AND ExamId = #{data.examId}
+			AND ClassId = #{data.classId}
+	</select>
+	
+	<!-- 班级校考科目成绩 -->
+	<select id="selectClassExamSubjectScoreList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT SubjectId, Score 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore} 
+		WHERE SchoolId = #{data.schoolId} AND ExamId = #{data.examId} AND termInfoId = #{data.termInfoId} 
+			AND ClassId = #{data.classId}
+		<if test="data.subjectIds != null">
+             AND SubjectId IN
+			<foreach collection="data.subjectIds" item="item" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	
+	<select id="getGradeExamScore"  parameterType="splitDbAndTableRule" resultType="JSONObject">
+	      select  zgf as topScore , yxl as excellentRate , hgl as passRate, pjf as averageScore, mf as fullScore
+	      from ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} 
+	      where kslc = #{data.kslc} and  bh = #{data.classId}
+	</select>
+	
+	<select id="getStudentList"  parameterType="splitDbAndTableRule" resultType="JSONObject">
+	       select distinct xh as studentId
+	       from  ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} 
+	       where kslc = #{data.examId}
+	       <if test="data.classId!=null and data.classId!= '' ">
+	          and bh = #{data.classId}
+	       </if>
+	       
+	</select>
+	
+	<select id="getStudentList1"  parameterType="splitDbAndTableRule" resultType="JSONObject">
+	       select distinct StudentId as studentId
+	       from  ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore} 
+	       where ExamId = #{data.examId} 
+	        <if test="data.classId!=null and data.classId!= '' ">
+	          and ClassId = #{data.classId}
+	       </if>
+	</select>
+	
+	<select id="getStudentList2"  parameterType="splitDbAndTableRule" resultType="JSONObject">
+	       select distinct StudentId as studentId
+	       from  ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscoreinfo} 
+	       where ExamId = #{data.examId} 
+	       <if test="data.classId!=null and data.classId!= '' ">
+	          and ClassId = #{data.classId}
+	       </if>
+	</select>
+	
+	
+	<select id="getExamStudentScoreReport"  parameterType="splitDbAndTableRule" resultType="JSONObject">
+	       select  kmdm  as subjectId,  cj as score ,  nj , bh as classId
+	       from   ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} 
+	       where  kslc = #{data.kslc} and xh = #{data.studentId}
+	</select>
+	
+	<select id="getExamStudentScoreReport1" parameterType="splitDbAndTableRule" resultType="JSONObject">
+	      select SubjectId as subjectId , Score as score , ClassId as classId
+	      from  ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore} 
+	      where  ExamId = #{data.kslc} and StudentId =  #{data.studentId}
+	</select>
+	
+	<select id="getExamStudentScoreReport2" parameterType="splitDbAndTableRule" resultType="JSONObject">
+	     	SELECT   b.ProjectName as subjectName ,  a.Score  as score , a.ClassId  as classId
+	     	 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscoreinfo}  a 
+            LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscore}  b on (a.ExamId = b.ExamId and a.ProjectId = b.ProjectId)
+            where a.ExamId =  #{data.kslc} and a.StudentId =  #{data.studentId}
+	</select>
+	
+	
+
+
+	
+	
+	<select id="getFullScore" parameterType="splitDbAndTableRule" resultType="JSONObject">
+	         select   kmdm as subjectId , mf as fullScore
+	         from  ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoremf} 
+	         where kslc = #{data.kslc}
+	         <if test='data.nj != null and data.nj != "" '>
+	             and nj = #{data.nj}
+	         </if>
+	</select>
+	
+	<select id="getClassAvergaeScore"  parameterType="splitDbAndTableRule" resultType="JSONObject">
+	    select pjf 
+	    from  ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics}   
+	    where  kslc = #{data.kslc} and   bh = #{data.classId}
+	</select>
+	
+	<select id="getGradeAvergaeScore"  parameterType = "splitDbAndTableRule" resultType = "JSONObject" >
+           SELECT  pjf  
+           FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoregroupstatistics}  
+           where  kslc = #{data.kslc} and  fzdm in (
+                select bmfz 
+                from   ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj}
+                where  bh = #{data.classId}
+           )
+	</select>
+	
+	
+</mapper>

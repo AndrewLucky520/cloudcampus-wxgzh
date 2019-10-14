@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.questionnaire.dao.QuestionnaireDao">
+	<select id="ifExistsDataInTermInfo" parameterType="hashmap" resultType="java.lang.Integer">
+		SELECT 1 FROM ${db_name_cc_questionnaire}.t_qn_questionnaire q, ${db_name_cc_questionnaire}.t_qn_obj o
+			WHERE q.schoolId = o.schoolId
+			AND q.questionId = o.questionId
+			AND q.schoolId = #{schoolId}
+			AND q.yearId = #{yearId}
+			AND q.termId = #{termId}
+			AND q.questionStartDate IS NOT NULL
+			AND q.questionEndDate IS NOT NULL
+		<if test="endDate != null">
+			AND q.questionEndDate >= #{endDate}
+		</if>
+			AND o.objType = #{objType}
+		<if test="classId != null">
+			AND o.classId = #{classId}
+		</if>
+		<if test="accountId != null">
+			AND o.accountId = #{accountId}
+		</if>
+		LIMIT 1
+	</select>
+	
+	<!-- 查询考评信息 -->
+	<select id="queryQuestionList" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+   		select * from ${db_name_cc_questionnaire}.t_qn_questionnaire where 1 = 1
+   		<if test="schoolId !=null and schoolId !='' ">
+   		    AND schoolId = #{schoolId} 
+   		</if>
+   		<if test="yearId != null">
+   			AND yearId = #{yearId}
+   		</if>
+   		<if test="termId != null">
+   			AND termId = #{termId}
+   		</if>
+   		<if test="questionType != null">
+   			AND questionType = #{questionType}
+   		</if>
+   		<if test="questionTypeNoNull != null ">
+   			AND questionType is not null
+   		</if>
+   		<if test="questionId != null and questionId != ''">
+			AND questionId = #{questionId} 			
+     	</if>
+     	order by createDate DESC
+     	<if test="limitNum != null">
+			 LIMIT #{limitNum}		
+     	</if>
+     	
+	</select>
+	<update id="createQuestionnaire" parameterType="hashmap">
+		INSERT INTO ${db_name_cc_questionnaire}.t_qn_questionnaire(questionId,questionName,yearId,termId,createDate,createAccount,schoolId) 
+		VALUES  (#{questionId},#{questionName},#{yearId},#{termId},#{createDate},#{createAccount},#{schoolId});
+	</update>
+	<update id="updateQuestionByName" parameterType="hashmap">
+		UPDATE ${db_name_cc_questionnaire}.t_qn_questionnaire SET questionName = #{questionName}  
+		WHERE questionId = #{questionId} AND yearId = #{yearId} AND termId = #{termId} AND schoolId = #{schoolId}
+	</update>
+	<update id="updateQuestionnaireByDetail" parameterType="hashmap">
+		UPDATE ${db_name_cc_questionnaire}.t_qn_questionnaire 
+		SET questionStartDate = #{questionStartDate},questionEndDate = #{questionEndDate}, anonymous = #{anonymous},
+		questionDetail = #{questionDetail},questionType = #{questionType},questionStatus = #{questionStatus}
+		,allowModify = #{allowModify}
+		WHERE questionId = #{questionId} AND yearId = #{yearId} AND termId = #{termId} AND schoolId = #{schoolId}
+	</update>
+	<update id="updateQuestionnaireStatus" parameterType="hashmap">
+		UPDATE ${db_name_cc_questionnaire}.t_qn_questionnaire 
+		SET questionStatus = #{questionStatus}
+		WHERE questionId = #{questionId} AND yearId = #{yearId} AND termId = #{termId} AND schoolId = #{schoolId}
+	</update>
+	<update id="createRuleForTable" parameterType="hashmap">
+		INSERT INTO ${db_name_cc_questionnaire}.t_qn_rulefortable(tableRuleId,schoolId,questionId,contentNum1,contentNum2,optionNum1,optionNum2,isImport,maxNum , minNum) 
+		VALUES  (#{tableRuleId},#{schoolId},#{questionId},#{contentNum1},#{contentNum2},#{optionNum1},#{optionNum2},#{isImport},#{maxNum} , #{minNum});
+	</update>
+	<update id="deleteRuleForTable" parameterType="hashmap">
+		DELETE FROM ${db_name_cc_questionnaire}.t_qn_rulefortable WHERE questionId=#{questionId}
+	</update>
+	<select id="queryRuleForTableById" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	   		select * from ${db_name_cc_questionnaire}.t_qn_rulefortable where questionId = #{questionId} 
+	</select>
+	<update id="saveQuestionByTab" parameterType="java.util.List">
+		INSERT INTO ${db_name_cc_questionnaire}.t_qn_optionfortable(questionId,tableOptionId,indexRow,indexColumn,content,tableOptionType) VALUES
+		<foreach collection="optionForTableList" item="item" index="index" separator=",">
+		   (#{item.questionId},#{item.tableOptionId},#{item.indexRow},#{item.indexColumn},#{item.content},#{item.tableOptionType})
+        </foreach>
+	</update>
+	<update id="deleteQuestionByTab" parameterType="hashmap">
+		DELETE FROM ${db_name_cc_questionnaire}.t_qn_optionfortable WHERE questionId=#{questionId}
+	</update>
+	<select id="queryOptionForTableById" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	   		select * from ${db_name_cc_questionnaire}.t_qn_optionfortable where questionId = #{questionId}  ORDER BY indexRow,indexColumn asc
+	</select>
+	
+	<update id="deleteQuestionByGxLevel" parameterType="hashmap">
+		DELETE FROM ${db_name_cc_questionnaire}.t_qn_targetlevelforspecific WHERE questionId=#{questionId}
+		<if test="targetId != null and targetId != ''">
+				AND targetId = #{targetId} 			
+	   	</if>
+	</update>
+	<update id="deleteQuestionByGx" parameterType="hashmap">
+		DELETE FROM ${db_name_cc_questionnaire}.t_qn_targetforspecific WHERE questionId=#{questionId}
+		<if test="targetId != null and targetId != ''">
+				AND targetId = #{targetId} 			
+	   	</if>
+	</update>
+	
+	<select id="queryTargetByQueId" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	   		select * from ${db_name_cc_questionnaire}.t_qn_targetforspecific where questionId = #{questionId}
+	   		<if test="schoolId != null">
+	   			AND schoolId = #{schoolId}
+	   		</if> 
+	   		<if test="targetId != null and targetId != ''">
+				AND targetId = #{targetId} 			
+	   		</if>
+	   		<if test="targetSeq != null and targetSeq != ''">
+				AND targetSeq > #{targetSeq} 			
+	   		</if>
+	   		order by targetSeq asc
+	</select>
+	
+	<update id="saveQuestionByQx" parameterType="hashmap">
+		INSERT INTO ${db_name_cc_questionnaire}.t_qn_targetforspecific
+		(targetId,optionType,targetType,targetDetail,targetSeq,isNeed,schoolId,questionId , maxmum) VALUES
+		(#{targetId},#{optionType},#{targetType},#{targetDetail},#{targetSeq},#{isNeed},#{schoolId},#{questionId} , #{maxmum})
+	</update>
+	
+	<update id="saveQuestionByQxLevel" parameterType="java.util.List">
+		INSERT INTO ${db_name_cc_questionnaire}.t_qn_targetlevelforspecific
+		(targetId,levelId,levelName,targetLevelOpt,targetLevelSeq,isEdit,schoolId,questionId) VALUES
+		<foreach collection="targetLevel" item="item" index="index" separator=",">
+		  (#{item.targetId},#{item.levelId},#{item.levelName},#{item.targetLevelOpt},#{item.targetLevelSeq},#{item.isEdit},#{item.schoolId},#{item.questionId})
+        </foreach>
+	</update>
+	
+	<select id="queryTargetMaxSeqByQueId" parameterType="hashmap" resultType="Integer">
+	   	select max(targetSeq) from ${db_name_cc_questionnaire}.t_qn_targetforspecific where questionId = #{questionId} 
+	</select>
+	
+	<select id="queryTargetLevelById" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	   	select * from ${db_name_cc_questionnaire}.t_qn_targetlevelforspecific where targetId = #{targetId} 
+	   	<if test="levelId != null and levelId != ''">
+				AND levelId = #{levelId} 			
+	    </if>
+	    <if test="questionId != null and questionId != ''">
+				AND questionId = #{questionId} 			
+	    </if>
+	    order by targetLevelSeq asc
+	</select>
+	
+	<update id="updateQuestionByQx" parameterType="hashmap" >
+		UPDATE ${db_name_cc_questionnaire}.t_qn_targetforspecific SET targetDetail = #{targetDetail},isNeed = #{isNeed}
+		WHERE questionId = #{questionId} AND targetId = #{targetId} AND schoolId = #{schoolId}
+	</update>
+	
+	<update id="updateQuestionBySeq" parameterType="hashmap">
+		UPDATE ${db_name_cc_questionnaire}.t_qn_targetforspecific SET targetSeq = #{targetSeq}
+		WHERE questionId = #{questionId} AND targetId = #{targetId} AND schoolId = #{schoolId}
+	</update>
+	
+	<update id="saveRecord" parameterType="hashmap">
+		INSERT INTO ${db_name_cc_questionnaire}.t_qn_record(recordId,questionId,accountId,createDate,classId,useGrade,schoolId,userId) 
+		VALUES
+		(#{recordId},#{questionId},#{accountId},#{createDate},#{classId},#{useGrade},#{schoolId},#{userId})
+		ON DUPLICATE KEY UPDATE userId=VALUES(userId)
+	</update>
+	
+	<select id="queryRecordByUser" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT * FROM ${db_name_cc_questionnaire}.t_qn_record
+		 WHERE questionId = #{questionId} AND schoolId = #{schoolId}
+		<if test="classId != null">
+			AND classId = #{classId}
+		</if>
+		<if test="accountId != null">
+			AND accountId = #{accountId}
+	    </if>
+	    <if test="userId != null">
+	    	AND userId = #{userId}
+	    </if>
+	</select>
+	
+	<update id="deleteRecordByQuestionId" parameterType="hashmap">
+		DELETE FROM ${db_name_cc_questionnaire}.t_qn_record WHERE questionId = #{questionId} AND schoolId =#{schoolId}
+		<if test="classIds != null and classIds !=''">  
+	    	AND classId in
+			<foreach item="item" index="index" collection="classIds" open="(" separator="," close=")">  
+				#{item}  
+			</foreach>  
+		</if>
+		<if test="accountIds != null and accountIds !=''">  
+	    	AND accountId in
+			<foreach item="item" index="index" collection="accountIds" open="(" separator="," close=")">  
+				#{item}  
+			</foreach>  
+		</if>
+	</update>
+	
+	<update id="saveRecordDetailForTable" parameterType="java.util.List">
+		INSERT INTO ${db_name_cc_questionnaire}.t_qn_recorddetailfortable
+		(tableRuleId,tableOptionId,evalRecordResultId,recordId,schoolId , isSubmit) VALUES
+		<foreach collection="recordDetail" item="item" index="index" separator=",">
+		  (#{item.tableRuleId},#{item.tableOptionId},#{item.evalRecordResultId},#{item.recordId},#{item.schoolId} , #{item.isSubmit})
+        </foreach>
+	</update>
+	
+	<select id="queryRecordDetailForTableByUser" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		select * from ${db_name_cc_questionnaire}.t_qn_recorddetailfortable where recordId = #{recordId} and schoolId = #{schoolId}
+	</select>
+	
+	<update id="deleteRecordDetailForTable" parameterType="hashmap">
+		DELETE FROM ${db_name_cc_questionnaire}.t_qn_recorddetailfortable
+		WHERE recordId = #{recordId} AND schoolId =#{schoolId}
+		<if test="indexRow !=null and indexRow != '' ">
+		  AND tableOptionId in (
+		    select  tableOptionId from
+		    ${db_name_cc_questionnaire}.t_qn_optionfortable
+		    where indexRow  &lt;= #{indexRow}
+		  )
+		</if>
+	</update>
+	
+	<update id="updateSubmitStatus" parameterType="hashmap">
+	   update ${db_name_cc_questionnaire}.t_qn_recorddetailfortable
+	   set isSubmit = 1 
+	   where recordId = #{recordId} and schoolId = #{schoolId}
+	</update>
+	
+	<update id="saveRecordForSpecific" parameterType="java.util.List">
+		INSERT INTO ${db_name_cc_questionnaire}.t_qn_recorddetailforspecific
+		(recordId,evalRecordResultId,levelId,targetId,schoolId,content) VALUES
+		<foreach collection="specifics" item="item" index="index" separator=",">
+		  (#{item.recordId},#{item.evalRecordResultId},#{item.levelId},#{item.targetId},#{item.schoolId},#{item.content})
+        </foreach>
+	</update>
+	
+	<update id="deleteRecordForSpecific" parameterType="hashmap">
+		DELETE FROM ${db_name_cc_questionnaire}.t_qn_recorddetailforspecific WHERE recordId = #{recordId} AND schoolId =#{schoolId}
+	</update>
+	
+	<select id="queryRecordForSpecific" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		select * from ${db_name_cc_questionnaire}.t_qn_recorddetailforspecific where recordId = #{recordId} and schoolId = #{schoolId} 
+		<if test="targetId != null and targetId != ''">
+				and targetId = #{targetId}
+	    </if>
+	</select>
+	
+	<update id="saveSubjectResultForSpecific" parameterType="java.util.List">
+		INSERT INTO ${db_name_cc_questionnaire}.t_qn_subjectresultforspecific
+		(targetId,content,evalRecordResultId,recordId,schoolId) VALUES
+		<foreach collection="subjects" item="item" index="index" separator=",">
+		  (#{item.targetId},#{item.content},#{item.evalRecordResultId},#{item.recordId},#{item.schoolId})
+        </foreach>
+	</update>
+	
+	<update id="deleteSubjectResultForSpecific" parameterType="hashmap">
+		DELETE FROM ${db_name_cc_questionnaire}.t_qn_subjectresultforspecific WHERE recordId = #{recordId} AND schoolId =#{schoolId}
+	</update>
+	
+	<select id="querySubjectResultForSpecific" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		select * from ${db_name_cc_questionnaire}.t_qn_subjectresultforspecific where recordId = #{recordId} and schoolId = #{schoolId} 
+		<if test="targetId != null and targetId != ''">
+				and targetId = #{targetId}
+	    </if>
+	</select>
+	
+	<select id="queryRecordForSpecificResult" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		select count(*) as levelNum,levelId,targetId from ${db_name_cc_questionnaire}.t_qn_recorddetailforspecific where recordId in
+		(select recordId from ${db_name_cc_questionnaire}.t_qn_record where 
+		questionId = #{questionId} 
+		and schoolId = #{schoolId}
+		<if test="classIds != null and classIds !=''">  
+	    	AND classId in
+			<foreach item="item" index="index" collection="classIds" open="(" separator="," close=")">  
+				#{item}  
+			</foreach>  
+		</if>
+		)
+		group by levelId
+	</select>
+	
+	<select id="querySubjectForSpecificResult" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		select t1.content, t1.targetId, t2.accountId, t2.userId from ${db_name_cc_questionnaire}.t_qn_subjectresultforspecific t1,
+		${db_name_cc_questionnaire}.t_qn_record t2 where
+		 t1.recordId = t2.recordId 
+		 and t2.questionId = #{questionId} 
+		 and t2.schoolId = #{schoolId}	
+		 <if test="classIds != null and classIds !=''">  
+	    	AND t2.classId in
+			<foreach item="item" index="index" collection="classIds" open="(" separator="," close=")">  
+				#{item}  
+			</foreach>  
+		 </if>
+	</select>
+	
+	<select id="querySubjectResultMax" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		select targetId,count(*) as targetNum from ${db_name_cc_questionnaire}.t_qn_subjectresultforspecific where recordId in
+		(select recordId from ${db_name_cc_questionnaire}.t_qn_record where questionId = #{questionId} and schoolId = #{schoolId}) 
+		group by targetId		
+	</select>
+	
+	<select id="queryRecordTableResult" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT count(*) as tableOptionIdNum,t1.tableOptionId FROM
+			${db_name_cc_questionnaire}.t_qn_recorddetailfortable t1,
+			${db_name_cc_questionnaire}.t_qn_record t2
+		WHERE
+			t2.questionId = #{questionId} AND
+			t2.schoolId = #{schoolId}
+			AND t1.isSubmit = '1'
+			<if test="classIds != null and classIds !=''">  
+		    	AND t2.classId in
+				<foreach item="item" index="index" collection="classIds" open="(" separator="," close=")">  
+					#{item}  
+				</foreach>  
+		    </if>
+			AND t1.recordId = t2.recordId
+			GROUP BY t1.tableOptionId
+	</select>
+	
+	<select id="queryRecordTableResultAccountId" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT t2.accountId, t2.userId FROM
+			${db_name_cc_questionnaire}.t_qn_recorddetailfortable t1,
+			${db_name_cc_questionnaire}.t_qn_record t2
+		WHERE
+			t2.questionId = #{questionId} AND
+			t2.schoolId = #{schoolId} AND
+			t1.recordId = t2.recordId  
+			AND  t1.isSubmit = '1'
+			<if test="tableOptionIds !=null and tableOptionIds !=''">  
+		    	AND t1.tableOptionId in
+				<foreach item="tableOptionId" index="index" collection="tableOptionIds" open="(" separator="," close=")">  
+					#{tableOptionId}  
+				</foreach>  
+		    </if>
+	</select>
+	
+	<select id="queryObInfo" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT * FROM ${db_name_cc_questionnaire}.t_qn_obj t1
+		WHERE t1.questionId = #{questionId} AND
+			t1.schoolId = #{schoolId}
+			<if test="type !=null and type !=''">  
+				and t1.objType = #{type}
+			</if>
+			<if test="accountId !=null and accountId !=''">  
+				AND t1.accountId = #{accountId}
+			</if>
+			<if test="classId !=null and classId !=''">  
+				AND t1.classId = #{classId}
+			</if>
+			<if test="classIds !=null and classIds !=''">  
+				AND t1.classId in 
+				<foreach item="item" index="index" collection="classIds" open="(" separator="," close=")">  
+					#{item}  
+				</foreach>  
+			</if>
+	</select>
+	
+	<select id="queryObInfoByList" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT * FROM
+			${db_name_cc_questionnaire}.t_qn_obj t1
+		WHERE
+			t1.schoolId = #{schoolId}
+			<if test="questionIds !=null and questionIds !=''">  
+				AND t1.questionId in 
+				<foreach item="item" index="index" collection="questionIds" open="(" separator="," close=")">  
+					#{item}  
+				</foreach>  
+			</if>
+	</select>
+			
+	<update id="deleteObjInfo" parameterType="hashmap">
+		DELETE FROM ${db_name_cc_questionnaire}.t_qn_obj WHERE questionId = #{questionId} AND schoolId =#{schoolId}
+	</update>
+	
+	<update id="saveObjInfo" parameterType="hashmap">
+		INSERT INTO ${db_name_cc_questionnaire}.t_qn_obj
+		(questionId,objId,useGrade,classId,accountId,schoolId,nodeId,objType) VALUES
+		<foreach collection="objs" item="item" index="index" separator=",">
+		  (#{item.questionId},#{item.objId},#{item.useGrade},#{item.classId},#{item.accountId}
+		  ,#{item.schoolId},#{item.nodeId},#{item.objType})
+        </foreach>
+	</update>
+	
+	<update id="deleteQuestionById" parameterType="hashmap">
+		DELETE FROM ${db_name_cc_questionnaire}.t_qn_questionnaire WHERE questionId = #{questionId} AND schoolId =#{schoolId}
+	</update>
+	
+	<select id="queryRecordByList" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT count(t1.questionId) as count,questionId FROM
+			${db_name_cc_questionnaire}.t_qn_record t1
+		WHERE
+			t1.schoolId = #{schoolId}
+			<if test="questionIds !=null and questionIds !=''">  
+				AND t1.questionId in 
+				<foreach item="item" index="index" collection="questionIds" open="(" separator="," close=")">  
+					#{item}  
+				</foreach>  
+			</if>
+			group by t1.questionId
+	</select>
+	
+	<select id="queryObjResultAccToVoter" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT r.accountId, r.userId, r.classId, d.targetId, d.levelId
+			FROM ${db_name_cc_questionnaire}.t_qn_record r, ${db_name_cc_questionnaire}.t_qn_recorddetailforspecific d 
+				WHERE r.recordId = d.recordId AND r.schoolId = d.schoolId 
+					AND r.questionId = #{questionId} AND r.schoolId = #{schoolId}
+				<if test="classIds != null">
+					AND r.classId IN
+					<foreach collection="classIds" open="(" separator="," close=")" item="item">
+						#{item}
+					</foreach>
+				</if>
+	</select>
+	
+	<select id="queryTargetlevel" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT targetId, levelId, targetLevelOpt FROM ${db_name_cc_questionnaire}.t_qn_targetlevelforspecific
+			WHERE questionId = #{questionId} AND schoolId = #{schoolId}
+	</select>
+	
+	<select id="querySubjResultAccToVoter" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT r.accountId, r.userId, r.classId, d.targetId, d.content FROM ${db_name_cc_questionnaire}.t_qn_record r, ${db_name_cc_questionnaire}.t_qn_subjectresultforspecific d
+			WHERE r.recordId = d.recordId AND r.schoolId = d.schoolId 
+				AND r.questionId = #{questionId} AND r.schoolId = #{schoolId}
+			<if test="classIds != null">
+				AND r.classId IN
+				<foreach collection="classIds" open="(" separator="," close=")" item="item">
+					#{item}
+				</foreach>
+			</if>
+	</select>
+	
+	<select id="queryObjTypeFromQnObj" parameterType="hashmap" resultType="java.lang.Integer">
+		SELECT objType FROM ${db_name_cc_questionnaire}.t_qn_obj WHERE questionId = #{questionId} limit 1
+	</select>
+	
+	
+	 <select id="getRecordCnt" parameterType="hashmap" resultType="java.lang.Integer">
+	    select count(1) from  ${db_name_cc_questionnaire}.t_qn_record 
+	    where questionId = #{questionId}
+	 </select>
+	
+	
+	  <select id="getNoticeTime" parameterType="hashmap" resultType="java.lang.Integer">
+	     select  noticeTimes 
+	     from ${db_name_cc_questionnaire}.t_qn_notice 
+	     where questionId = #{questionId} and noticeDate = #{noticeDate}
+	  </select>
+	  
+	  <insert id="updateNoticeTimes" parameterType="hashmap" >
+	     insert into ${db_name_cc_questionnaire}.t_qn_notice (questionId  , noticeTimes  ,  noticeDate)
+	     values (#{questionId}  , #{noticeTimes} , #{noticeDate} )
+	     ON DUPLICATE KEY UPDATE noticeTimes=VALUES(noticeTimes)  , noticeDate = VALUES(noticeDate)
+	  </insert>
+	  
+	  <select id="getRecorddetailfortableSubmit" parameterType="java.util.List" resultType="com.alibaba.fastjson.JSONObject">
+	       select distinct recordId , isSubmit 
+	       from ${db_name_cc_questionnaire}.t_qn_recorddetailfortable 
+	       where  isSubmit = '0'  and recordId in 
+	       <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		   </foreach>
+	  </select>
+	  
+	  <select id="getRecordSubmited"  parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	       SELECT * FROM
+		   ${db_name_cc_questionnaire}.t_qn_record a
+		   where  a.questionId  = #{questionId} and a.schoolId = #{schoolId}
+		   and EXISTS (SELECT  1 from ${db_name_cc_questionnaire}.t_qn_recorddetailfortable b 
+		   where b.recordId = a.recordId and b.isSubmit = '1' and b.schoolId = #{schoolId} ) 
+	  </select>
+	  
+      <select id="getViewVoteDetail"  parameterType="hashmap"  resultType="com.alibaba.fastjson.JSONObject">
+           SELECT DISTINCT d.isEdit, a.content , b.accountId , c.anonymous FROM
+           ${db_name_cc_questionnaire}.t_qn_recorddetailforspecific a  ,
+           ${db_name_cc_questionnaire}.t_qn_record b ,
+           ${db_name_cc_questionnaire}.t_qn_questionnaire c ,
+             ${db_name_cc_questionnaire}. t_qn_targetlevelforspecific d
+           where  a.recordId = b.recordId and b.questionId = c.questionId
+           and a.levelId = #{levelId}
+           and d.levelId = #{levelId}
+           <if test="targetId!=null and targetId !='' ">
+             and a.targetId = #{targetId}
+           </if>
+         
+      </select>
+      
+      <select id="getSubjectResultByTargetId"  parameterType="hashmap"  resultType="com.alibaba.fastjson.JSONObject">
+          select  a.content , b.classId  , b.accountId
+          from  ${db_name_cc_questionnaire}.t_qn_subjectresultforspecific a,
+          ${db_name_cc_questionnaire}.t_qn_record b 
+          where a.recordId = b.recordId 
+          and a.targetId = #{targetId}
+      </select>
+	
+	
+</mapper>

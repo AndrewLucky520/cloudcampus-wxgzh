@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.csbasedata.dao.CommonManageDao">
+   <!-- 根据学校Id过滤年级-->
+   <resultMap type="JSONObject" id="stageMap"> 
+        <result column="stages" property="stages"/>						
+		<collection property="gradeArray" javaType="List" resultMap="gradeSet"/>
+   </resultMap> 
+   <resultMap type="JSONObject" id="gradeSet">
+		<result column="createLevel" property="createLevel"/>
+		<result column="id" property="id"/>	
+		<result column="currentLevel" property="currentLevel"/>
+   </resultMap>
+   <select id="getGradeBySchoolId" parameterType="JSONObject" resultMap="stageMap">
+         SELECT GROUP_CONCAT(a.stage) AS stages, b.id, b.createLevel, 
+          IF(  #{xn}-YEAR(FROM_UNIXTIME(b.createTime))>0, #{xn}-YEAR(FROM_UNIXTIME(b.createTime)),0) + b.createLevel AS currentLevel 
+         FROM ${dbname_common}.t_school_stage a INNER JOIN ${dbname_common}.t_grade b  
+	 	 ON a.schoolId = b.schoolId WHERE a.schoolId = #{schoolId} AND b.status = 1 
+	 	 GROUP BY b.id
+   </select>
+  
+   <select id="getClassByGradeId" parameterType="JSONObject" resultType="JSONObject">
+	 	 SELECT id AS classId,classNo,className FROM ${dbname_common}.t_class 
+	 	 WHERE schoolId = #{schoolId}
+	 	 <if test="gradeIdList != null and gradeIdList.size() > 0"> 
+	        AND gradeId IN
+	        <foreach collection="gradeIdList" item="item" open="(" separator="," close=")">
+					#{item}
+			</foreach>
+		</if>
+	 	 AND status = 1 GROUP BY id 
+   </select>
+  
+   <select id="getLessonBySchoolId" resultType="JSONObject" parameterType="JSONObject">
+		 SELECT b.id AS lessonId,b.name AS lessonName,b.simpleName AS lessonSimpleName
+		 FROM ${dbname_common}.t_school_lesson a LEFT JOIN ${dbname_common}.t_lessoninfo b
+		 ON b.id = a.lessonId WHERE a.schoolId = #{schoolId} AND b.status = 1			
+   </select>
+  
+   <!-- 获取全校所有教职工accountId name -->
+   <select id="getTeacherByName" parameterType="JSONObject" resultType="JSONObject">
+		 SELECT DISTINCT a.id,a.name AS teacherName,u.id AS teacherId,u.`role` FROM 
+		 (SELECT t.teacherId FROM ${dbname_common}.t_teacher t WHERE t.`schoolId`=#{schoolId}
+		<!--  UNION SELECT t.managerId AS teacherId FROM ${dbname_common}.`t_schoolmanager` t 
+		 WHERE t.`schoolId` = #{schoolId} and hasAllRight!=1
+		 UNION SELECT t.staffId AS teacherId FROM ${dbname_common}.`t_sstaff` t 
+		 WHERE t.`schoolId` = #{schoolId} -->
+		 ) t
+		 INNER JOIN ${dbname_common}.`t_user` u ON t.`teacherId`=u.`id` 
+		 INNER JOIN ${dbname_common}.`t_account` a ON u.accountId=a.id 
+		 WHERE a.`status`='1' and u.`status`='1'
+		 <if test="teacherName!=null and teacherName!=''"> 
+      	     AND a.`name` LIKE CONCAT('%',#{teacherName},'%') 
+     	 </if>
+		 ORDER BY a.id;
+   </select>
+  
+   <select id="getCurrentLevelByGradeId" parameterType="JSONObject" resultType="int">
+		SELECT  
+		IF(#{xn}-YEAR(FROM_UNIXTIME(`createTime`))>0,#{xn}-YEAR(FROM_UNIXTIME(`createTime`))+createLevel,createLevel) AS currentLevel 
+		FROM ${dbname_common}.t_grade WHERE id = #{gradeId} AND status = '1' 
+		AND schoolId = #{schoolId} 
+   </select>
+   
+   <select id="getClassNameByClassId" parameterType="long" resultType="String">
+	    SELECT className FROM ${dbname_common}.t_class WHERE id = #{classId} 
+	    AND status = '1'
+   </select>
+  
+   <select id="getTeacherNameByTeacherId" parameterType="long" resultType="String">
+        SELECT a.name AS teaherName FROM ${dbname_teacher}.t_account a 
+        INNER JOIN ${dbname_teacher}.t_user u ON a.id = u.accountId 
+        WHERE u.id = #{teacherId} AND a.status = '1'
+   </select>
+  
+   <select id="getLessonNameByLessonId" parameterType="long" resultType="String">
+	    SELECT name FROM ${dbname_common}.t_lessoninfo WHERE id = #{lessonId} 
+	    AND status = '1'
+   </select>
+	<update id="updateAccountToActive"  parameterType="JSONObject">
+		UPDATE ${dbname_common}.`t_account` 
+		SET `accountStatus`=1 WHERE`id`=#{accountId}
+	</update>
+</mapper>

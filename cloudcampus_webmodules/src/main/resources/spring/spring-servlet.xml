@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"  
+    xmlns:jaxws="http://cxf.apache.org/jaxws" 
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-4.0.xsd  
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context-4.0.xsd  
+            http://www.springframework.org/schema/mvc
+            http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+            http://www.springframework.org/schema/aop
+    		http://www.springframework.org/schema/aop/spring-aop-4.0.xsd 
+            http://www.springframework.org/schema/tx 
+            http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+            http://www.springframework.org/schema/util
+            http://www.springframework.org/schema/util/spring-util-4.0.xsd"
+            default-lazy-init="false">
+                
+    <!-- 配置注解驱动的Spring MVC Controller 的编程模型.注:此标签只在 Servlet MVC工作! --> 
+    <context:annotation-config />     
+        
+    <!-- 拦截controller日志  -->
+    <bean id="logAspect" class="com.talkweb.aspect.controller.SystemLogAspect"></bean>
+    <context:component-scan base-package="com.talkweb.aspect.controller"/>
+    <aop:aspectj-autoproxy proxy-target-class="true">
+        <aop:include name="logAspect"/>
+    </aop:aspectj-autoproxy>
+    
+	<context:component-scan base-package="com.talkweb.*.action"/>
+	<context:component-scan base-package="com.talkweb.scoreManage.scheduler"/>
+	
+	<mvc:annotation-driven>
+      <mvc:message-converters>
+        <!-- <bean class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter" />  -->
+		<bean id="fastJsonHttpMessageConverter" class="com.talkweb.base.common.FastJsonHttpMessageConverter">
+			<property name="supportedMediaTypes">
+				<list>
+					<value>text/html;charset=UTF-8</value><!-- 避免IE出现下载JSON文件的情况 -->
+					<value>application/json;charset=UTF-8</value>
+				</list>
+			</property>
+		</bean>
+        <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+          <constructor-arg value="UTF-8" />
+        </bean>
+        <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+          <property name="objectMapper">
+            <bean class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean">
+              <property name="failOnEmptyBeans" value="false" />
+            </bean>
+          </property>
+        </bean>
+      </mvc:message-converters>    
+    </mvc:annotation-driven>
+    
+   <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping"/>  
+	   
+   <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="defaultEncoding">
+			<value>UTF-8</value>
+		</property>
+		<property name="maxUploadSize">
+			<value>32505856</value><!-- 上传文件大小限制为31M，31*1024*1024 -->
+		</property>
+		<property name="maxInMemorySize">
+			<value>4096</value>
+		</property>
+	</bean>
+	
+	 <!-- 公共拦截器 -->
+    <!-- <mvc:interceptors>  
+        <mvc:interceptor>  
+            匹配的是url路径， 如果不配置或/**,将拦截所有的Controller
+            <mvc:mapping path="/**" />
+            <mvc:exclude-mapping path="/evaluate/app/*.do" />
+            <mvc:exclude-mapping path="/materialDeclareManage/app/*.do"/>
+            <mvc:exclude-mapping path="/leaveManage/*H5.do"/>
+            <mvc:exclude-mapping path="/documentManage/getDocumentListH5.do"/>
+            <mvc:exclude-mapping path="/documentManage/getDocumentDetailH5.do"/>
+            <mvc:exclude-mapping path="/documentManage/delDocumentH5.do"/>
+            <mvc:exclude-mapping path="/talkCloud/redirectAction.do"/>
+	        <mvc:exclude-mapping path="/wechat/login/*.do"/>
+            <mvc:exclude-mapping path="/scoreRport/app/*.do"/>
+            <mvc:exclude-mapping path="/allCommonDataServiceTestAction/get*.do"/>
+            <mvc:exclude-mapping path="/mobile/*/*.do"/>
+            <mvc:exclude-mapping path="/repairManage/getAPP*.do"/>
+            <mvc:exclude-mapping path="/repairManage/addAPP*.do"/>
+            <mvc:exclude-mapping path="/discipline/getAPP*.do"/>
+            <mvc:exclude-mapping path="/venueManage/app/*.do"/>
+            <mvc:exclude-mapping path="/weekWork/getApp*.do"/>
+            <mvc:exclude-mapping path="/salaryManage/lookup/*App*.do"/>
+            <mvc:exclude-mapping path="/commondata/nosession.do"/>
+            <mvc:exclude-mapping path="/scoremanage/common/getExamClassList.do"/>
+            <mvc:exclude-mapping path="/systemManager/login.do"/>
+            <mvc:exclude-mapping path="/systemManager/loginPlus.do"/>
+            <mvc:exclude-mapping path="/systemManager/loginThdTest.do"/>
+            <mvc:exclude-mapping path="/evalStuLogin/nmStuLogin.do" />
+            <mvc:exclude-mapping path="/evalStu/queryEvalForStudentAnonymous.do" />
+            <mvc:exclude-mapping path="/evalStu/submitEvalForStudentAnonymous.do" />
+            <mvc:exclude-mapping path="/evalStu/queryEvalForStudentOptAnonymous.do" />
+            <mvc:exclude-mapping path="/scoreRport/app/getExamList.do" />
+            <mvc:exclude-mapping path="/scoreRport/app/getClassExamStudentScoreReport.do" />
+            <mvc:exclude-mapping path="/scoreRport/app/getSchoolExamStudentScoreReport.do" />
+            <mvc:exclude-mapping path="/timetableManage/lookup/getStudentTimetableByDay.do" />
+            <mvc:exclude-mapping path="/timetableManage/lookup/getTeacherTimetableByDay.do" />
+            <mvc:exclude-mapping path="/timetableManage/lookup/getAppClassList.do" />
+            <mvc:exclude-mapping path="/timetableManage/lookup/getClassTimetableByDay.do" />
+            <mvc:exclude-mapping path="/timetableManage/lookup/getTeacherTimetableByDayToThrid.do" />
+            <mvc:exclude-mapping path="/schedule/app/getTeacherTimetableByDay.do" />
+            <mvc:exclude-mapping path="/schedule/app/getStudentTimetableByDay.do" />
+            <mvc:exclude-mapping path="/schedule/app/getTeacherScheduleList.do" />
+            <mvc:exclude-mapping path="/oneCard/*/*.do" />
+            <mvc:exclude-mapping path="/questionnaire/app/*.do" />
+            <mvc:exclude-mapping path="/questionnaire/saveQuestionByUserDetails.do" />
+            <mvc:exclude-mapping path="/UEditor/preDownloadFile.do" />
+            <mvc:exclude-mapping path="/elective/studentApp/*.do" />
+            <mvc:exclude-mapping path="/elective/common/preDownloadFile.do" />
+            <mvc:exclude-mapping path="/wishFilling/app/*.do" />
+            <mvc:exclude-mapping path="/commondata/getUserIdByJYCloudAccountId.do" />
+            <mvc:exclude-mapping path="/loginLoose/gotoAppUrl.do" />
+            <mvc:exclude-mapping path="/loginLoose/getloginUrl.do" />
+            <mvc:exclude-mapping path="/jeuc/jumpAppPage.do" />
+			<mvc:exclude-mapping path="/schoolOMSManage/updateSchoolInfo.do" />
+            <mvc:exclude-mapping path="/lessonAnalysis/*.do" />
+            <mvc:exclude-mapping path="/scoreReport/*/*.do" />
+            <mvc:exclude-mapping path="/huaweiCloud/timetableManage/*/*.do" />
+            <mvc:exclude-mapping path="/teacherLessonAction/*.do" />
+            <mvc:exclude-mapping path="/leaveManage/getLeaveApplyInfoTeacherZone.do" />
+			<mvc:exclude-mapping path="/repairManage/*.do" />
+            <mvc:exclude-mapping path="/venueManage/teacher/*.do" />
+            <mvc:exclude-mapping path="/teachingEstimate/presonalEstimate.do" />
+            <mvc:exclude-mapping path="/teacherEvaluation/app/*.do" />
+            <mvc:exclude-mapping path="/teachingResearch/app/*.do" />
+            <mvc:exclude-mapping path="/materialDeclareManage/app/*.do"/>
+            <bean class="com.talkweb.common.action.SpringMVCInterceptor"></bean>  
+        </mvc:interceptor> -->
+        <!-- 当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法 -->
+    <!-- </mvc:interceptors> -->
+   <!-- 避免IE执行AJAX时,返回JSON出现下载文件  --> 
+   <!-- 
+   <bean id="mappingJacksonHttpMessageConverter" class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+	 <property name="supportedMediaTypes">
+	   <list>
+	     <value>text/plain;charset=UTF-8</value>
+	   	 <value>text/html;charset=UTF-8</value> 	
+		 <value>application/json;charset=UTF-8</value>
+	   </list>
+	 </property>
+   </bean>
+    -->
+  
+   <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+	 <property name="prefix">
+	   <value>/</value>
+	 </property>
+	 <property name="suffix">
+	   <value>.html</value>
+	 </property>
+   </bean>
+   
+ 	
+</beans>

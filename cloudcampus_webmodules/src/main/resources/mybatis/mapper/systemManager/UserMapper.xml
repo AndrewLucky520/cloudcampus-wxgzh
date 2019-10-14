@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.talkweb.systemManager.dao.UserDao">  
+	
+	<cache eviction="FIFO" flushInterval="60000" size="1024" readOnly="true"/> 
+	
+	<resultMap type="com.talkweb.systemManager.domain.business.TUcUser" id="TUcUser"/>
+	<resultMap type="com.talkweb.systemManager.domain.business.TTrSchool" id="TTrSchool"/>
+	
+	<select id="selectUserId" parameterType="string" resultType="int">
+	  SELECT count(*) AS count
+	  FROM ${zhx_conn}.t_uc_user 
+	  WHERE UserId = #{userId}
+	</select>
+	
+	<select id="selectUser" parameterType="hashmap" useCache="false" resultMap="TUcUser">
+	  SELECT * 
+	  FROM ${zhx_conn}.t_uc_user 
+	  WHERE UserId = #{userId} AND PassWord = #{passWord}
+	</select>
+	
+	<select id="selectSchoolByUserId" parameterType="string" resultMap="TTrSchool">
+	  SELECT b.* 
+	  FROM ${zhx_conn}.t_uc_user  a
+	  INNER JOIN ${zhx_conn}.t_tr_school  b
+	  ON a.SSDW = b.XXDM
+	  WHERE a.UserSysId = #{userId}
+	</select>
+	
+	<update id="updatePassword" parameterType="hashmap">
+	  UPDATE ${zhx_conn}.t_uc_user
+	  SET PassWord = #{passWord},OriPassWord = '******',pwdStatus = '1'
+	  WHERE UserId = #{userId} AND PassWord = #{oldPassWord}
+	</update>
+	
+	<update id="updateAccount" parameterType="hashmap">
+	  UPDATE ${zhx_conn}.t_uc_user 
+	  SET UserId = #{newUserId} 
+	  WHERE UserSysId = #{userSysId}
+	</update>
+	
+	<select id="getMySysMenu" parameterType="hashmap" resultType="hashmap">
+	  SELECT a.dm,
+	  a.mc,
+	  a.img,
+	  a.linkpath AS path,b.systemlb
+	  FROM ${zhx_conn}.T_WS_MenuInfo a
+      INNER JOIN ${zhx_conn}.T_SM_SystemRegister b on a.systemid=b.srid
+	  INNER JOIN  ${zhx_conn}.t_uc_user g on g.usersysid=#{userSysId}
+	  INNER JOIN  ${zhx_conn}.t_tr_school h on g.ssdw=h.xxdm
+	  INNER JOIN  ${zhx_conn}.T_UC_OperaSysVer i on h.dmid=i.verid
+	  INNER JOIN  ${zhx_conn}.T_UC_OperaSysVerSystem k on i.verid=k.verid and k.srid=b.srid
+	  WHERE a.sf=#{sf} and a.dm like 'P%'
+	  ORDER BY  b.systemid,a.treedm
+	</select>
+	
+	<select id="getSubSys" parameterType="string" resultType="hashmap">
+	  SELECT DISTINCT a.srid,
+	  a.systemName AS SystemName,
+	  a.img,
+	  a.systemlb,
+	  a.systemid,
+	  a.sspt,
+      a.sysurl AS sysUrl,
+	  f.mc 
+	  FROM ${zhx_conn}.T_SM_SystemRegister a 
+	  INNER JOIN ${zhx_conn}.T_WS_MenuInfo c ON a.srid=c.systemid AND c.flag='1' 
+	  INNER JOIN ${zhx_conn}.V_WS_RoleMenu d ON c.dm=d.menucode 
+	  INNER JOIN ${zhx_conn}.v_ws_usersroles e ON d.roleCode = e.RoleCode 
+	  INNER JOIN ${zhx_conn}.t_sm_systemsort f ON a.systemlb=f.dm
+	  INNER JOIN ${zhx_conn}.t_uc_user g ON e.usersysid=g.usersysid
+	  INNER JOIN ${zhx_conn}.t_tr_school h ON g.ssdw=h.xxdm
+	  INNER JOIN ${zhx_conn}.T_UC_OperaSysVer i ON h.dmid=i.verid
+	  INNER JOIN ${zhx_conn}.T_UC_OperaSysVerSystem k ON i.verid=k.verid AND k.srid=a.srid
+	  WHERE a.flag='1' AND e.usersysid=#{userSysId} 
+	  ORDER BY a.systemlb,a.systemid 
+	</select>
+	
+	<select id="getSortName" parameterType="string" resultType="hashmap">
+	  SELECT DISTINCT
+	  a.systemlb ,f.mc AS sortName
+	  FROM ${zhx_conn}.T_SM_SystemRegister a
+	  INNER JOIN ${zhx_conn}.T_WS_MenuInfo c ON a.srid = c.systemid AND c.flag = '1'
+	  INNER JOIN ${zhx_conn}.V_WS_RoleMenu d ON c.dm = d.menucode
+	  INNER JOIN ${zhx_conn}.v_ws_usersroles e ON d.roleCode = e.RoleCode
+	  INNER JOIN ${zhx_conn}.t_sm_systemsort f ON a.systemlb = f.dm
+	  INNER JOIN ${zhx_conn}.t_uc_user g ON e.usersysid=g.usersysid
+	  INNER JOIN ${zhx_conn}.t_tr_school h ON g.ssdw=h.xxdm
+	  INNER JOIN ${zhx_conn}.T_UC_OperaSysVer i ON h.dmid=i.verid
+	  INNER JOIN ${zhx_conn}.T_UC_OperaSysVerSystem k ON i.verid=k.verid AND k.srid=a.srid
+	  WHERE a.flag = '1' AND e.usersysid = #{userSysId}
+	  ORDER BY a.systemlb,a.systemid
+	</select>
+	
+	<select id="getStudentXHByParentSysId" parameterType="string" resultType="string">
+	  SELECT XH AS xh
+      FROM ${zhx_conn}.t_ss_student
+      WHERE parentsysid = #{parentsysid}
+	</select>
+	
+	<select id="getRoleByUserSysId" parameterType="string" resultType="hashmap">
+	  SELECT rolecode
+	  FROM ${zhx_conn}.v_ws_usersroles
+	  WHERE UserSysId = #{userSysId}	
+	</select>
+	
+	<resultMap type="com.talkweb.systemManager.domain.business.Role" id="RoleMap">
+		<result property="roleDm" column="roleDm"/>
+		<result property="roleMC" column="roleMC"/>
+		<result property="roleBz" column="roleBz"/>
+		<collection property="teachers" resultMap="TeacherMap"></collection>
+	</resultMap>
+	
+	<resultMap type="com.talkweb.systemManager.domain.business.Teacher" id="TeacherMap">
+		<result property="zgh" column="zgh"/>
+		<result property="text" column="text"/>
+	</resultMap>
+	
+	
+	<select id="querySuperManagerList" parameterType="string" resultMap="RoleMap">
+	  SELECT
+	  c.DM AS roleDm,
+	  c.MC as roleMC,
+	  c.bz AS roleBz,
+	  b.ZGH AS zgh,
+	  CONCAT(b.XM,'(',b.JSDM,')') AS text
+	  FROM ${zhx_conn}.t_ws_usersroles a 
+	  INNER JOIN ${zhx_conn}.t_hr_teacher b ON a.UserSysId = b.ZGH
+	  RIGHT JOIN ${zhx_conn}.t_ws_roles c ON a.RoleCode = c.DM
+	  WHERE c.DM = 'TEA000' AND b.XXDM = #{xxdm} AND c.Flag = '1'
+	</select>
+	
+	
+	<select id="queryOtherManagerList" parameterType="string" resultMap="RoleMap">
+	  SELECT
+	  c.DM AS roleDm,
+	  c.MC as roleMC,
+	  c.bz AS roleBz,
+	  b.ZGH AS zgh,
+	  CONCAT(b.XM,'(',b.JSDM,')',GROUP_CONCAT(d.mc SEPARATOR '、')) AS text
+	  FROM ${zhx_conn}.t_ws_usersnj a
+	  INNER JOIN ${zhx_conn}.t_dm_nj d ON a.NJ = d.dm
+	  INNER JOIN ${zhx_conn}.t_hr_teacher b ON a.UserSysId = b.ZGH
+	  RIGHT JOIN ${zhx_conn}.t_ws_roles c ON a.RoleCode = c.DM
+	  WHERE (c.DM NOT LIKE 'TEA000' AND c.DM LIKE 'TEA%') AND (b.XXDM = #{xxdm} OR b.XXDM IS NULL) AND (c.Flag != '1' OR c.Flag IS NULL) 
+      GROUP BY c.DM,b.zgh
+	  ORDER BY c.DM DESC
+	</select>
+
+	<!-- 超级管理员角色添加后的返回值 -->
+	<select id="querySetManagerList" parameterType="hashmap" resultType="hashmap">
+	  SELECT 
+      a.ZGH AS zgh,
+      CONCAT(a.XM,'(',a.JSDM,')') AS text
+      FROM ${zhx_conn}.t_hr_teacher a 
+      LEFT JOIN ${zhx_conn}.t_ws_usersroles b ON a.ZGH = b.UserSysId
+      WHERE a.XXDM = #{xxdm} AND (b.RoleCode != #{roleDm} OR b.RoleCode IS NULL)
+      <if test="zghxm!=null and zghxm!=''">
+      	AND (a.JSDM like '%${zghxm}%' OR a.XM like '%${zghxm}%')
+      </if>
+	</select>
+	
+	<!-- 其他管理员角色添加后的返回值 -->
+	<select id="querySetManagerList2" parameterType="hashmap" resultType="hashmap">
+	  SELECT
+	  DISTINCT 
+      a.ZGH AS zgh,
+      CONCAT(a.XM,'(',a.JSDM,')') AS text
+      FROM ${zhx_conn}.t_hr_teacher a 
+      LEFT JOIN ${zhx_conn}.t_ws_usersnj b ON a.ZGH = b.UserSysId
+	  WHERE a.XXDM = #{xxdm} AND (b.RoleCode != #{roleDm} OR b.RoleCode IS NULL)
+      <if test="zghxm!=null and zghxm!=''">
+      	AND (a.JSDM = '%${zghxm}%' OR a.XM like '%${zghxm}%')
+      </if>
+	</select>
+	
+
+	<!-- 非系统管理员 -->
+	<insert id="addManagerList" parameterType="hashmap">  
+	  INSERT INTO ${zhx_conn}.t_ws_usersnj(RoleCode,UserSysId,NJ) VALUES
+	  <foreach collection="grade" item="ss" separator=",">
+	     (#{roleDm},#{zgh},#{ss})
+	  </foreach>  
+	</insert>
+	
+	<!-- 系统管理员 -->
+	<insert id="addManagerList2" parameterType="hashmap">
+	  INSERT INTO ${zhx_conn}.t_ws_usersroles(RoleCode,UserSysId) VALUES
+	  <foreach collection="zgh" item="user" separator=",">
+	     (#{roleDm},#{user})
+	  </foreach>  
+	</insert>
+	<!-- 超级管理员保存返回值 -->
+	<select id="getTeacherQXXX" parameterType="list" resultType="hashmap">
+	  SELECT 
+      a.ZGH AS zgh,
+      CONCAT(a.XM,'(',a.JSDM,')') AS text
+      FROM ${zhx_conn}.t_hr_teacher a
+      INNER JOIN ${zhx_conn}.t_ws_usersroles b ON a.ZGH = b.UserSysId
+      WHERE a.ZGH IN  
+      <foreach collection="list" item="zghlist" open="(" close=")" separator=",">
+      	#{zghlist}
+      </foreach> 
+	</select>
+	<!-- 非超级管理员保存返回值 -->
+	<select id="getTeacherQXXX2" parameterType="hashmap" resultType="hashmap">
+	  SELECT 
+      a.ZGH AS zgh,
+      CONCAT(a.XM,'(',a.JSDM,')',GROUP_CONCAT(c.mc ORDER BY c.userDm SEPARATOR '、')) AS text
+      FROM ${zhx_conn}.t_hr_teacher a
+      INNER JOIN ${zhx_conn}.t_ws_usersnj b ON a.ZGH = b.UserSysId
+      INNER JOIN ${zhx_conn}.t_dm_nj c ON c.dm = b.NJ
+      WHERE a.ZGH IN  
+      <foreach collection="zgh" item="zghlist" open="(" close=")" separator=",">
+      	#{zghlist}
+      </foreach> 
+      AND b.RoleCode = #{roleDm}
+      GROUP BY a.ZGH
+	</select>
+	
+	
+	<delete id="delManagerList" parameterType="hashmap">
+	  DELETE FROM 
+	  ${zhx_conn}.t_ws_usersroles 
+	  WHERE RoleCode = #{roleDm} AND UserSysId = #{zgh}
+	</delete>
+	
+	<delete id="delManagerList2" parameterType="hashmap">
+	  DELETE FROM 
+	  ${zhx_conn}.t_ws_usersnj
+	  WHERE RoleCode = #{roleDm} AND UserSysId = #{zgh}
+	</delete>
+	
+	<select id="queryManagerGradeList"  resultType="hashmap">
+	  SELECT
+      b.dm,
+      b.mc
+      FROM ${zhx_conn}.t_tr_school_pycc a
+      INNER JOIN ${zhx_conn}.t_dm_nj b ON a.PYCC = b.pycc
+      WHERE a.XXDM = #{xxdm}
+      ORDER BY b.userDm
+	</select>
+	
+	
+	<select id="queryTeacherAccountList" parameterType="hashmap" resultType="hashmap">
+	  SELECT
+      a.JSDM AS zgh,
+	  a.XM AS xm,
+	  a.LXDH AS lxdh,
+	  b.UserSysId AS userSysId,
+	  b.UserID AS userID,
+      b.OriPassWord AS oriPassWord,
+      b.pwdStatus AS pwdStatus
+	  FROM ${zhx_conn}.t_hr_teacher a 
+	  INNER JOIN ${zhx_conn}.t_uc_user b ON a.ZGH = b.UserSysId
+	  WHERE a.XXDM = #{xxdm} AND b.SF = '002'
+	  <if test="zghxm!=null and zghxm!=''">
+	  AND (a.JSDM = '%${zghxm}%' OR a.XM like '%${zghxm}%')
+	  </if>
+	</select>
+	
+	
+	<select id="getUserIDByUserSysId" parameterType="string" resultType="string">
+	  SELECT UserID FROM ${zhx_conn}.t_uc_user WHERE UserSysId = #{userSysId}
+	</select>
+	
+	
+	<!-- 指定密码或者随机生成 -->
+	<update id="updatePwds" parameterType="hashmap">
+	  UPDATE ${zhx_conn}.t_uc_user SET OriPassWord = #{oriPassWord},`PassWord`= #{passWord},pwdStatus = '0' WHERE UserSysId IN
+	  <foreach collection="zgh" item="zghlist" open="(" close=")" separator=",">
+	  	#{zghlist}
+	  </foreach>
+	</update>
+	
+	<!-- 密码与账号相同 -->
+	<update id="updatePwdsEqualsAccount" parameterType="hashmap">
+	  UPDATE ${zhx_conn}.t_uc_user SET OriPassWord = #{oriPassWord},`PassWord`= #{passWord},pwdStatus = '0' WHERE UserSysId = #{zgh}
+	</update>
+	
+	
+	<select id="queryStudentAccountList" parameterType="hashmap" resultType="hashmap">
+	  SELECT
+      a.XH AS userXh,
+      a.USER_XH AS xh,
+	  a.XM AS xm,
+	  c.BJMC AS bjmc,
+	  a.FQLXDH AS fqlxdh,
+	  a.MQLXDH AS mqlxdh,
+	  d.UserID AS userID,
+	  d.OriPassWord AS oriPassWord,
+	  d.pwdStatus AS pwdStatus,
+	  d.UserSysId AS userSysId
+	  FROM ${zhx_conn}.t_ss_student a
+	  LEFT JOIN ${zhx_conn}.t_ss_studenrol b on a.XH=b.XH
+      LEFT JOIN ${zhx_conn}.t_ss_class c on b.BH=c.BH
+      LEFT JOIN ${zhx_conn}.t_uc_user d on a.XH = d.UserSysId
+	  WHERE  b.sfzx='1' AND a.XXDM = #{xxdm}
+	  <if test="xn!=null">
+	  	AND b.XN = #{xn}
+	  </if>
+	  <if test="xqm!=null">
+	  	AND b.XQM = #{xqm}
+	  </if>  
+	  <if test="synj!=null">
+	  	AND c.SYNJ IN 
+	  	<foreach collection="synj" item="synjlist" open="(" close=")" separator=",">
+	  	#{synjlist}
+	    </foreach>
+	  </if>
+	  <if test="bjmc!=null">
+	  	AND b.BH IN
+	  	<foreach collection="bjmc" item="bjmclist" open="(" close=")" separator=",">
+	  	#{bjmclist}
+	    </foreach>
+	  </if>
+	  <if test="xjhxm!=null and xjhxm!=''">
+	    AND (a.XH like '%${xjhxm}%' OR a.XM like '%${xjhxm}%')
+	  </if>
+	</select>
+	
+	<select id="queryParentAccountList" parameterType="hashmap" resultType="hashmap">
+	  SELECT
+	  a.XH as userXh,
+	  a.USER_XH AS xh,
+	  a.XM AS xm,
+	  c.BJMC AS bjmc,
+	  a.FQLXDH AS fqlxdh,
+	  a.MQLXDH AS mqlxdh,
+	  d.UserID AS userID,
+	  d.OriPassWord AS oriPassWord,
+	  d.pwdStatus,
+	  d.UserSysId AS userSysId
+	  FROM ${zhx_conn}.t_ss_student a
+	  LEFT JOIN ${zhx_conn}.t_ss_studenrol b on a.XH=b.XH
+      LEFT JOIN ${zhx_conn}.t_ss_class c on b.BH=c.BH
+      LEFT JOIN ${zhx_conn}.t_uc_user d on a.parentsysid = d.UserSysId
+	  WHERE b.sfzx='1' AND a.XXDM = #{xxdm}
+	  <if test="xn!=null">
+	  	AND b.XN = #{xn}
+	  </if>
+	  <if test="xqm!=null">
+	  	AND b.XQM = #{xqm}
+	  </if>  
+	  <if test="synj!=null">
+	  	AND c.SYNJ IN 
+	  	<foreach collection="synj" item="synjlist" open="(" close=")" separator=",">
+	  	#{synjlist}
+	    </foreach>
+	  </if>
+	  <if test="bjmc!=null">
+	  	AND b.BH IN
+	  	<foreach collection="bjmc" item="bjmclist" open="(" close=")" separator=",">
+	  	#{bjmclist}
+	    </foreach>
+	  </if>
+	  <if test="xjhxm!=null and xjhxm!=''">
+	    AND a.XH like '%${xjhxm}%' OR a.XM like '%${xjhxm}%'
+	  </if>
+	</select>
+	<select id="getUserMenuById" parameterType="string" resultType="hashmap">
+		SELECT treeDm,mc,linkPath FROM ${zhx_conn}.v_ws_usermenu WHERE usersysid =#{userSysId}  order by treedm;
+	</select>
+	
+	<select id="getModelsInfoA" parameterType="hashmap" resultType='com.alibaba.fastjson.JSONObject'>
+		select dm,treeDm,mc as text,linkPath as url,img FROM ${zhx_conn}.v_ws_usermenu where systemId = #{srid} and usersysid=#{userSysId} ORDER BY treeDm;
+	</select>
+	<select id="getModelsInfoB" parameterType="hashmap" resultType='com.alibaba.fastjson.JSONObject'>
+		select dm,treeDm,mc as text,linkPath as url,img as iconCls FROM ${zhx_conn}.v_ws_usermenu where dm = #{mid} and usersysid=#{userSysId} ORDER BY treeDm;
+	</select>
+	<select id="getModelsInfoC" parameterType="hashmap" resultType='com.alibaba.fastjson.JSONObject'>
+		SELECT DISTINCT a.dm ,a.treeDm , a.mc as text, a.LinkPath as url, b.SF, b.userSysId,a.bz,a.img as iconCls,a.FlowChart,a.systemid
+		FROM ${zhx_conn}.T_WS_MenuInfo a 
+		INNER JOIN ${zhx_conn}.v_ws_usersroles b ON a.SF = b.SF 
+		inner join ${zhx_conn}.t_uc_user g on g.usersysid=b.userSysId
+		INNER JOIN ${zhx_conn}.V_WS_RoleMenu c ON b.roleCode = c.RoleCode AND c.treedm like concat(a.treedm,'%') 
+		where b.usersysid=#{userSysId} and a.flag='1'
+		order by treedm
+	</select>
+</mapper>

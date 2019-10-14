@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.scoreReport.dao.ViewClassScoreDao">
+	<!-- 获取班级列表 -->
+	<select id="getClassIdsInClassExam" parameterType="splitDbAndTableRule" resultType="Long">
+		SELECT DISTINCT classId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamrelative} 
+		WHERE examId = #{data.examId} AND schoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId}
+	</select>
+     
+     <!-- 获取学生考试的科目列表-->
+	<select id="getClassExamSubjectIdList" parameterType="splitDbAndTableRule" resultType="Long">
+		SELECT subjectId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubject} 
+		WHERE examId = #{data.examId} AND schoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId}
+			ORDER BY subjectId ASC
+	</select>
+     
+     <!-- 获取学生科目成绩-->
+	<select id="getClassExamSubjectScoreList" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.ce.ClassExamSubjectScore">
+		SELECT ExamId, StudentId, SubjectId, ClassId, SchoolId, Score, inputTime, Score2, termInfoId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamsubjectscore}
+		WHERE SchoolId = #{data.schoolId} AND ExamId = #{data.examId}
+			AND termInfoId = #{data.termInfoId}
+		<if test="data.studentIds != null">
+			AND StudentId IN 
+			<foreach collection="data.studentIds" item="item" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+     
+	<!-- 获取班级测试学生总分成绩-->
+	<select id="getClassExamTotalScore" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.ce.StudentTotalScoreStatistics">
+		SELECT ExamId, StudentId, ClassId, SchoolId, TotalScore, TotalScoreRank, surpassRatio, ClassStudentNum, inputTime, termInfoId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_studenttotalscorestatistics} 
+		WHERE SchoolId = #{data.schoolId} AND ExamId = #{data.examId}
+			AND termInfoId = #{data.termInfoId}
+		<if test="data.studentIds != null">
+			AND studentId IN 
+			<foreach collection="data.studentIds" item="item" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+     
+	<select id="getAllCustomExcel" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.ce.CustomScore">
+		SELECT ExamId, SchoolId, ProjectId, ProjectName, ParentProjectId, RowSpan, ColSpan, `Row`, Col, TitleCount, InputTime, termInfoId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscore} 
+		WHERE SchoolId = #{data.schoolId} AND ExamId = #{data.examId}
+			AND termInfoId = #{data.termInfoId}
+			ORDER BY Row, Col
+	</select>
+	
+	<select id="getAllCustomDetail" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.ce.CustomScoreInfo">
+		SELECT ExamId, SchoolId, ProjectId, StudentId, ClassId, Score, InputTime, termInfoId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_customscoreinfo}
+		WHERE SchoolId = #{data.schoolId} AND ExamId = #{data.examId}
+			AND termInfoId = #{data.termInfoId}
+		<if test="data.classId != null">
+			AND ClassId = #{data.classId}
+		</if>
+		<if test="data.studentIds != null">
+			AND StudentId IN
+			<foreach collection="data.studentIds" item="item" open ="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.studentId != null">
+			AND StudentId = #{data.studentId}
+		</if>
+	</select>
+	
+	<select id="getClassExamListByTeacher" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT ExamId AS examId, ExamName AS examName,  examType AS type
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexaminfo} i
+		WHERE i.SchoolId = #{data.schoolId} AND i.termInfoId = #{data.termInfoId} AND i.isPublic = '1'
+		AND EXISTS (
+			SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamrelative} r
+			WHERE i.ExamId = r.ExamId AND i.SchoolId = r.SchoolId AND i.termInfoId = r.termInfoId
+				AND r.ClassId IN
+			<foreach collection="data.classIds" item="item" open ="(" separator="," close=")">
+				#{item}
+			</foreach>
+		)
+		ORDER BY CreateTime DESC
+	</select>
+	
+	<select id="getClassIdFromClassExam" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT ClassId FROM ${dbRule.db_name_scoreManage}.${tableRule.t_ce_classexamrelative}
+			WHERE ExamId = #{data.examId} AND SchoolId = #{data.schoolId} AND termInfoId = #{data.termInfoId}
+				AND ClassId IN 
+			<foreach collection="data.classIds" item="item" open ="(" separator="," close=")">
+				#{item}
+			</foreach>
+	</select>
+</mapper>
+	

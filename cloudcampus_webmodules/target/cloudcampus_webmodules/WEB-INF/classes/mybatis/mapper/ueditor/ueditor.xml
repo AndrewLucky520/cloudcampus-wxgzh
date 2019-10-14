@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.ueditor.dao.UEditorDao">
+
+	<update id='insertUEditor' parameterType='com.alibaba.fastjson.JSONObject' >
+    INSERT INTO ${db_name_auth}.t_ueditorfile(fileId, schoolId,  filePath,fileName,classfy,fileType ,submitTime ) 
+    VALUES (#{fileId},#{schoolId},  #{filePath},#{fileName},#{classfy}, #{fileType} , #{submitTime})
+    </update> 
+    
+    <select id="getUEditorList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		select fileId ,filePath , fileName , classfy ,  fileType  FROM ${db_name_auth}.t_ueditorfile t 
+		where t.classfy = #{classfy} and schoolId = #{schoolId} order by t.submitTime LIMIT 20
+	</select> 
+
+</mapper>

@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.talkweb.datadictionary.dao.DataDictionary">  
+	
+	<cache eviction="FIFO" flushInterval="60000" size="1024" readOnly="true"/> 
+	
+	<select id="getTDMJG" resultType="TDmJg" useCache="true">
+	  select * from ${zhx_conn}.T_DM_JG 
+	</select>
+	
+	<select id="getTDMSZDLB" resultType="TDmSzdlb" useCache="true">
+	  select * from ${zhx_conn}.T_DM_SZDLB   
+	</select>
+	
+	<select id="getTDMSZDJJSX" resultType="TDmSzdjjsx" useCache="true">
+	  select * from ${zhx_conn}.T_DM_SZDJJSX    
+	</select>
+	
+	<select id="getTDMMZZZX" resultType="TDmMzzzx" useCache="true">
+	  select * from ${zhx_conn}.T_DM_MZZZX     
+	</select>
+	
+	<select id="getTDMXXBB" resultType="TDmXxbb" useCache="true">
+	  select * from ${zhx_conn}.T_DM_XXBB      
+	</select>
+	
+	<select id="getTDMXXLB" resultType="TDmXxlb" useCache="true">
+	  select * from ${zhx_conn}.T_DM_XXLB       
+	</select>
+	
+	<select id="getTDMLoglx " resultType="TDmLoglx" useCache="true">
+	  select * from ${zhx_conn}.T_DM_Loglx        
+	</select>
+	
+	<select id="getTDMXXLY" resultType="TDmXxly" useCache="true">
+	  select * from ${zhx_conn}.T_DM_XXLY         
+	</select>
+	
+	<select id="getTDMKMLX" resultType="TDmKmlx" useCache="true">
+	  select * from ${zhx_conn}.T_DM_KMLX         
+	</select>
+	
+	<select id="getTDMRJKM" resultType="hashmap" useCache="true">
+	   SELECT distinct kmdm as userDm,zwmc as mc
+	  FROM ${zhx_conn}.t_tp_lessoninfo     
+	</select>
+	
+	<select id="getTDMFJYT" resultType="TDmFjyt" useCache="true">
+	  select * from ${zhx_conn}.T_DM_FJYT        
+	</select>
+	
+	<select id="getTDMJXSYXZ" resultType="TDmJxsyxz" useCache="true">
+	  select * from ${zhx_conn}.T_DM_JXSYXZ         
+	</select>
+	
+	<select id="getTDMBJLX" resultType="TDmBjlx" useCache="true">
+	  select * from ${zhx_conn}.T_DM_BJLX        
+	</select>
+	
+	<select id="getTDMPYCC" resultType="TDmPycc" useCache="true">
+	  select * from ${zhx_conn}.T_DM_PYCC        
+	</select>
+	
+	<select id="getTDMNJ" resultType="TDmNj" useCache="true">
+	  select * from ${zhx_conn}.T_DM_NJ        
+	</select>
+	
+	<select id="getTDMRXFS" resultType="TDmRxfs" useCache="true">
+	  select * from ${zhx_conn}.T_DM_RXFS         
+	</select>
+	
+	<select id="getTDMJDFS" resultType="TDmJdfs" useCache="true">
+	  select * from ${zhx_conn}.T_DM_JDFS         
+	</select>
+	
+	<select id="getTDMXSLB" resultType="TDmXslb" useCache="true">
+	  select * from ${zhx_conn}.T_DM_XSLB         
+	</select>
+	
+	<select id="getTDMSFZJLXM" resultType="TDmSfzjlxm" useCache="true">
+	  select * from ${zhx_conn}.T_DM_SFZJLXM       
+	</select>
+	
+	<select id="getTDMXB" resultType="TDmXb" useCache="true">
+	  select * from ${zhx_conn}.T_DM_XB        
+	</select>
+	
+	<select id="getTDMMZ" resultType="TDmMz" useCache="true">
+	  select * from ${zhx_conn}.T_DM_MZ       
+	</select>
+	
+	<select id="getTDMGJDQ" resultType="TDmGjdq" useCache="true">
+	  select * from ${zhx_conn}.T_DM_GJDQ         
+	</select>
+	
+	<select id="getTDMGATQW" resultType="TDmGatqw" useCache="true">
+	  select * from ${zhx_conn}.T_DM_GATQW       
+	</select>
+	
+	<select id="getTDMJKZK" resultType="TDmJkzk" useCache="true">
+	  select * from ${zhx_conn}.T_DM_JKZK        
+	</select>
+	
+	<select id="getTDMXYZJM" resultType="TDmXyzjm" useCache="true">
+	  select * from ${zhx_conn}.T_DM_XYZJM        
+	</select>
+	
+	<select id="getTDMZZMM" resultType="TDmZzmm" useCache="true">
+	  select * from ${zhx_conn}.T_DM_ZZMM         
+	</select>
+	
+	<select id="getTDMHKXZ" resultType="TDmHkxz" useCache="true">
+	  select * from ${zhx_conn}.T_DM_HKXZ         
+	</select>
+	
+	<select id="getTDMSXXFS" resultType="TDmSxxfs" useCache="true">
+	  select * from ${zhx_conn}.T_DM_SXXFS        
+	</select>
+	
+	<select id="getTDMXX" resultType="TDmXx" useCache="true">
+	  select * from ${zhx_conn}.T_DM_XX        
+	</select>
+	
+	<select id="getTDMXSLY" resultType="TDmXxly" useCache="true">
+	  select * from ${zhx_conn}.T_DM_XSLY         
+	</select>
+	
+	<select id="getTDMCJRLX" resultType="TDmCjrlx" useCache="true">
+	  select * from ${zhx_conn}.T_DM_CJRLX        
+	</select>
+	
+	<select id="getTDMSBJD" resultType="TDmSbjd" useCache="true">
+	  select * from ${zhx_conn}.T_DM_SBJD        
+	</select>
+	
+	<select id="getTDMXJZT" resultType="TDmXjzt" useCache="true">
+	  select * from ${zhx_conn}.T_DM_XJZT        
+	</select>
+	
+	<select id="getTDMJZDXZ" resultType="TDmJzdxz" useCache="true">
+	  select * from ${zhx_conn}.T_DM_JZDXZ         
+	</select>
+	
+	<select id="getTDMGX" resultType="TDmGx" useCache="true">
+	  select * from ${zhx_conn}.T_DM_GX         
+	</select>
+	
+	<select id="getTDMXL" resultType="TDmXl" useCache="true">
+	  select * from ${zhx_conn}.T_DM_XL         
+	</select>
+	
+	<select id="getTDMYDLB" resultType="TDmYdlb" useCache="true">
+	  select * from ${zhx_conn}.T_DM_YDLB         
+	</select>
+	
+	<select id="getTDMJYJG" resultType="TDmJyjg" useCache="true">
+	  select * from ${zhx_conn}.T_DM_JYJG          
+	</select>
+	
+	<select id="getTDMBYQX" resultType="TDmByqx" useCache="true">
+	  select * from ${zhx_conn}.T_DM_BYQX         
+	</select>
+	
+	<select id="getTDMLQBCDM" resultType="TDmLqbcdm" useCache="true">
+	  select * from ${zhx_conn}.T_DM_LQBCDM          
+	</select>
+	
+	<select id="getTDMHYZK" resultType="TDmHyzk" useCache="true">
+	  select * from ${zhx_conn}.T_DM_HYZK         
+	</select>
+	 
+	<select id="getTDMBZLB" resultType="TDmBzlb" useCache="true">
+	  select * from ${zhx_conn}.T_DM_BZLB          
+	</select>
+	
+	<select id="getTDMGWZY" resultType="TDmGwzy" useCache="true">
+	  select * from ${zhx_conn}.T_DM_GWZY         
+	</select>
+	
+	<select id="getTDMXW" resultType="TDmXw" useCache="true">
+	  select * from ${zhx_conn}.T_DM_XW         
+	</select>
+	
+	<select id="getTDMZW" resultType="TDmZw" useCache="true">
+	  select * from ${zhx_conn}.T_DM_ZW          
+	</select>
+	
+	<select id="getTDMZC" resultType="TDmZc" useCache="true">
+	  select * from ${zhx_conn}.T_DM_ZC         
+	</select>
+	
+	<select id="getTDMKSLB" resultType="TDmKslb" useCache="true">
+	  select * from ${zhx_conn}.T_DM_KSLB          
+	</select>
+	
+	<select id="getTDMWJLB" resultType="TDmWjlb" useCache="true">
+	  select * from ${zhx_conn}.T_DM_WJLB          
+	</select>
+	
+    <select id="getTGmScoreleveltemplatename" resultType="TGmScoreleveltemplatename" useCache="true">
+	  select * from ${zhx_conn}.T_GM_ScoreLevelTemplateName          
+	</select>
+	
+	
+	
+</mapper>

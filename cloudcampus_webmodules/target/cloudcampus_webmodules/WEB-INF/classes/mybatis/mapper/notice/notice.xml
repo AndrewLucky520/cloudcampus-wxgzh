@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.notice.dao.NoticeDao">
+ 
+      <resultMap type="com.alibaba.fastjson.JSONObject" id="NoticeList">
+  		<result column="noticeId" property="noticeId"/>
+  		<result column="theme" property="theme"/>
+  		<result column="settop" property="settop"/>
+  		<result column="publishdepartment" property="publishdepartment"/>
+  		<result column="scope" property="scope"/>
+  		<result column="body" property="body"/>
+  		<result column="clickCnt" property="clickCnt"/>
+  		<result column="teacher" property="teacher"/>
+  		<result column="createDate" property="createDate"/>
+  		<result column="updateDate" property="updateDate"/>
+  		<result column="hasView" property="hasView"/>
+  		<collection property="teachers"    javaType="java.util.List" resultMap="teacherSet"/>
+      </resultMap>
+      
+       <resultMap type="com.alibaba.fastjson.JSONObject" id="teacherSet">
+  	     <result column="teacherId" property="teacherId"/>
+      </resultMap> 
+ 
+    <select id="getNoticeList"  parameterType="com.alibaba.fastjson.JSONObject" resultMap="NoticeList">
+		  select   a.noticeId , a.theme , a.settop , a.publishdepartment ,
+		  a.scope , a.body ,a.clickCnt , a.createDate , a.updateDate ,a.teacherId as teacher,   b.teacherId ,
+		  if(c.teacherId is NULL ,'N' , 'Y') AS hasView
+		  from ${db_name_notice}.t_nm_noticerecord a
+		  left join  ${db_name_notice}.t_nm_noticepersonnel b on  (a.noticeId = b.noticeId)
+		  left join  ${db_name_notice}.t_nm_viewed c on  (c.noticeId = a.noticeId and c.teacherId = #{accountId} )
+		  where a.schoolId = #{schoolId}
+	      <if test='queryType!=null and queryType=="1" '>
+		     <choose>
+		         <when test='isTeacher!=null and isTeacher=="1" and isParentStudent!=null and isParentStudent=="1"'>
+			        and  ( a.scope = '0' or (a.scope = '2' and  b.teacherId= #{accountId}) or  a.scope = '1'  ) 
+			     </when>
+			     <when test='isTeacher!=null and isTeacher=="1"'>
+			        and  ( a.scope = '0' or (a.scope = '2' and  b.teacherId= #{accountId}) ) 
+			     </when>
+			      <when test='isParentStudent!=null and isParentStudent=="1"'>
+			           and a.scope = '1'  
+			     </when>
+			     <otherwise>  
+                      and a.scope = '2' and  b.teacherId= #{accountId} 
+                 </otherwise>  
+		     </choose>
+		  </if>
+		  
+		   <if test='theme!=null and theme!=""'>
+		           and a.theme like   "%${theme}%"  
+		   </if>
+		   <if test="startTime!=null and startTime!=''">
+					AND a.createDate &gt;=  #{startTime}
+			</if>
+			<if test="endTime!=null and endTime!=''">
+					AND a.createDate &lt;=  #{endTime}
+			</if>
+			
+			  order by  a.settop desc ,  a.createDate desc 
+        
+	</select>
+	
+	<select id="getNotice" parameterType="com.alibaba.fastjson.JSONObject"  resultType="com.alibaba.fastjson.JSONObject">
+		  select  schoolId , noticeId , theme , settop , publishdepartment ,
+		  scope , body ,clickCnt , createDate , updateDate   
+		  from ${db_name_notice}.t_nm_noticerecord where noticeId = #{noticeId}
+	</select>
+	
+ 
+	<insert id="insertNoticeRecord" parameterType="com.alibaba.fastjson.JSONObject">
+		INSERT INTO   ${db_name_notice}.t_nm_noticerecord (schoolId , noticeId , theme , 
+		settop , publishdepartment ,scope , body ,clickCnt , createDate ,teacherId, updateDate)
+		VALUES (#{schoolId}, #{noticeId},#{theme},#{settop},#{publishdepartment},#{scope},
+		#{body},#{clickCnt},#{createDate},#{teacherId}, #{updateDate} )
+	</insert>
+	
+	<insert id="insertNoticePersonnel" parameterType="java.util.List">
+		INSERT INTO   ${db_name_notice}.t_nm_noticepersonnel (schoolId , noticeId , teacherId)  
+		VALUES
+          <foreach collection="list"  item="item" index="index" separator=",">
+            (#{item.schoolId}, #{item.noticeId}, #{item.teacherId}) 	   
+         </foreach>
+	</insert>
+	
+	<delete id="delNoticePersonnel" parameterType="com.alibaba.fastjson.JSONObject">
+		  delete  from   ${db_name_notice}.t_nm_noticepersonnel 
+		  where noticeId = #{noticeId}
+	</delete>
+	
+	<select id="getNoticePersonnelList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		   select  teacherId
+		   from ${db_name_notice}.t_nm_noticepersonnel 
+		   where noticeId =  #{noticeId} and schoolId = #{schoolId}
+	</select>
+	
+	
+ 
+ 	<update id="updateNotice" parameterType="com.alibaba.fastjson.JSONObject">
+		 update  ${db_name_notice}.t_nm_noticerecord set theme = #{theme} , publishdepartment = #{publishdepartment} ,
+		 scope = #{scope} ,body=#{body} ,updateDate =#{updateDate} , teacherId = #{teacherId} , settop = #{settop}
+		 where noticeId = #{noticeId}
+	</update>
+	
+	<update id="updateClickCnt" parameterType="com.alibaba.fastjson.JSONObject">
+		  update  ${db_name_notice}.t_nm_noticerecord set clickCnt = clickCnt + 1
+		  where noticeId = #{noticeId}
+	</update>
+	
+	<delete id="delNotice" parameterType="com.alibaba.fastjson.JSONObject">
+		  delete  from   ${db_name_notice}.t_nm_noticerecord 
+		  where noticeId = #{noticeId}
+	</delete>
+	
+ 
+	<delete id="delNoticeViewed" parameterType="com.alibaba.fastjson.JSONObject">
+		  delete  from   ${db_name_notice}.t_nm_viewed 
+		  where noticeId = #{noticeId}
+	</delete>
+	
+	
+	<insert id="insertNoticeViewed" parameterType="com.alibaba.fastjson.JSONObject" >
+		INSERT INTO   ${db_name_notice}.t_nm_viewed (schoolId , noticeId , teacherId)  
+		VALUES (#{schoolId}, #{noticeId}, #{teacherId}) 
+	</insert>
+ 
+</mapper>

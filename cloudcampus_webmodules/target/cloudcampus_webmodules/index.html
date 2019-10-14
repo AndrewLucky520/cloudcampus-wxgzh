@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+<title>智慧校</title>
+<meta charset="utf-8">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="expires" content="0">  
+<script type="text/javascript" src="common/js/common.js"></script>  
+<link rel="stylesheet" href="ui/css/login.css">
+<script type="text/javascript" src="common/js/JPlaceHolder.js"></script>
+<script type="text/javascript" src="common/js/md5.js"></script>
+<script type="text/javascript" src="ui/js/login.js"></script>
+<!--[if IE 6]>
+<script>$(function(){$.messager.alert('警告','尊敬的客户，你的浏览器版本过低，会导致部分功能无法正常使用，请使用IE9及以上浏览器获得更好的体验。')})</script>
+<![endif]-->
+</head>
+
+<body>
+<div id="container">
+	<div id="header">
+	1500所学校、12890位老师、2034320名学生、1454870位家长来到了智慧校
+	</div>
+	
+	<div id="pic">
+		<div class="arear-center">
+			<div id="login-box">
+				<h5>登录</h5>
+				<form id='form' method="post">
+					<input type="text" placeholder ="邮箱/手机号" id="userId" name="userId" class="logininput"/>
+					<input type="password" placeholder ="请输入密码"  id="userPassWord" name=userPassWord class="logininput"/>
+					<input type="hidden" id="passWord" name="passWord" value="">
+					<div class="login-box-note"><div class="left"><input type="checkbox" id="remember"  name="remember" value="1" /><span for="remember" >&nbsp;&nbsp;记住密码</span></div><div class="right">忘记密码?</div>
+					<div style="clear:both"></div>
+					</div>
+					<input type="hidden" name="validate" id="validate" value="" />
+					<input type="button" value="登录" id="login"/>
+					<div id="msg" chkcode=""></div>
+				</form>
+			</div>
+			<p class="login-box-text">微信扫一扫<br/>学校信息都知道</p>
+		</div>
+	</div>
+	
+	<div class="cloud-manage cloud">
+		<div class="arear-center cloud">
+			<img src="ui/images/login/manage.png"/>
+			<div class="cloud-manage-text">
+			<h5>云管理</h5><p>开拓教育视野, 传输先进理念；提升管理效率，做真正的教育人。
+			</p></div><div style="clear:both"></div>
+		</div>
+	</div>
+	
+	<div class="cloud-evaluate cloud">
+		<div class="arear-center cloud">
+			<img src="ui/images/login/evaluate.png"/>
+			<div class="cloud-evaluate-text">
+			<h5>云评测</h5><p>利用大数据分析  精确定位优势与不足；正确对待挫折和失败  我的成绩我做主。
+			</p></div>
+		</div>
+	</div>
+	
+	<div class="cloud-study cloud">
+		<div class="arear-center cloud">
+			<img src="ui/images/login/study.png"/>
+			<div class="cloud-study-text">
+			<h5>云学习</h5><p>架起知识传播的桥梁，让课程有亲近感；让个性化学习成为可能，做知识的主人。
+			</p></div><div style="clear:both"></div>
+		</div>
+	</div>
+	
+	<div id="footer"></div>
+</div>
+<div id="dd" ></div>
+<form id='autoform' method="post"></form>
+</body>
+</html>

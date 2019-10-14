@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.elective.dao.ElectiveAppDao">
+<!-- 学生选课App功能 -->
+	<!-- 获取某个学校、班级、学年学期下的开放的所有选课id -->
+     <select id="getOpenTimeElectiveApp" parameterType="com.alibaba.fastjson.JSONObject" resultType="String">
+     SELECT DISTINCT(e.`ElectiveId`) AS electiveId FROM ${db_name_elective}.`t_se_electiveinfo` e 
+		LEFT JOIN ${db_name_elective}.`t_se_offercourses` c ON e.`SchoolYear`=c.`SchoolYear` AND e.`term`=c.`term` AND e.`SchoolId`=c.`SchoolId` AND e.`ElectiveId`=c.`ElectiveId`
+		LEFT JOIN ${db_name_elective}.`t_se_offercoursesforclass` cfc ON e.`SchoolYear`=cfc.`SchoolYear` AND e.`term`=cfc.`term` AND  e.`ElectiveId`=cfc.`ElectiveId` 
+		AND e.`SchoolId`=cfc.`SchoolId` AND c.`CourseId`=cfc.`CourseId`
+		WHERE CONCAT(e.`SchoolYear`,e.`term`)=#{termInfo} AND e.`SchoolId`=#{schoolId} AND cfc.`ClassId`=#{classId} 
+		 <if test="isOpen!=null and isOpen!=''">
+			AND NOW() BETWEEN e.`StartTime` AND e.`EndTime` 
+		</if>
+		 <if test="eleId!=null and eleId!=''">
+			AND  e.ElectiveId = #{eleId}
+		</if>
+		ORDER BY e.`CreateTime` DESC
+     </select>
+     <!-- 获取选课轮次 -->
+     <select  id="getElectiveApp" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+     SELECT e.`ElectiveId`  AS electiveId,e.`ElectiveName` AS electiveName FROM ${db_name_elective}.`t_se_electiveinfo` e 
+		WHERE e.`SchoolYear`=#{schoolYear} AND e.`term`=#{term} AND e.`SchoolId`=#{schoolId} AND  e.`ElectiveId`=#{electiveId}
+     </select>
+     <!-- 获取选中的课程列表 -->
+     <select  id="getSelectedElectiveCourseApp" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+    SELECT off.`CourseId` AS courseId,off.`CourseName` AS courseName,IFNULL(off.`CourseDesc`,"") AS courseDesc
+        ,IFNULL(sort.`CourseSortId`,"") AS courseSortId,IFNULL(sort.`CourseSortName`,"") AS courseSortName
+    FROM ${db_name_elective}.`t_se_studentelective` stu 
+	LEFT JOIN ${db_name_elective}.`t_se_offercourses` off ON off.`SchoolId`=stu.`SchoolId` AND off.`ElectiveId`=stu.`ElectiveId`
+	  AND stu.`SchoolYear`=off.`SchoolYear` AND stu.`term`=off.`term` AND stu.`CourseId`=off.`CourseId`
+	LEFT JOIN ${db_name_elective}.`t_se_coursesort` sort ON sort.`SchoolId`=stu.`SchoolId` AND sort.`ElectiveId`= stu.`ElectiveId`
+	  AND sort.`SchoolYear` = stu.`SchoolYear` AND sort.`term`=stu.`term` 
+	  AND sort.`CourseSortId` = off.`CourseSortId`
+	WHERE stu.`SchoolYear`=#{schoolYear} AND stu.`term`=#{term} AND  stu.`SchoolId`=#{schoolId} AND stu.`ElectiveId`=#{electiveId}
+		AND stu.`ClassId`=#{classId} AND stu.`StudentId`=#{studentId}
+     </select>
+     <!-- 获取单个课程 -->
+     <select id="getSingleElectiveCourseApp" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+     SELECT off.`CourseId` AS courseId, off.`CourseName` AS courseName,IFNULL(off.`CourseDesc`,"") AS courseDesc
+		,IFNULL(off.`Classroom`,"" )AS classroom,off.`MaxNum`AS upperLimit,IFNULL(off.`Teachers`,"") AS teachers,IFNULL(sort.`CourseSortName`,"") AS courseSortName ,IFNULL(off.`classMaxNum`,'不限')AS  classMaxNum
+		FROM ${db_name_elective}.`t_se_offercourses` off
+		LEFT JOIN ${db_name_elective}.`t_se_coursesort` sort ON sort.`SchoolYear`=off.`SchoolYear` AND sort.`term`=off.`term`
+		AND sort.`ElectiveId` = off.`ElectiveId` AND sort.`SchoolId`=off.`SchoolId` AND sort.`CourseSortId`=off.`CourseSortId`
+		WHERE off.`SchoolYear`= #{schoolYear} AND off.`term`=#{term} AND off.`SchoolId`=#{schoolId} AND off.`ElectiveId`=#{electiveId}
+		AND off.`CourseId`=#{courseId} 
+     </select>
+     <!-- 获取单个轮次的选课 -->
+     <select id="getSingleElectiveApp" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+        SELECT e.`ElectiveId` AS electiveId,e.`ElectiveName` AS electiveName,
+		IFNULL(e.`StartTime`,"") AS startTime,IFNULL(e.`EndTime`,"") AS endTime FROM ${db_name_elective}.`t_se_electiveinfo` e WHERE e.`SchoolYear`=#{schoolYear} AND e.`term`=#{term} AND e.`SchoolId`=#{schoolId}
+		AND e.`ElectiveId`=#{electiveId}
+     </select>
+     <!-- 获取单个课程的已选人数 -->
+      <select id="getSingleSelectedCourseStudent" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject"> 
+          SELECT t.`CourseId` AS courseId,COUNT(DISTINCT t.`StudentId`) AS selectedNum 
+          FROM ${db_name_elective}.T_SE_StudentElective t WHERE
+          CONCAT(t.`SchoolYear`,t.`term`)=#{termInfo} AND
+         schoolId=#{schoolId} AND t.`ElectiveId`=#{electiveId} AND t.`CourseId`=#{courseId}          
+     </select>
+     <select id="getElectiveTimeByIdApp" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+      	SELECT `StartTime` AS startTime,`EndTime` AS endTime,`ElectiveId` AS electiveId,`ElectiveName` AS electiveName 
+      	FROM ${db_name_elective}.`t_se_electiveinfo` WHERE `ElectiveId`=#{electiveId};
+     </select>
+</mapper>
+

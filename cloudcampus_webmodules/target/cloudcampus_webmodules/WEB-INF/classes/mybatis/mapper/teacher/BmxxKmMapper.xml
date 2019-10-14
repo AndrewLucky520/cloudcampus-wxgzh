@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.talkweb.teacher.dao.BmxxKmDao">  
+
+	<parameterMap type="com.talkweb.teacher.domain.page.TTrBmxxKm" id="bmkmParam">
+	</parameterMap>
+	
+	<!-- 添加管理科目 -->
+	<insert id="addBmkm" parameterMap="bmkmParam" >
+		insert into ${zhx_conn}.t_tr_bmxx_km(xxdm,jgh,yjkm)
+		values(#{xxdm},#{jgh},#{yjkm})
+	</insert>
+	
+	<!-- 删除教研科目 -->
+	<delete id="deleteBmkm" parameterType="String">
+		delete from ${zhx_conn}.t_tr_bmxx_km where jgh=#{jgh}
+	</delete>
+	
+	<!-- 查询教研组研究科目列表 -->
+	<select id="getYjkmList" parameterType="String" resultType="hashmap">
+		select a.yjkm as id,t.zwmc as text  from ${zhx_conn}.t_tr_bmxx_km a
+		left join ${zhx_conn}.t_tp_lessoninfo t on a.yjkm = t.kmdm
+		where a.jgh = #{jgh}
+	</select>
+</mapper>

@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.csbasedata.dao.TeacherManageDao">
+
+  <!-- 获取全校当前任课的老师信息accountId name userid 任课班级id 课程id-->
+  <select id="getTeacherList" parameterType="JSONObject" resultType="JSONObject">
+    SELECT distinct t.teacherId,a.name AS teacherName,a.id AS accountId,a.accountName AS accountName,
+    a.mobilePhone AS mobilePhone,a.gender AS gender,a.accountStatus AS accountStatus
+    FROM ${dbname_teacher}.t_account a INNER JOIN ${dbname_teacher}.t_user u ON u.accountId = a.id
+    INNER JOIN ${dbname_teacher}.t_teacher t ON u.id = t.teacherId LEFT JOIN 
+    ${dbname_teacher}.t_teacher_course tc ON t.teacherId = tc.teacherId LEFT JOIN 
+    ${dbname_teacher}.t_class c ON c.id = tc.classId WHERE t.schoolId = #{schoolId} AND a.status = 1
+	<choose>
+        <when test="condition !=null and condition != ''">
+            AND (a.name LIKE CONCAT('%',#{condition},'%') OR a.mobilePhone LIKE CONCAT('%',#{condition},'%') 
+            OR a.accountName LIKE CONCAT('%',#{condition},'%'))
+        </when>
+        <otherwise>
+			<if test="classId != null and classId != ''"> 
+		        AND tc.classId = #{classId}
+		    </if>
+		    <if test="gradeId != null and gradeId != ''"> 
+		        AND c.gradeId = #{gradeId}
+		    </if> 
+		    <if test="lessonId != null and lessonId != ''"> 
+		      	AND tc.lessonId = #{lessonId}
+		    </if>
+        </otherwise>
+    </choose>
+	ORDER BY a.id
+  </select>
+  
+  <select id="getTeacherTotal" parameterType="long" resultType="int">
+		    SELECT 
+		  count(0) 
+			FROM
+			  ${dbname_teacher}.t_teacher  t
+			  INNER JOIN  ${dbname_teacher}.t_user u ON u.`id`=t.`teacherId` AND u.`status`=1
+			  INNER JOIN  ${dbname_teacher}.t_account a ON a.`id`=u.`accountId` AND a.`status`=1
+			WHERE t.schoolId = #{schoolId} 
+  </select>
+  
+  <update id="updateTeacherPassword" parameterType="JSONObject">
+		UPDATE ${dbname_teacher}.t_account SET pwd = #{pwd} WHERE id = #{accountId}
+  </update>
+  
+  <select id="getAccountNameById" parameterType="long" resultType="String">
+        SELECT accountName FROM ${dbname_teacher}.t_account WHERE id = #{accountId} 
+  </select>
+  
+  <!-- 获取全校当前任课的老师信息name,accountName -->
+  <select id="getNamesFromAccount" parameterType="JSONObject" resultType="JSONObject">
+        SELECT GROUP_CONCAT(a.name) AS teacherNames,GROUP_CONCAT(a.accountName) AS names
+        FROM ${dbname_teacher}.t_account a INNER JOIN ${dbname_teacher}.t_user u 
+        ON a.id = u.accountId INNER JOIN ${dbname_teacher}.t_teacher t ON u.id = t.teacherId
+        WHERE t.schoolId = #{schoolId} 
+        <if test="accountId != null and accountId != ''"> 
+		      	 AND a.id!=#{accountId}
+		</if>
+         AND a.status = '1'
+  </select>
+  
+  <select id="getNamesMapBySchoolId" parameterType="long" resultType="JSONObject">
+        SELECT a.name AS name,concat_ws(',',u.accountId,u.id) AS ids FROM ${dbname_teacher}.t_account a 
+        INNER JOIN ${dbname_teacher}.t_user u ON a.id = u.accountId INNER JOIN ${dbname_teacher}.t_teacher t 
+        ON u.id = t.teacherId WHERE t.schoolId = #{schoolId} AND a.status = '1'
+  </select>
+  
+  <insert id="insertAccountByTeacher" parameterType="JSONObject" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ${dbname_teacher}.t_account(uuid,status,accountName,pwd,device,accountStatus,name,gender,
+        cardType,idNumber,mobilePhone,email,source,birthday,createTime,autoUpdateTime,autoCreateTime) 
+        VALUES (#{uuid},#{status},#{accountName},#{pwd},#{device},#{accountStatus},#{name},#{gender},#{cardType},
+        #{idNumber},#{mobilePhone},#{email},#{source},#{birthday},#{createTime},#{autoUpdateTime},#{autoCreateTime}) 	      
+  </insert>
+  
+  <update id="updateAccountByTeacher" parameterType="JSONObject">
+		UPDATE ${dbname_teacher}.t_account SET name = #{name}
+		<if test="gender != null and gender != ''"> 
+		      	,gender = #{gender}
+		</if>
+		<if test="mobilePhone != null and mobilePhone != ''"> 
+		      	,mobilePhone = #{mobilePhone}
+		</if>
+		WHERE id = #{id}
+  </update>
+
+  <delete id="deleteAccountById" parameterType="List">
+        DELETE FROM ${dbname_teacher}.t_account WHERE id IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+  </delete>
+  
+  <insert id="insertUserByTeacher" parameterType="JSONObject" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ${dbname_teacher}.t_user(uuid,status,role,createTime,avatar,autoCreateTime,autoUpdateTime,accountId) 
+        VALUES (#{uuid},#{status},#{role},#{createTime},#{avatar},#{autoCreateTime},#{autoUpdateTime},#{accountId}) 	      
+  </insert>
+  
+  <delete id="deleteUserById" parameterType="List">
+        DELETE FROM ${dbname_teacher}.t_user WHERE accountId IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+  </delete>
+  
+  <insert id="insertTeacher" parameterType="JSONObject">
+        INSERT INTO ${dbname_teacher}.t_teacher(teacherId,autoCreateTime,autoUpdateTime,schoolId) 
+        VALUES (#{teacherId},#{autoCreateTime},#{autoUpdateTime},#{schoolId}) 	      
+  </insert>
+  
+  <delete id="deleteTeacherById" parameterType="List">
+        DELETE FROM ${dbname_teacher}.t_teacher WHERE teacherId IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+  </delete>
+  
+  <insert id="insertTeacherCourses" parameterType="List">
+        INSERT INTO ${dbname_teacher}.t_teacher_course(teacherId,classId,lessonId)VALUES 
+        <foreach collection="list" item="item" index="index" separator=",">
+		   (#{item.teacherId}, #{item.classId}, #{item.lessonId}) 	   
+		</foreach>
+  </insert>
+  
+  <delete id="deleteTeacherCourses" parameterType="List">
+        DELETE FROM ${dbname_teacher}.t_teacher_course WHERE teacherId IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+  </delete>
+  <delete id="deleteTeacherCourse" parameterType="JSONObject">
+        DELETE FROM ${dbname_teacher}.t_teacher_course WHERE teacherId = #{teacherId}
+        AND classId = #{classId} AND lessonId = #{lessonId}
+  </delete>
+  
+  <!-- 获取老师详细信息-->
+  <resultMap type="JSONObject" id="teacherMap">
+  		<result column="teacherName" property="teacherName"/>
+		<result column="gender" property="gender"/>
+		<result column="mobilePhone" property="mobilePhone"/>
+		<result column="idCard" property="idCard"/>
+		<result column="createTime" property="createTime"/>
+		<collection property="teachingClass" javaType="List" resultMap="teacherSet"/>
+  </resultMap> 
+  <resultMap type="JSONObject" id="teacherSet">
+		<result column="classId" property="classId"/>
+		<result column="lessonId" property="lessonId"/>
+  </resultMap>
+  <select id="getTeacherInfo" parameterType="JSONObject" resultMap="teacherMap">
+    SELECT a.name AS teacherName,a.gender AS gender,a.mobilePhone AS mobilePhone,b.empno AS idCard,
+    from_unixtime(a.createTime,'%Y-%m-%d') AS createTime,t.classId AS classId,t.lessonId AS lessonId
+    FROM ${dbname_teacher}.t_account a INNER JOIN ${dbname_teacher}.t_user u ON a.id = u.accountId
+    INNER JOIN ${dbname_teacher}.t_teacher b ON b.teacherId = u.id LEFT JOIN 
+    ${dbname_teacher}.t_teacher_course t ON t.teacherId = b.teacherId WHERE b.schoolId = #{schoolId} 
+    AND a.id = #{accountId} AND u.id = #{teacherId} AND a.status = 1 ORDER BY a.id
+  </select>
+  
+  <delete id="deleteSchoolManager" parameterType="List">
+        DELETE FROM ${dbname_teacher}.t_schoolmanager WHERE managerId IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+  </delete>
+  
+  <delete id="deleteOrgMember" parameterType="List">
+        DELETE FROM ${dbname_org}.t_org_member WHERE userId IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+  </delete>
+  
+  <delete id="deleteOrgHeader" parameterType="List">
+        DELETE FROM ${dbname_org}.t_org_header WHERE headerId IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+  </delete>
+   <!-- <update id="updateClassHeadTeacherIdTEACHER" parameterType="java.util.List" >
+	INSERT INTO ${dbname_teacher}.`t_class`(`id`,`schoolId`,`headTeacherId` ) 
+	VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.classId},#{item.schoolId},#{item.headTeacherId})
+		</foreach>
+		 on DUPLICATE KEY UPDATE   
+		 autoUpdateTime=NOW(),headTeacherId=values(headTeacherId)
+	<update>  -->
+	<update id="updateClassHeadTeacherIdTEACHER" parameterType="java.util.List" >
+		INSERT INTO ${dbname_teacher}.`t_class`(`id`,`schoolId`,`headTeacherId` ) 
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.classId},#{item.schoolId},#{item.headTeacherId})
+		</foreach>
+		  on DUPLICATE KEY UPDATE   
+		  headTeacherId=0,autoUpdateTime=NOW()
+	</update>
+	<select id="getHeadTeacherClassListTEACHER" parameterType="java.util.List" resultType="JSONObject">
+		SELECT c.id as classId,c.headTeacherId,c.schoolId FROM ${dbname_teacher}.`t_class` c 
+		WHERE c.`headTeacherId` IN
+		 <foreach collection="list" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+	</select>
+  <!-- 老师导入 @author:zhh -->
+  <select id="getTeacherListBySchoolIdTEACHER"  parameterType="JSONObject" resultType="JSONObject">
+  SELECT t.`schoolId`,a.`name`,a.`mobilePhone`,t.`teacherId`,a.`id` AS accountId
+   FROM ${dbname_teacher}.t_teacher t 
+	INNER JOIN ${dbname_teacher}.t_user u ON u.`id`=t.`teacherId` AND u.`status`=1
+	INNER JOIN ${dbname_teacher}.t_account a ON a.`id`=u.`accountId` AND a.`status`=1
+	 WHERE t.`schoolId`=#{schoolId}
+  </select>
+   <select id="getAccountObjTEACHER" parameterType="JSONObject" resultType="JSONObject">
+		SELECT IFNULL(mobilePhone,"") AS mobilePhone,id,IFNULL(accountName,"") AS accountName 
+		FROM ${dbname_teacher}.t_account a  
+			WHERE
+			<if test="accountId!=null and accountId!=''">
+				 a.id=#{accountId} 
+			</if>
+			<if test="accountName!=null and accountName!=''">
+				 a.accountName=#{accountName} 
+			</if>
+			 <if test="ids!=null and ids!='' and ids.size()>0">
+		 	  a.accountName IN 
+			 <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		 AND a.status=1  
+	</select> 
+	<!--   <select id="getAccountObjByAccountNameTEACHER" parameterType="JSONObject" resultType="JSONObject">
+		SELECT IFNULL(mobilePhone,"") AS mobilePhone,id,IFNULL(accountName,"") AS accountName 
+		FROM ${dbname_teacher}.t_account a  
+			WHERE
+			EXISTS (
+			SELECT * FROM 
+			${dbname_teacher}.t_account b 
+		    WHERE b.`accountName`=#{accountName} AND b.status=1
+		)
+	</select>  -->
+	<update id="insertAccountBatchTEACHER" parameterType="java.util.List" >
+		INSERT INTO ${dbname_teacher}.t_account(`uuid`,accountName,pwd,accountStatus,`name`,gender,mobilePhone,createTime) 
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.uuid},#{item.accountName},#{item.pwd},#{item.accountStatus},#{item.name},#{item.gender},#{item.mobilePhone},#{item.createTime})
+		</foreach>
+	</update>
+	<select id="getAccountListTEACHER"  parameterType="JSONObject" resultType="JSONObject">
+		SELECT a.id AS accountId,a.uuid  ,a.accountName
+		FROM ${dbname_teacher}.t_account a WHERE 
+ 		<if test="ids!=null and ids!='' and ids.size()>0">
+		 	 a.uuid IN 
+			 <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		AND a.status=1 
+	</select>
+	<update id="updateAccountPWDBatchTEACHER" parameterType="java.util.List" >
+		INSERT INTO ${dbname_teacher}.t_account(id,pwd) 
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.id},#{item.pwd})
+		</foreach>
+		  on DUPLICATE KEY UPDATE   
+		  pwd=values(pwd),autoUpdateTime=NOW()
+	</update>
+	<update id="insertUserBatchTEACHER" parameterType="java.util.List" >
+		INSERT INTO ${dbname_teacher}.t_user(`uuid`,role,createTime,avatar,accountId) 
+		VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+			 (#{item.uuid},#{item.role},UNIX_TIMESTAMP(),#{item.avatar},#{item.accountId})
+		</foreach>
+	</update>
+	<update id="updateAccountBatchTEACHER" parameterType="java.util.List" >
+		INSERT INTO ${dbname_teacher}.t_account(id,name,gender,mobilePhone) 
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.id},#{item.name},#{item.gender},#{item.mobilePhone})
+		</foreach>
+		  on DUPLICATE KEY UPDATE   
+		  autoUpdateTime=NOW(),name=values(name),gender=values(gender),mobilePhone=values(mobilePhone)
+	</update>
+	<update id="insertTeacherBatchTEACHER" parameterType="java.util.List" >
+	  INSERT INTO ${dbname_teacher}.`t_teacher`(`teacherId`,`schoolId`,`autoCreateTime`,`autoUpdateTime`)
+	   VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.teacherId},#{item.schoolId},NOW(),NOW())
+		</foreach>
+	</update>
+	<select id="getUserListTEACHER"  parameterType="JSONObject" resultType="JSONObject">
+		SELECT u.id AS userId,u.uuid  
+		FROM ${dbname_teacher}.t_user u WHERE 
+ 		<if test="ids!=null and ids!='' and ids.size()>0">
+		 	 u.uuid IN 
+			 <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		AND u.status=1 
+	</select>
+	
+</mapper>

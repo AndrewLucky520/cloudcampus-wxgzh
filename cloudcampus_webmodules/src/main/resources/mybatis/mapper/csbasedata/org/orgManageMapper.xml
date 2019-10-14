@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.csbasedata.dao.OrgManageDao">
+   <select id="getOrgInfosORG"  parameterType="JSONObject" resultType="JSONObject">
+   SELECT o.uuid,subStr(FROM_UNIXTIME(o.`createTime`),1,10) AS createTime,o.`id` AS orgId ,IFNULL(o.`orgName`,"") AS orgName,IFNULL(a.`name`,"") AS name,a.id AS accountId, 1 AS orgType
+	FROM ${dbname_org}.`t_orginfo` o 
+	left JOIN ${dbname_org}.`t_org_header` h ON h.`orgId`=o.`id` AND o.`status`=1
+	left JOIN ${dbname_org}.`t_user` u ON u.`status`=1 AND o.`status`=1 AND u.`id`=h.`headerId`
+	left JOIN ${dbname_org}.`t_account` a ON a.`id` = u.`accountId` AND a.`status`=1 AND u.`status`=1 AND o.`status`=1
+	INNER JOIN ${dbname_org}.`t_school_org` so ON so.`orgId`=o.`id` AND so.`schoolId`=#{schoolId}
+	 where o.`orgType`=#{orgType} 
+	 <if test="uuid!=null and uuid!='' ">
+		  AND o.`uuid`=#{uuid}
+	 </if>
+	 <if test="isQueryMember!=null and isQueryMember!='' ">
+		UNION ALL
+		SELECT o.uuid,subStr(FROM_UNIXTIME(o.`createTime`),1,10) AS createTime,o.`id` AS orgId ,IFNULL(o.`orgName`,"") AS orgName, IFNULL(a.`name`,"") AS name,a.id AS accountId, 2 AS orgType
+		FROM ${dbname_org}.`t_orginfo` o 
+		left JOIN ${dbname_org}.`t_org_member` m ON m.`orgId`=o.`id` AND o.`status`=1
+		left JOIN ${dbname_org}.`t_user` u ON u.`status`=1 AND o.`status`=1 AND u.`id`=m.`userId`
+		left JOIN ${dbname_org}.`t_account` a ON a.`id` = u.`accountId` AND a.`status`=1 AND u.`status`=1 AND o.`status`=1
+		INNER JOIN ${dbname_org}.`t_school_org` so ON so.`orgId`=o.`id` AND so.`schoolId`=#{schoolId}
+		where  o.`orgType`=#{orgType} 
+		 <if test="uuid!=null and uuid!='' ">
+			  AND o.`uuid`=#{uuid}
+		 </if>
+	  </if>
+    </select>
+    
+	<select id="getOrgListORG"  parameterType="JSONObject" resultType="JSONObject">
+ 	SELECT o.uuid,SUBSTR(FROM_UNIXTIME(o.`createTime`),1,10) AS createTime,o.`id` AS orgId,IFNULL(o.`orgName`,"") AS orgName
+ 	 FROM ${dbname_org}.`t_orginfo` o 
+ 	 <if test="isInsert==null or isInsert=='' ">
+		INNER JOIN ${dbname_org}.`t_school_org` so ON so.`orgId`=o.`id` AND so.`schoolId`=#{schoolId}
+ 	</if>
+ 	WHERE o.`status`=1 
+ 	 <if test="orgType!=null and orgType!='' ">
+			 AND o.`orgType`=#{orgType} 
+	 </if>
+ 	 <if test="uuid!=null and uuid!='' ">
+			  AND o.`uuid`=#{uuid}
+	 </if>
+	 <if test="ids!=null and ids!='' and ids.size()>0">
+        AND   o.`uuid` IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+     </if>
+  	ORDER BY o.`createTime` ASC
+    </select>
+     <update id="deleteOrgORG" parameterType="JSONObject" >
+    	DELETE FROM ${dbname_org}.`t_orginfo`   
+    	<where>
+    	<if test="ids!=null and ids!='' and ids.size()>0">
+           `uuid` IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+       </where>
+    </update>
+     <update id="deleteOrgMemberORG" parameterType="JSONObject" >
+		DELETE FROM ${dbname_org}.`t_org_member` 
+		<where>
+    	<if test="ids!=null and ids!='' and ids.size()>0">
+           `orgId` IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+       </where>
+    </update>
+     <update id="deleteOrgMemberByUserIdORG" parameterType="JSONObject" >
+		DELETE FROM ${dbname_org}.t_org_member 
+		WHERE `orgId`=(
+		  SELECT o.id FROM ${dbname_org}.t_orginfo o 
+			WHERE o.uuid=#{uuid} 
+		)
+    	<if test="ids!=null and ids!='' and ids.size()>0">
+            AND userId IN 
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+    </update>
+    <update id="deleteOrgLeaderByUserIdORG" parameterType="JSONObject" >
+		DELETE FROM ${dbname_org}.t_org_header 
+		WHERE `orgId`=(
+		  SELECT o.id FROM ${dbname_org}.t_orginfo o 
+			WHERE o.uuid=#{uuid} 
+		)
+    	<if test="ids!=null and ids!='' and ids.size()>0">
+            AND headerId IN 
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+    </update>
+     <update id="deleteOrgLeaderORG" parameterType="JSONObject" >
+		DELETE FROM ${dbname_org}.`t_org_header` 
+		<where>
+    	<if test="ids!=null and ids!='' and ids.size()>0">
+           `orgId` IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+       </where>
+    </update>
+    <select id="getUserIdByAccountIdListORG"  parameterType="JSONObject" resultType="JSONObject">
+		SELECT u.`id` AS userId,a.`id` AS accountId FROM ${dbname_org}.`t_account` a 
+		INNER JOIN ${dbname_org}.`t_user` u ON u.`accountId`=a.`id` AND u.`status`=1 AND a.`status`=1 AND u.`role`=#{role}
+		INNER JOIN ${dbname_org}.t_teacher t ON t.teacherId=u.id AND t.schoolId=#{schoolId}
+		WHERE  a.`status`=1  AND u.`status`=1
+		<if test="ids!=null and ids!='' and ids.size()>0">
+          AND a.`id` IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+       <if test="accountId!=null and accountId!=''">
+          AND a.`id` =#{accountId}
+       </if>
+    </select>
+      <update id="insertOrgMemberBatchORG" parameterType="java.util.List" >
+    	INSERT INTO ${dbname_org}.`t_org_member`(`orgId`,`userId`)
+		 VALUES
+    	<foreach collection="list" item="item" index="index" separator=",">
+		 (#{item.orgId},#{item.userId})
+        </foreach>
+    </update>
+     <update id="insertOrgLeaderBatchORG" parameterType="java.util.List" >
+    	INSERT INTO ${dbname_org}.`t_org_header`(`orgId`,`headerId`)
+		 VALUES
+    	<foreach collection="list" item="item" index="index" separator=",">
+		 (#{item.orgId},#{item.userId})
+        </foreach>
+    </update>
+    <update id='insertOrgORG' parameterType='JSONObject' >
+   INSERT INTO ${dbname_org}.`t_orginfo`(`uuid`,`orgName`,`orgType`,`createTime`,`modifyTime`)
+	VALUES (#{uuid},#{orgName},#{orgType},UNIX_TIMESTAMP(),UNIX_TIMESTAMP())	    
+    </update> 
+      <update id='insertOrgBatchORG' parameterType='java.util.List' >
+   INSERT INTO ${dbname_org}.`t_orginfo`(`uuid`,`orgName`,`orgType`,`createTime`,`modifyTime`)
+	VALUES
+	<foreach collection="list" item="item" index="index" separator=",">
+	 (#{item.uuid},#{item.orgName},#{item.orgType},#{item.createTime},UNIX_TIMESTAMP())	
+	 </foreach>    
+    </update> 
+    <update id='updateOrgORG' parameterType='JSONObject' >
+    	UPDATE ${dbname_org}.t_orginfo 
+    	SET autoUpdateTime=NOW(),orgName=#{orgName} 
+    	WHERE `uuid`=#{uuid}
+    </update>
+    <select id="getSchoolOrgTypeORG"  parameterType="JSONObject" resultType="JSONObject">
+		 SELECT * FROM ${dbname_org}.t_school_orgtype  t WHERE t.orgTypeId=#{orgType} AND t.schoolId=#{schoolId};
+    </select>
+     <update id='insertSchoolOrgTypeORG' parameterType='JSONObject' >
+    	INSERT INTO ${dbname_org}.t_school_orgtype(schoolId,orgTypeId) VALUES (#{schoolId},#{orgType});   
+    </update>
+    <update id='deleteSchoolOrgTypeORG' parameterType='JSONObject' >
+    	DELETE FROM ${dbname_org}.t_school_orgtype  WHERE orgTypeId=#{orgType} AND schoolId=#{schoolId};  
+    </update>
+     <select id="getSchoolOrgORG"  parameterType="JSONObject" resultType="JSONObject">
+		SELECT * FROM ${dbname_org}.t_school_org so WHERE so.orgId=#{orgId} AND so.schoolId=#{schoolId};
+    </select>
+     <update id='insertSchoolOrgORG' parameterType='JSONObject' >
+     	INSERT INTO ${dbname_org}.t_school_org(schoolId,orgId) VALUES (#{schoolId},#{orgId});
+    </update>
+      <update id='insertSchoolOrgBatchORG' parameterType='java.util.List' >
+     	INSERT INTO ${dbname_org}.t_school_org(schoolId,orgId) 
+     	VALUES 
+     	<foreach collection="list" item="item" index="index" separator=",">
+     	(#{item.schoolId},#{item.orgId})
+     	</foreach>
+    </update>
+    <update id='deleteSchoolOrgORG' parameterType='JSONObject' >
+    	DELETE FROM ${dbname_org}.t_school_org WHERE schoolId=#{schoolId} 
+    	<if test="ids!=null and ids!='' and ids.size()>0">
+          AND `orgId` IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+       <if test="orgId!=null and orgId!=''">
+       		AND orgId=#{orgId}
+       </if>
+    </update>
+    <update id='insertOrgScopeBatchORG' parameterType='java.util.List' >
+     	INSERT INTO ${dbname_org}.t_org_scope(orgId,scopeId) 
+     	VALUES 
+     	<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.orgId},#{item.scopeId})
+        </foreach>
+    </update>
+     <update id='insertOrgLessonBatchORG' parameterType='java.util.List' >
+     	INSERT INTO ${dbname_org}.t_org_lesson(lessonId,orgId) 
+     	VALUES 
+     	<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.lessonId},#{item.orgId})
+        </foreach>
+    </update>
+     <update id='deleteOrgLessonORG' parameterType='JSONObject' >
+     	DELETE FROM ${dbname_org}.t_org_lesson
+     	<where>
+    	<if test="ids!=null and ids!='' and ids.size()>0">
+           `orgId` IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+       </where>
+    </update>
+     <update id='deleteOrgScopeORG' parameterType='JSONObject' >
+     	DELETE FROM ${dbname_org}.t_org_scope 
+     	<where>
+    	<if test="ids!=null and ids!='' and ids.size()>0">
+           `orgId` IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+       </where>
+    </update>
+    <select id="getOrgScopeGradeListORG"  parameterType="JSONObject" resultType="JSONObject">
+    SELECT s.scopeId AS currentLevel,l.lessonId,l.orgId,IFNULL(le.name,"") AS name
+     FROM ${dbname_org}.t_org_lesson l 
+	INNER JOIN ${dbname_org}.t_school_org so ON so.orgId=l.orgId AND so.schoolId=#{schoolId}
+	INNER JOIN ${dbname_org}.t_lessoninfo le ON le.id=l.lessonId AND le.status=1
+	INNER JOIN ${dbname_org}.t_orgInfo o ON o.id=so.`orgId` AND o.`status`=1 AND o.`orgType`=#{orgType}
+	INNER JOIN ${dbname_org}.t_org_scope s ON s.`orgId`=so.orgId 
+	<where>
+			<if test="orgId!=null and orgId!='' ">
+				s.orgId=#{orgId}
+			</if>
+			<if test="noUuid!=null and noUuid!='' ">
+				o.uuid!=#{noUuid}
+			</if>
+	</where>
+	ORDER BY le.id,s.`scopeId` ASC
+    </select>
+      <select id="getOrgScopeListORG"  parameterType="JSONObject" resultType="JSONObject">
+	SELECT l.currentLevel,l.orgId,l.createTime,l.gradeId,l.createLevel FROM (
+		SELECT s.scopeId AS currentLevel,s.orgId,o.createTime,g.id as gradeId,g.createLevel 
+		FROM ${dbname_org}.t_org_scope s 
+		INNER JOIN ${dbname_org}.t_school_org so ON so.orgId=s.orgId AND so.schoolId=#{schoolId}
+		INNER JOIN ${dbname_org}.t_orginfo o ON o.id = s.orgId AND o.status=1 AND o.orgType=#{orgType}
+		INNER JOIN ${dbname_org}.t_grade g ON g.`schoolId`=#{schoolId} AND s.scopeId= if(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)) ,g.createLevel ) AND g.status=1
+		<where>
+			<if test="orgId!=null and orgId!='' ">
+				s.orgId=#{orgId}
+			</if>
+			<if test="noUuid!=null and noUuid!='' ">
+				o.uuid!=#{noUuid}
+			</if>
+		</where>
+	) l order by l.currentLevel ASC;
+    </select>
+    <select id="getOrgLessonListORG" parameterType="JSONObject" resultType="JSONObject" >
+	SELECT l.lessonId,l.orgId,IFNULL(le.name,"") AS name FROM ${dbname_org}.t_org_lesson l 
+	INNER JOIN ${dbname_org}.t_school_org so ON so.orgId=l.orgId AND so.schoolId=#{schoolId}
+	INNER JOIN ${dbname_org}.t_lessoninfo le ON le.id=l.lessonId AND le.status=1
+	INNER JOIN ${dbname_org}.t_orgInfo o ON o.id=so.`orgId` AND o.`status`=1 AND o.`orgType`=#{orgType}
+	<where>
+		<if test="orgId!=null and orgId!='' ">
+			l.orgId=#{orgId}
+		</if>
+		<if test="noUuid!=null and noUuid!='' ">
+				o.uuid!=#{noUuid}
+		</if>
+	</where>
+	ORDER BY le.id asc
+    </select>
+    <select id="getCurrentLevelGradeListORG"  parameterType="JSONObject" resultType="JSONObject">
+    SELECT g.id as gradeId,g.createLevel,if(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)) ,g.createLevel ) AS currentLevel 
+    from ${dbname_org}.t_grade  g 
+      <where>
+	       <if test="ids!=null and ids!='' and ids.size()>0">
+	           g.id IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	       </if>
+	  </where> 
+	 </select>
+    <select id="getTeacherByLessonAndGradeORG" parameterType="JSONObject" resultType="JSONObject" >
+    SELECT DISTINCT IFNULL(a.name,"") AS name,a.id AS accountId,2 AS position  FROM ${dbname_org}.t_grade  g 
+	INNER JOIN ${dbname_org}.t_class c ON  c.schoolId=#{schoolId} AND c.gradeId=g.id AND c.status=1 AND g.status=1 
+	INNER JOIN ${dbname_org}.t_teacher_course tc ON tc.classId=c.id 
+	INNER JOIN ${dbname_org}.t_user u ON u.id = tc.teacherId AND u.status=1
+	INNER JOIN ${dbname_org}.t_account  a ON a.id = u.accountId AND a.status=1 
+	WHERE  g.schoolId=#{schoolId} 
+	<if test="ids!=null and ids!='' and ids.size()>0">
+	           AND if(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)) ,g.createLevel )  IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	</if>
+	<if test="noIds!=null and noIds!='' and noIds.size()>0">
+	           AND g.id  NOT IN
+	          <foreach collection="noIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	</if>
+	<if test="lessonIds!=null and lessonIds!='' and lessonIds.size()>0">
+	            AND tc.lessonId IN
+	          <foreach collection="lessonIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	</if>
+	<if test="nameList!=null and nameList!='' and nameList.size()>0">
+	    AND a.name NOT IN
+	    <foreach collection="nameList" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	    </foreach> 
+	</if>
+    </select>
+     <select id="getTeacherByLessonAndGradeBatchORG" parameterType="JSONObject" resultType="JSONObject" >
+    SELECT DISTINCT a.id AS accountId,IFNULL(a.name,"") AS name,if(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)) ,g.createLevel ) as currentLevel,tc.lessonId 
+    FROM ${dbname_org}.t_grade  g 
+	INNER JOIN ${dbname_org}.t_class c ON  c.schoolId=#{schoolId} AND c.gradeId=g.id AND c.status=1 AND g.status=1 
+	INNER JOIN ${dbname_org}.t_teacher_course tc ON tc.classId=c.id 
+	INNER JOIN ${dbname_org}.t_user u ON u.id = tc.teacherId AND u.status=1
+	INNER JOIN ${dbname_org}.t_account  a ON a.id = u.accountId AND a.status=1 
+	WHERE  g.schoolId=#{schoolId} 
+	<if test="ids!=null and ids!='' and ids.size()>0">
+	           AND if(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)) ,g.createLevel )  IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	</if>
+	<if test="noIds!=null and noIds!='' and noIds.size()>0">
+	           AND g.id  NOT IN
+	          <foreach collection="noIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	</if>
+	<if test="lessonIds!=null and lessonIds!='' and lessonIds.size()>0">
+	            AND tc.lessonId IN
+	          <foreach collection="lessonIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	</if>
+    </select>
+     <select id="getLessonListORG" parameterType="JSONObject" resultType="JSONObject" >
+     	SELECT * FROM ${dbname_org}.t_lessoninfo l 
+     	<where>
+     	<if test="ids!=null and ids!='' and ids.size()>0">
+	           l.id  IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+		</if>
+		</where>
+     </select>
+     <update id="insertStaffBatchORG" parameterType="java.util.List" >
+     INSERT IGNORE INTO ${dbname_org}.t_sstaff(staffId,jobType,schoolId)
+		VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.userId},#{item.jobType},#{item.schoolId})
+        </foreach>
+     </update>
+     <update id="deleteStaffORG"  parameterType="JSONObject" >
+     DELETE FROM  ${dbname_org}.t_sstaff 
+     WHERE schoolId=#{schoolId} 
+     <if test="staffId!=null and staffId!='' ">
+     	AND staffId=#{staffId} 
+     </if>
+     <if test="ids!=null and ids!='' and ids.size()>0">
+	      AND     staffId  IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+		</if>
+     </update>
+     <select id= "getOrgObjORG"  parameterType="JSONObject"  resultType="JSONObject" >
+     	SELECT o.id FROM   ${dbname_org}.t_orginfo o 
+		INNER JOIN ${dbname_org}.t_school_org so ON so.orgId=o.id AND so.schoolId=#{schoolId} 
+     	WHERE o.orgName=#{orgName} AND o.status=1 AND o.orgType=#{orgType} 
+     	 <if test="noUuid!=null and noUuid!='' ">
+     		AND o.uuid!=#{noUuid}
+     	 </if>
+     </select>
+     <select id="getLeadersORG" parameterType="JSONObject"  resultType="String" >
+	     SELECT h.headerId AS userId FROM 
+			${dbname_org}.t_orginfo o 
+			INNER JOIN  ${dbname_org}.t_org_header h ON o.id=h.orgId
+			 WHERE o.uuid=#{uuid} AND o.status=1  
+			 <if test="ids!=null and ids!='' and ids.size()>0">
+			       AND h.headerId IN
+			          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+			              #{item}
+			          </foreach>  
+			</if>
+     </select>
+     <select id="getMembersORG" parameterType="JSONObject"  resultType="String" >
+	      SELECT m.userId FROM 
+			${dbname_org}.t_orginfo o 
+			INNER JOIN  ${dbname_org}.t_org_member m ON o.id=m.orgId
+			 WHERE o.uuid=#{uuid} AND o.status=1 
+			<!--  <if test="ids!=null and ids!='' and ids.size()>0">
+			       AND m.userId IN
+			          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+			              #{item}
+			          </foreach>  
+			 </if> -->
+     </select>
+     <select id="getStaffIdsListORG" parameterType="JSONObject"  resultType="String" >
+	     SELECT staffId  
+	     FROM ${dbname_org}.t_sstaff 
+	     WHERE schoolId=#{schoolId}
+     </select>
+      <select id="getStaffIdsListNotInOrgORG" parameterType="JSONObject"  resultType="String" >
+	      SELECT s.staffId  
+	     FROM ${dbname_org}.t_sstaff s
+	    INNER JOIN ${dbname_org}.t_org_header oh ON s.staffId=oh.headerId 
+	     WHERE s.schoolId=#{schoolId}
+	      <if test="orgId!=null and orgId!=''">
+			        AND oh.orgId !=#{orgId} 
+		 </if> 
+	     <if test="ids!=null and ids!='' and ids.size()>0">
+			        AND oh.orgId NOT IN 
+			          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+			              #{item}
+			          </foreach>  
+		 </if> 
+     </select>
+     <select id="getTeacherListBySchoolIdORG"  parameterType="JSONObject"  resultType="JSONObject" >
+	     SELECT t.teacherId AS userId,a.name  FROM ${dbname_org}.t_teacher t
+		 INNER JOIN ${dbname_org}.t_user u  ON t.teacherId = u.id AND u.status=1 
+		 INNER JOIN ${dbname_org}.t_account a ON a.status=1 AND a.id=u.accountId AND u.status=1
+		 WHERE t.schoolId=#{schoolId}
+     </select>
+  <!-- 导入 -->
+  <update id="deleteOrgMemberListByUserIdORG" parameterType="JSONObject" >
+ <!--  	<foreach collection="list" item="item" index="index" separator=",">
+   DELETE FROM ${dbname_org}.t_org_member
+    WHERE orgId=#{item.orgId} AND userId=#{item.userId}
+  </foreach> -->
+   DELETE FROM ${dbname_org}.t_org_member
+    WHERE orgId=#{orgId} AND userId=#{userId}
+  </update>
+  <update id="deleteOrgLeaderListByUserIdORG" parameterType="JSONObject" >
+  <!-- 	<foreach collection="list" item="item" index="index" separator=",">
+   DELETE FROM ${dbname_org}.t_org_header
+    WHERE orgId=#{item.orgId} AND headerId=#{item.userId}
+  </foreach> -->
+   DELETE FROM ${dbname_org}.t_org_header
+    WHERE orgId=#{orgId} AND headerId=#{userId}
+  </update>
+   <update id="deleteStaffListByUserIdORG" parameterType="JSONObject" >
+    	DELETE FROM ${dbname_org}.t_sstaff 
+		WHERE schoolId=#{item.schoolId}  
+		 <if test="ids!=null and ids!='' and ids.size()>0">
+          AND   staffId IN 
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+  </update>
+   <select id="getOrgHeadAndStaffIdListORG"  parameterType="JSONObject" resultType="JSONObject" >
+     SELECT h.headerId AS userId FROM ${dbname_org}.t_org_header h 
+		<where>
+			   <if test="ids!=null and ids!='' and ids.size()>0">
+		     	h.headerId IN
+		          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+			</if>
+		</where>
+		UNION ALL
+		SELECT m.userId AS userId FROM  ${dbname_org}.t_org_member m
+         <where>
+			   <if test="ids!=null and ids!='' and ids.size()>0">
+		     	m. userId IN
+		          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+			</if>
+		</where>
+     </select>
+</mapper>

@@ -1,0 +1,1107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.wishFilling.dao.WishFillingSetDao">
+<!-- 公共接口  -->
+	<!-- 根据填报ID获取科目 -->
+	<select id="getSubjectListByTb" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT sub.`wfId`,sub.`subjectId`
+		<!--  ,d.`subjectName`--> 
+		FROM ${db_name_wishFilling}.`t_wf_subjecttb` sub 
+		<!--  LEFT JOIN ${db_name_wishFilling}.`t_wf_dicsubject` d ON d.`subjectId`=sub.`subjectId`-->
+		WHERE CONCAT(sub.`schoolYear`,sub.`termInfoId`) = #{termInfo} AND sub.`schoolId`=#{schoolId} AND sub.`wfId`=#{wfId} order by sub.`subjectId` ASC
+	</select>
+	<!-- 根据使用年级获取某个学校的填报数目 -->
+	<select id="hasTbByUseGrades" parameterType="com.alibaba.fastjson.JSONObject" resultType="Integer">
+	    SELECT COUNT(*) FROM ${db_name_wishFilling}.`t_wf_wfinfo` WHERE 
+	    CONCAT(`schoolYear`,`termInfoId`) = #{termInfo} AND `schoolId`=#{schoolId} 
+       <if test="useGrades!=null and useGrades!='' and useGrades.size()>0">
+           AND  `wfUseGrade` IN
+          <foreach collection="useGrades" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+	</select>
+	<!-- 获取某个填报轮次下的组合列表 -->
+	<select id="getZhListByTb" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	   SELECT z.`wfId`,z.`zhName`,z.`zhId`,z.`subjectIds`,z.`zhWay`,z.`fixedHasNum` FROM ${db_name_wishFilling}.`t_wf_zhsubject`z  
+		WHERE CONCAT(z.`schoolYear`,z.`termInfoId`) = #{termInfo} AND z.`schoolId`=#{schoolId}
+		<if test="wfId!=null and wfId!=''">
+			 AND z.`wfId`=#{wfId} 
+		</if>
+		ORDER BY z.`createDate`
+	</select>
+	<!-- 获取填报名称列表  (跨学年学期) -->
+	<select id="getTbSelectList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT w.`wfName`,w.`wfId`,CONCAT(w.`schoolYear`,w.`termInfoId`) AS termInfo FROM  ${db_name_wishFilling}.`t_wf_wfinfo`  w 
+		WHERE  w.`schoolId`=#{schoolId}
+		<if test="wfUseGrade!=null and wfUseGrade!=''">
+			 AND w.`wfUseGrade`=#{wfUseGrade} 
+		</if>
+		 <if test="termInfo!=null and termInfo!=''">
+		   <if test="minTermInfo!=null and minTermInfo!=''">
+			 AND CONCAT(w.`schoolYear`, w.`termInfoId`) BETWEEN  #{minTermInfo} AND   #{termInfo}
+		   </if>
+		</if>
+		ORDER BY w.`createDate` DESC
+	</select>
+<!-- 管理员设置 -->
+   <!-- 获取科目字典表中的数据 -->
+   <select id="getDicSubjectList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" >
+	<if test="isDivided==1">
+	SELECT l.* FROM (
+		SELECT d.subjectId AS ssubjectId,d.isDivided,d.`selectRule`,d.`pycc`,d.`scopeId`,d.`scopeType`,d.`sort`,d.`subjectId`
+		,d.`subjectName`,d.`subjectSimpleName`,d.`subjectType`
+		 FROM   ${db_name_wishFilling}.`t_wf_dicsubject` d
+				WHERE d.pycc = #{pycc} AND d.`isDivided`=0
+		UNION 
+		SELECT  d.subjectId AS ssubjectId,d.isDivided, d.`selectRule`,d.`pycc`,d.`scopeId`,d.`scopeType`,d.`sort`+dd.`sort` AS sort,dd.`subjectDividedId` AS subjectId
+		,dd.`subjectDividedName` AS subjectName,dd.`subjectDividedSimpleName` AS subjectSimpleName ,dd.`subjectDividedType` AS subjectType FROM ${db_name_wishFilling}.`t_wf_dicsubject` d
+		INNER JOIN ${db_name_wishFilling}.`t_wf_dicdividesubject` dd ON dd.`subjectId`=d.`subjectId`
+		WHERE d.pycc = #{pycc} AND d.`isDivided`=1
+		) l  ORDER BY l.`subjectId` ASC;
+		</if>
+		<if test="isDivided==0">
+		SELECT  d.subjectId AS ssubjectId,d.isDivided,d.`selectRule`,d.`pycc`,d.`scopeId`,d.`scopeType`,d.`sort`,d.`subjectId`
+		,d.`subjectName`,d.`subjectSimpleName`,d.`subjectType`
+		 FROM   ${db_name_wishFilling}.`t_wf_dicsubject` d
+				WHERE d.pycc = #{pycc} 
+		ORDER BY d.`subjectId` ASC;
+		</if>
+	</select>
+	<select id="getDividedSubjectList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" >
+	SELECT d.`subjectId`AS ssubjectId,d.`subjectName` AS ssubjectName,dd.`subjectDividedId` AS subjectId,dd.`subjectDividedName` AS subjectName
+ 		FROM ${db_name_wishFilling}.`t_wf_dicsubject` d 
+	LEFT JOIN ${db_name_wishFilling}.`t_wf_dicdividesubject` dd ON d.`subjectId`=dd.`subjectId`
+	WHERE d.`pycc`=#{pycc} AND d.`isDivided`=1;
+	</select>
+   <!-- 新增填报 -->
+   <update id="createTb" parameterType="com.alibaba.fastjson.JSONObject">
+   INSERT INTO ${db_name_wishFilling}.`t_wf_wfinfo`(`schoolId`,`schoolYear`,`termInfoId`,
+   `wfId`,`wfName`,`createDate`)  
+		VALUES (#{schoolId},#{xn},#{xqm},#{wfId},#{wfName},now());
+   </update>
+   <!-- 获取填报名称列表  (防止重名) -->
+	<select id="getTbNameList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT w.`wfName`,w.`wfId` FROM  ${db_name_wishFilling}.`t_wf_wfinfo`  w 
+	WHERE CONCAT(w.`schoolYear`,w.`termInfoId`)=#{termInfo} and schoolId=#{schoolId} 
+	ORDER BY w.`createDate` DESC
+	</select>
+    <!-- 获取填报列表 -->
+    <select id="getTbList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+     SELECT   z.`schoolYear`,z.`termInfoId`,z.`wfUseGrade` AS gradeId,z.`wfId`,z.`wfName`,z.pycc,
+		  SUBSTRING(z.`wfStartTime`, 1, 16) AS wfStartTime,SUBSTRING(z.`wfEndTime`, 1, 16) AS wfEndTime,
+		   SUBSTRING(z.`byStartTime`, 1, 16) AS byStartTime,SUBSTRING(z.`byEndTime`, 1, 16) AS byEndTime,
+		  z.wfNum,CONCAT(z.`schoolYear`, z.`termInfoId`) AS termInfo,z.`isShowRight` AS isShowQuery,z.`isByElection`,z.`wfWay`,z.`wfUseGrade`,
+		  IFNULL(s.hasStudentNum,0) AS hasStudentNum
+		FROM  ${db_name_wishFilling}.`t_wf_wfinfo` z 
+		  LEFT JOIN (
+		    SELECT stu.`wfId`,stu.`schoolId`,COUNT(DISTINCT stu.`accountId`) AS hasStudentNum FROM  ${db_name_wishFilling}.`t_wf_zhstudent` stu  
+		    INNER JOIN  ${db_name_wishFilling}.`t_wf_zhsubject` sub ON sub.`schoolId`=stu.`schoolId` AND
+				sub.`wfId`=stu.`wfId` AND sub.`zhId`=stu.`zhId`   
+		           WHERE CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} AND stu.`schoolId`=#{schoolId} 
+		            <if test="termInfo!=null and termInfo!='' ">
+		  	            AND CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo}
+		            </if>
+		            GROUP BY stu.`wfId`
+		  )s
+		    ON s.`schoolId` = z.`schoolId` AND s.`wfId` = z.`wfId` 
+		WHERE  CONCAT(z.`schoolYear`,z.`termInfoId`)=#{termInfo} AND z.`schoolId` = #{schoolId} 
+		   <if test="useGrade!=null and useGrade!='' ">
+		  	 AND z.`wfUseGrade`=#{useGrade}
+		  </if>
+		    <if test="termInfo!=null and termInfo!='' ">
+		  	 AND CONCAT(z.`schoolYear`,z.`termInfoId`)=#{termInfo}
+		  </if>
+		  <if test="isJudge!=null and isJudge!=''">
+		   AND NOW() BETWEEN z.`wfStartTime` AND z.`wfEndTime`
+		  </if>
+		GROUP BY z.wfId ORDER BY z.`createDate` DESC 
+    </select>
+    <!-- 获取所有补选学生组合 -->
+    <select id="getByZhStudentNum"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+       SELECT stuby.`wfId`,IFNULL(COUNT(DISTINCT stuby.`accountId`) ,0) AS hasSelectedNumBy FROM ${db_name_wishFilling}.`t_wf_zhstudentby` stuby
+		WHERE CONCAT(stuby.`schoolYear`,stuby.`termInfoId`)=#{termInfo} AND stuby.`schoolId`=#{schoolId} 
+		 <if test="zhIds!=null and zhIds!='' and zhIds.size()>0">
+          AND stuby.`zhId` in
+          <foreach collection="zhIds" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+         </if>
+         <if test="isFixedZh!=null and isFixedZh!='' ">
+		  	 AND stuby.isFixedZh=#{isFixedZh}
+		 </if>
+         GROUP BY stuby.`wfId`
+    </select>
+    <!-- 修改填报名称 -->
+    <update id="updateTbName" parameterType="com.alibaba.fastjson.JSONObject" >
+    	UPDATE ${db_name_wishFilling}.`t_wf_wfinfo` SET `wfName`=#{wfName} 
+			WHERE CONCAT(schoolYear,termInfoId)=#{termInfo} AND `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+    </update>
+    <!-- 获取填报详情  不传termInfo 因为可能要根据wfId获取termInfo -->
+    <select id="getTb" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+    SELECT z.`schoolId`,z.`termInfoId`,z.`schoolYear`,z.`wfName`,SUBSTRING(z.`wfStartTime`,1,16) as wfStartTime,SUBSTRING(z.`wfEndTime`,1,16) as wfEndTime
+    ,z.`wfNum`,z.`wfWay`,z.`isByElection`,z.`isShowRight` AS isFirstEdit,z.`wfUseGrade` AS wfGradeId,z.pycc,z.wfId
+    , SUBSTRING(z.`byStartTime`, 1, 16) AS byStartTime,SUBSTRING(z.`byEndTime`, 1, 16) AS byEndTime
+    , IF(z.`wfEndTime` &lt; now(), 1, 0) AS isEdit, GROUP_CONCAT(s.`subjectId` ORDER BY s.`subjectId` ASC) as subjectIds
+    <!--  ,GROUP_CONCAT(d.`subjectName`) AS subjectNames-->
+		FROM ${db_name_wishFilling}.`t_wf_wfinfo` z  
+		LEFT JOIN ${db_name_wishFilling}.`t_wf_subjecttb` s ON s.`schoolId` = z.`schoolId` AND s.`wfId`=z.`wfId`
+		 <if test="isGetBySubject!=null and isGetBySubject!='' ">
+  			 AND s.`subjectIsBy` = 1
+  		 </if>
+		<!--  LEFT JOIN ${db_name_wishFilling}.`t_wf_dicsubject` d on d.`subjectId`=s.`subjectId`--> 
+		WHERE 
+			CONCAT(z.`schoolYear`,z.`termInfoId`)=#{termInfo}
+			 AND z.`schoolId`=#{schoolId}
+			 AND z.`wfId`=#{wfId}
+		order by s.`subjectId` ASC
+    </select>
+    <!-- 删除填报 -->
+    <update id="deleteTb" parameterType="com.alibaba.fastjson.JSONObject" >
+    	DELETE FROM ${db_name_wishFilling}.`t_wf_wfinfo` 
+    	WHERE CONCAT(schoolYear,termInfoId)=#{termInfo} AND `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+    </update>
+    <!-- 更新填报详情 -->
+   <update id="updateTb" parameterType="com.alibaba.fastjson.JSONObject" >
+    	UPDATE ${db_name_wishFilling}.`t_wf_wfinfo` SET  `wfStartTime`=#{wfStartTime} , `wfEndTime`=#{wfEndTime}
+		, `wfNum`=#{wfNum} , `isShowRight`=1 , `wfUseGrade`=#{wfUseGrade},isByElection=#{isByElection},
+		 <if test="byStartTime!=null and byStartTime!='' ">
+		    <if test="byEndTime!=null and byEndTime!='' ">
+		byStartTime=#{byStartTime},byEndTime=#{byEndTime},
+		    </if>
+		</if>
+		 <if test="pycc!=null and pycc!='' ">
+		 pycc=#{pycc},
+		 </if>
+		wfWay=#{wfWay} WHERE CONCAT(schoolYear,termInfoId)=#{termInfo} AND `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+    </update>
+    <!-- 新增填报科目 -->
+     <update id="createSubjectTbBatch" parameterType="java.util.List" >
+    	INSERT INTO  ${db_name_wishFilling}.`t_wf_subjecttb`(`schoolId`,`schoolYear`,`termInfoId`,
+		`wfId`,`subjectId`,`subjectType`)
+		 VALUES
+    	<foreach collection="list" item="item" index="index" separator=",">
+		 (#{item.schoolId},#{item.schoolYear},#{item.termInfoId},
+		 #{item.wfId},#{item.subjectId},#{item.subjectType})
+        </foreach>
+    </update>
+      <!-- 删除填报科目 -->
+       <update id="deleteSubjectTb" parameterType="com.alibaba.fastjson.JSONObject" >
+    		DELETE FROM ${db_name_wishFilling}.`t_wf_subjecttb` WHERE CONCAT(schoolYear,termInfoId)=#{termInfo} AND `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+       </update>
+       <!-- 删除学生填报 -->
+       <update id="deleteStudentTb" parameterType="com.alibaba.fastjson.JSONObject" >
+      	    DELETE FROM ${db_name_wishFilling}.`t_wf_studenttb` WHERE CONCAT(schoolYear,termInfoId)=#{termInfo} AND `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+      		 <if test="accountIds!=null and accountIds!='' and accountIds.size()>0">
+           AND  `accountId` IN
+          <foreach collection="accountIds" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+       <if test="accountId!=null and accountId!='' ">
+          	AND  `accountId` =#{accountId}
+       </if>
+       <if test="wfGradeId!=null and wfGradeId!='' ">
+        	AND `useGrade` =#{wfGradeId}
+       </if>
+       </update>
+        <!-- 删除补选学生填报 @-->
+       <update id="deleteByStudentTbByAccountId" parameterType="com.alibaba.fastjson.JSONObject" >
+      	    DELETE FROM ${db_name_wishFilling}.`t_wf_studenttbby` WHERE CONCAT(schoolYear,termInfoId)=#{termInfo} AND `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+      		 <if test="accountIds!=null and accountIds!='' and accountIds.size()>0">
+           AND  `accountId` IN
+          <foreach collection="accountIds" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+       <if test="accountId!=null and accountId!='' ">
+          	AND  `accountId` =#{accountId}
+       </if>
+       <if test="wfGradeId!=null and wfGradeId!='' ">
+        	AND `useGrade` =#{wfGradeId}
+       </if>
+       </update>
+       <!-- 删除组合科目 -->
+       <update id="deleteZhSubject" parameterType="com.alibaba.fastjson.JSONObject">
+       		DELETE FROM ${db_name_wishFilling}.`t_wf_zhsubject` WHERE CONCAT(schoolYear,termInfoId)=#{termInfo} AND `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+       </update>
+       <!-- 删除学生组合 -->
+       <update id="deleteZhStudent" parameterType="com.alibaba.fastjson.JSONObject">
+       		DELETE FROM ${db_name_wishFilling}.`t_wf_zhstudent`WHERE CONCAT(schoolYear,termInfoId)=#{termInfo} AND `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+       		<if test="accountId!=null and accountId!=''">
+       		 AND accountId=#{accountId}
+       		</if>
+       		 <if test="accountIds!=null and accountIds!='' and accountIds.size()>0">
+	           AND  `accountId` IN
+	          <foreach collection="accountIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       		</if>
+      		 <if test="wfGradeId!=null and wfGradeId!='' ">
+        		AND `useGrade` =#{wfGradeId}
+      		 </if>
+      		<if test="zhIds!=null and zhIds!='' and zhIds.size()>0">
+	           AND  `zhId` IN
+	          <foreach collection="zhIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       		</if>
+       </update>
+       <!-- 创建组合科目 -->
+       <update  id="createZhSubjectBatch" parameterType="java.util.List">
+       	INSERT INTO  ${db_name_wishFilling}.`t_wf_zhsubject`(`schoolId`,`schoolYear`,`termInfoId`,
+		`wfId`,`zhId`,`zhName`,`subjectIds`,createDate,zhWay,fixedHasNum)
+		 VALUES
+    	<foreach collection="list" item="item" index="index" separator=",">
+		 (#{item.schoolId},#{item.schoolYear},#{item.termInfoId},
+		 #{item.wfId},#{item.zhId},#{item.zhName},#{item.subjectIds},now(),#{item.zhWay},#{item.fixedHasNum})
+		 </foreach>
+       </update>
+       <!--获取已选课人数 -->
+       <select id="getTotalStudentCount" parameterType="com.alibaba.fastjson.JSONObject" resultType="Integer">
+       SELECT COUNT(DISTINCT stu.accountId) AS selectedNum FROM ${db_name_wishFilling}.`t_wf_zhstudent` stu
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` sub ON sub.`schoolId`=stu.`schoolId` AND
+		sub.`wfId`=stu.`wfId` AND sub.`zhId`=stu.`zhId` 
+		 <if test="classIdList!=null and classIdList!='' and classIdList.size()>0">
+		           AND  stu.`classId` IN
+		          <foreach collection="classIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+         </if>
+		 WHERE CONCAT(stu.`schoolYear`,stu.`termInfoId`) = #{termInfo} AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId}
+		<!--  AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+       </select>
+       <!--获取已选课人数(补选@) -->
+       <select id="getByTotalStudentCount" parameterType="com.alibaba.fastjson.JSONObject" resultType="Integer">
+       SELECT COUNT(DISTINCT stu.accountId) AS selectedNum
+        FROM ${db_name_wishFilling}.`t_wf_zhstudentby` stu
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` sub ON sub.`schoolId`=stu.`schoolId` AND
+		sub.`wfId`=stu.`wfId` AND sub.`zhId`=stu.`zhId` 
+		 <if test="classIdList!=null and classIdList!='' and classIdList.size()>0">
+		           AND  stu.`classId` IN
+		          <foreach collection="classIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+         </if>
+		 WHERE CONCAT(stu.`schoolYear`,stu.`termInfoId`) = #{termInfo} AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId} 
+		<if test="zhWay!=null and zhWay!='' ">
+		 AND sub.`zhWay`=#{zhWay}
+		 </if>
+		 <if test="isFixedZh!=null and isFixedZh!='' ">
+		 AND stu.`isFixedZh`=#{isFixedZh}
+		 </if>
+		<!--  AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+       </select>
+       <!-- 补选开始，更新wfInfo的字段@ -->
+       <update id="updateByTb" parameterType="com.alibaba.fastjson.JSONObject" >
+    	UPDATE ${db_name_wishFilling}.`t_wf_wfinfo` SET 
+		isByElection=#{isByElection},byStartTime=#{byStartTime},byEndTime=#{byEndTime},wfNum=#{wfNum}
+		 WHERE CONCAT(schoolYear,termInfoId)=#{termInfo} AND `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+       </update>
+       <!--获取组合下的已选课人数(补选@) -->
+       <select id="getByZhStudentCount" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+       SELECT   COUNT(DISTINCT stu.accountId) AS hasSelectedNum ,stu.`zhId`,sub.`zhName` 
+        FROM ${db_name_wishFilling}.`t_wf_zhstudentby` stu
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` sub ON sub.`schoolId`=stu.`schoolId` AND
+		sub.`wfId`=stu.`wfId` AND sub.`zhId`=stu.`zhId` 
+		 <if test="classIdList!=null and classIdList!='' and classIdList.size()>0">
+		           AND  stu.`classId` IN
+		          <foreach collection="classIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+         </if>
+         
+		 WHERE CONCAT(stu.`schoolYear`,stu.`termInfoId`) = #{termInfo} AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId}
+		<!--  AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+        <if test="zhIdList!=null and zhIdList!='' and zhIdList.size()>0">
+		           AND  stu.`zhId` IN
+		          <foreach collection="zhIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach> 
+		         
+         </if>
+         <if test="zhWay!=null and zhWay!='' ">
+          AND sub.`zhWay`= #{zhWay}
+         </if>
+          <if test="isFixedZh!=null and isFixedZh!='' ">
+        		AND stu.`isFixedZh` =#{isFixedZh}
+      	  </if>
+          GROUP BY stu.`zhId`  order by sub.`createDate` ASC
+       </select>
+       <!-- 更新补选科目1 -->
+       <update  id="updateSubjectTbByBatch" parameterType="com.alibaba.fastjson.JSONObject" >
+       UPDATE ${db_name_wishFilling}.`t_wf_subjecttb`   
+				SET
+				  `subjectIsBy`= 1
+				WHERE CONCAT(`schoolYear`,`termInfoId`)=#{termInfo} AND `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+				 <if test="subjectIdList!=null and subjectIdList!='' and subjectIdList.size()>0">
+		           AND  `subjectId` IN
+		          <foreach collection="subjectIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+         		</if>
+       </update>
+        <!-- 更新补选科目2 -->
+       <update  id="updateSubjectTbNoByBatch" parameterType="com.alibaba.fastjson.JSONObject" >
+       UPDATE ${db_name_wishFilling}.`t_wf_subjecttb`   
+				SET
+				  `subjectIsBy`= 0
+				WHERE CONCAT(`schoolYear`,`termInfoId`)=#{termInfo} AND `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+				 <if test="subjectIdList!=null and subjectIdList!='' and subjectIdList.size()>0">
+		           AND  `subjectId` NOT IN
+		          <foreach collection="subjectIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       			  </if>
+       </update>
+       <!--获取组合下的已选课人数 -->
+       <select id="getZhStudentCount" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+       SELECT  COUNT(DISTINCT stu.accountId) AS hasSelectedNum ,stu.`zhId`,sub.`zhName` 
+        FROM ${db_name_wishFilling}.`t_wf_zhstudent` stu
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` sub ON sub.`schoolId`=stu.`schoolId` AND
+		sub.`wfId`=stu.`wfId` AND sub.`zhId`=stu.`zhId` 
+		 <if test="classIdList!=null and classIdList!='' and classIdList.size()>0">
+		           AND  stu.`classId` IN
+		          <foreach collection="classIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+         </if>
+		 WHERE CONCAT(stu.`schoolYear`,stu.`termInfoId`) = #{termInfo} AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId} 
+		<!--  AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+        <if test="zhIdList!=null and zhIdList!='' and zhIdList.size()>0">
+		           AND  stu.`zhId` IN
+		          <foreach collection="zhIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach> 
+		         
+         </if>
+          GROUP BY stu.`zhId`  order by sub.`createDate`
+       </select>
+       <!-- 补选情况下更新的组合信息表@ -->
+        <update  id="updateZhSubject" parameterType="com.alibaba.fastjson.JSONObject" >
+				UPDATE ${db_name_wishFilling}.`t_wf_zhsubject`   
+				SET
+				  `zhWay`=#{zhWay} , `fixedHasNum`=#{fixedHasNum}
+				WHERE CONCAT(`schoolYear`,`termInfoId`)=#{termInfo} AND `schoolId`=#{schoolId} AND `wfId`=#{wfId} AND `zhId`=#{zhId}
+       </update>
+         <!-- 已删除学生删除后的fixedHasNum-1操作 -->
+        <update  id="updateZhSubjectFixedHasNum" parameterType="com.alibaba.fastjson.JSONObject" >
+				UPDATE ${db_name_wishFilling}.`t_wf_zhsubject` sub  
+				SET sub.`fixedHasNum`=sub.`fixedHasNum`-1
+				WHERE CONCAT(sub.`schoolYear`,sub.`termInfoId`)=#{termInfo} AND sub.`schoolId`=#{schoolId} AND sub.`wfId`=#{wfId} AND sub.`zhId`=#{zhId} AND sub.`fixedHasNum`>0
+       </update>
+         <!-- 将满足条件的组合学生信息表数据插入补选组合学生信息表中@ -->
+        <update  id="insertByZhStudentBatch" parameterType="com.alibaba.fastjson.JSONObject" >
+				INSERT INTO ${db_name_wishFilling}.`t_wf_zhstudentby` ( `schoolYear`, `termInfoId`,  `schoolId`,`wfId`, `useGrade`,`classId`,  `accountId`, `zhId`,`isImport`, `isAdjust`,`isFixedZh`) 
+				SELECT stu.`schoolYear`, stu.`termInfoId`, stu.`schoolId`, stu.`wfId`, stu.`useGrade`, stu.`classId`, stu.`accountId`, stu.`zhId`, stu.`isImport`,stu.`isAdjust`,1 AS isFixedZh
+				FROM ${db_name_wishFilling}.`t_wf_zhstudent` stu 
+				WHERE CONCAT( stu.`schoolYear`,stu.`termInfoId` ) = #{termInfo}  AND stu.`schoolId` = #{schoolId} 
+				  AND stu.`wfId` = #{wfId}
+				    <if test="zhIdList!=null and zhIdList!='' and zhIdList.size()>0">
+			       		AND stu.`zhId` IN
+					    <foreach collection="zhIdList" item="item" index="index" open="(" close=")" separator=",">
+					 	   #{item}
+					    </foreach>
+			    	</if>
+			    	  <if test="accountIdList!=null and accountIdList!='' and accountIdList.size()>0">
+			       		AND stu.`accountId` IN
+					    <foreach collection="accountIdList" item="item" index="index" open="(" close=")" separator=",">
+					 	   #{item}
+					    </foreach>
+			    	</if> 
+			    	UNION
+			     SELECT stu.`schoolYear`, stu.`termInfoId`, stu.`schoolId`, stu.`wfId`, stu.`useGrade`, stu.`classId`, stu.`accountId`, stu.`zhId`, stu.`isImport`,stu.`isAdjust`,0 AS isFixedZh
+				FROM ${db_name_wishFilling}.`t_wf_zhstudent` stu 
+				WHERE CONCAT( stu.`schoolYear`,stu.`termInfoId` ) = #{termInfo}  AND stu.`schoolId` = #{schoolId} 
+				  AND stu.`wfId` = #{wfId}
+				    <if test="zhIdList!=null and zhIdList!='' and zhIdList.size()>0">
+			       		AND stu.`zhId` NOT IN
+					    <foreach collection="zhIdList" item="item" index="index" open="(" close=")" separator=",">
+					 	   #{item}
+					    </foreach>
+			    	</if>
+			    	  <if test="accountIdList!=null and accountIdList!='' and accountIdList.size()>0">
+			       		AND stu.`accountId` NOT IN
+					    <foreach collection="accountIdList" item="item" index="index" open="(" close=")" separator=",">
+					 	   #{item}
+					    </foreach>
+			    	</if> 
+			    	
+       </update>
+        <!-- 将满足条件的组合学生信息表数据插入补选组合学生信息表中@ -->
+        <update  id="updateByZhStudentBatch" parameterType="com.alibaba.fastjson.JSONObject" >
+			update ${db_name_wishFilling}.`t_wf_zhstudentby` stu  SET stu.`isFixedZh` = #{isFixedZh}
+			WHERE CONCAT( stu.`schoolYear`,stu.`termInfoId` ) = #{termInfo}  AND stu.`schoolId` = #{schoolId} 
+			  AND stu.`wfId` = #{wfId}
+			    <if test="zhIdList!=null and zhIdList!='' and zhIdList.size()>0">
+		       		AND stu.`zhId` IN
+				    <foreach collection="zhIdList" item="item" index="index" open="(" close=")" separator=",">
+				 	   #{item}
+				    </foreach>
+		    	</if>
+       </update>
+         <!-- 获取固定组合的stuednt account Ids@ -->
+         <select id="getByStudentByFixedZhIds" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+         SELECT s.accountId,sub.`zhId`,s.`subjectIds` FROM ${db_name_wishFilling}.`t_wf_zhsubject` sub
+		 INNER JOIN (
+		 SELECT GROUP_CONCAT(stu.`subjectId` ORDER BY stu.`subjectId` ASC) AS subjectIds,stu.`accountId`
+		  FROM ${db_name_wishFilling}.`t_wf_studenttbby` stu WHERE CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo}
+		AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId} GROUP BY stu.`accountId`
+		)s ON sub.`subjectIds`=s.subjectIds 
+		 WHERE CONCAT(sub.`schoolYear`,sub.`termInfoId`)=#{termInfo}
+		AND sub.`schoolId`=#{schoolId} AND sub.`wfId`=#{wfId} 
+		 <if test="zhIdList!=null and zhIdList!='' and zhIdList.size()>0">
+		          AND sub.`zhId` IN 
+		          <foreach collection="zhIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+         </if>
+          <if test="subjectIdsList!=null and subjectIdsList!='' and subjectIdsList.size()>0">
+		          AND s.`subjectIds` IN 
+		          <foreach collection="subjectIdsList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+         </if>
+         </select>
+         <!-- 将studnetTb表中的信息插入studentTbBy中 根据accountIds@ -->
+         <update  id="insertByStudentTbBatchForSet" parameterType="com.alibaba.fastjson.JSONObject" >
+         INSERT INTO ${db_name_wishFilling}.`t_wf_studenttbby`(`schoolYear`,`termInfoId`,`schoolId`,`wfId`,`useGrade`,`classId`,`accountId`,`subjectId`,`createDate`,`isImport`,`isAdjust`,`isFixedZh`)
+			SELECT stu.`schoolYear`,stu.`termInfoId`,stu.`schoolId`,stu.`wfId`,stu.`useGrade`,stu.`classId`,stu.`accountId`,stu.`subjectId`,NOW() AS createDate,stu.`isImport`,stu.`isAdjust`,1 AS isFixedZh 
+			FROM ${db_name_wishFilling}.`t_wf_studenttb` stu WHERE  CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} AND stu.`schoolId`=#{schoolId}
+			AND stu.`wfId`=#{wfId} 
+			 <if test="accountIdList!=null and accountIdList!='' and accountIdList.size()>0">
+		        	AND stu.`accountId` IN 
+		          <foreach collection="accountIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+            </if>
+            UNION 
+            SELECT stu.`schoolYear`,stu.`termInfoId`,stu.`schoolId`,stu.`wfId`,stu.`useGrade`,stu.`classId`,stu.`accountId`,stu.`subjectId`,NOW() AS createDate,stu.`isImport`,stu.`isAdjust`,0 AS isFixedZh 
+			FROM ${db_name_wishFilling}.`t_wf_studenttb` stu WHERE  CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} AND stu.`schoolId`=#{schoolId}
+			AND stu.`wfId`=#{wfId} 
+			 <if test="accountIdList!=null and accountIdList!='' and accountIdList.size()>0">
+		        	AND stu.`accountId` NOT IN 
+		          <foreach collection="accountIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+            </if>
+         </update>
+       
+         <update  id="insertByStudentTbBatchForSetNoPerson" parameterType="com.alibaba.fastjson.JSONObject" >
+         INSERT INTO ${db_name_wishFilling}.`t_wf_studenttbby`(`schoolYear`,`termInfoId`,`schoolId`,`wfId`,`useGrade`,`classId`,`accountId`,`subjectId`,`createDate`,`isImport`,`isAdjust`,`isFixedZh`)
+            SELECT stu.`schoolYear`,stu.`termInfoId`,stu.`schoolId`,stu.`wfId`,stu.`useGrade`,stu.`classId`,stu.`accountId`,stu.`subjectId`,NOW() AS createDate,stu.`isImport`,stu.`isAdjust`,0 AS isFixedZh 
+			FROM ${db_name_wishFilling}.`t_wf_studenttb` stu WHERE  CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} AND stu.`schoolId`=#{schoolId}
+			AND stu.`wfId`=#{wfId} 
+         </update>
+         
+         <!-- 批量更新isFixedZh字段@ -->
+         <update  id="updateByStudentTbBatchForSet" parameterType="com.alibaba.fastjson.JSONObject" >
+             UPDATE ${db_name_wishFilling}.`t_wf_studenttbby` stu 
+             SET stu.`isFixedZh` = #{isFixedZh}
+             WHERE  CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} AND stu.`schoolId`=#{schoolId}
+			AND stu.`wfId`=#{wfId} 
+			 <if test="accountIdList!=null and accountIdList!='' and accountIdList.size()>0">
+		        	AND stu.`accountId` IN 
+		          <foreach collection="accountIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+            </if>
+         </update>
+         <!--  删除zhstudentby表的数据 @-->
+         <update id="deleteByZhStudent"  parameterType="com.alibaba.fastjson.JSONObject">
+         DELETE FROM ${db_name_wishFilling}.`t_wf_zhstudentby`   WHERE CONCAT(`schoolYear`,`termInfoId`)=#{termInfo}
+			AND `schoolId`=#{schoolId} AND `wfId`=#{wfId} 
+			<if test="accountId!=null and accountId!='' ">
+			   AND accountId = #{accountId}
+			</if>
+			<if test="zhIdList!=null and zhIdList!='' and zhIdList.size()>0">
+		        	AND `zhId` IN 
+		          <foreach collection="zhIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+            </if>
+             <if test="accountIdList!=null and accountIdList!='' and accountIdList.size()>0">
+		        	AND `accountId` IN 
+		          <foreach collection="accountIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+            </if>
+             <if test="accountIds!=null and accountIds!='' and accountIds.size()>0">
+	           AND  `accountId` IN
+	          <foreach collection="accountIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       	  </if>
+         </update>
+         <!--  删除studenttbby表的数据@ -->
+          <update id="deleteByStudentTb"  parameterType="com.alibaba.fastjson.JSONObject"  >
+         DELETE FROM ${db_name_wishFilling}.`t_wf_studenttbby`   WHERE CONCAT(`schoolYear`,`termInfoId`)=#{termInfo}
+			AND `schoolId`=#{schoolId} AND `wfId`=#{wfId} 
+			 <if test="accountIdList!=null and accountIdList!='' and accountIdList.size()>0">
+		        	AND `accountId` IN 
+		          <foreach collection="accountIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+            </if>
+            <if test="accountIds!=null and accountIds!='' and accountIds.size()>0">
+	           AND  `accountId` IN
+	          <foreach collection="accountIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       	  </if>
+       	    <if test="accountId!=null and accountId!='' ">
+			   AND accountId = #{accountId}
+			</if>
+         </update>
+       <!-- 获取填报的学生提交的科目代码 -->
+       <select id="getStudentSubjectCount" parameterType="com.alibaba.fastjson.JSONObject" resultType="Integer">
+      	SELECT COUNT(DISTINCT accountId) AS selectedNum 
+      	FROM ${db_name_wishFilling}.`t_wf_studenttb` 
+      	WHERE  CONCAT(`schoolYear`,`termInfoId`)=#{termInfo} AND `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+      	 <if test="classIdList!=null and classIdList!='' and classIdList.size()>0">
+		           AND  `classId` IN
+		          <foreach collection="classIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+         </if>
+      	 AND `subjectId`=#{subjectId}
+       </select>
+        <!-- 批量新增学生填报 -->
+       <update  id="insertStudentTbBatch" parameterType="java.util.List" >
+       INSERT INTO ${db_name_wishFilling}.`t_wf_studenttb`(`schoolId`,`schoolYear`,`termInfoId`,`wfId`,
+		`useGrade`,`classId`,`accountId`,`subjectId`,`createDate`,`isImport`,`isAdjust`)
+ 		VALUES 
+ 		<foreach collection="list" item="item" index="index" separator=",">
+		(#{item.schoolId},#{item.schoolYear},#{item.termInfoId},#{item.wfId},#{item.useGrade},
+ 		#{item.classId},#{item.accountId},#{item.subjectId},NOW(),#{item.isImport},#{item.isAdjust})
+		 </foreach>
+       </update>
+        <!-- 批量新增学生填报@ -->
+       <update  id="insertByStudentTbBatch" parameterType="java.util.List" >
+       INSERT INTO ${db_name_wishFilling}.`t_wf_studenttbby`(`schoolId`,`schoolYear`,`termInfoId`,`wfId`,
+		`useGrade`,`classId`,`accountId`,`subjectId`,`createDate`,`isImport`,`isAdjust`,`isFixedZh`)
+ 		VALUES 
+ 		<foreach collection="list" item="item" index="index" separator=",">
+		(#{item.schoolId},#{item.schoolYear},#{item.termInfoId},#{item.wfId},#{item.useGrade},
+ 		#{item.classId},#{item.accountId},#{item.subjectId},NOW(),#{item.isImport},#{item.isAdjust},#{item.isFixedZh})
+		 </foreach>
+       </update>
+       <!-- 批量新增学生组合 -->
+       <update  id="insertStudentZhBatch" parameterType="java.util.List" >
+       INSERT INTO ${db_name_wishFilling}.`t_wf_zhstudent`
+		(`schoolId`,`schoolYear`,`termInfoId`,`wfId`,`useGrade`,`classId`,`accountId`,`zhId`,`isImport`,`isAdjust`)
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+		(#{item.schoolId},#{item.schoolYear},#{item.termInfoId},#{item.wfId},#{item.useGrade},#{item.classId},#{item.accountId},
+		#{item.zhId},#{item.isImport},#{item.isAdjust})
+		 </foreach>
+       </update>
+       <!-- 批量新增学生组合@ -->
+       <update  id="insertByStudentZhBatch" parameterType="java.util.List" >
+       INSERT INTO ${db_name_wishFilling}.`t_wf_zhstudentby`
+		(`schoolId`,`schoolYear`,`termInfoId`,`wfId`,`useGrade`,`classId`,`accountId`,`zhId`,`isImport`,`isAdjust`,`isFixedZh`)
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+		(#{item.schoolId},#{item.schoolYear},#{item.termInfoId},#{item.wfId},#{item.useGrade},#{item.classId},#{item.accountId},
+		#{item.zhId},#{item.isImport},#{item.isAdjust},#{item.isFixedZh})
+		 </foreach>
+       </update>
+       <!-- 获取某个轮次下的所有科目组合信息 -->
+       <select id="getZhSubject" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+       SELECT `wfId`,`zhId`,`subjectIds`,`zhName`,`zhWay` FROM ${db_name_wishFilling}.`t_wf_zhsubject`
+		WHERE CONCAT(`schoolYear`,`termInfoId`)=#{termInfo} AND `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+		order by zhId
+       </select>
+       <!-- 获取某个学生的学生填报数据 -->
+       <select id="getStudentTb" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" >
+       SELECT wfId,subjectId FROM  ${db_name_wishFilling}.`t_wf_studenttb`
+		WHERE CONCAT(`schoolYear`,`termInfoId`)=#{termInfo} AND  `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+		AND `useGrade`=#{useGrade} AND `accountId`=#{accountId}
+		<if test="classId!=null and classId!=''">
+			AND `classId`=#{classId}
+		</if> 
+       </select>
+       
+       <!-- 获取补选某个学生的学生填报数据 -->
+       <select id="getStudentTbBy" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" >
+       SELECT wfId,subjectId FROM  ${db_name_wishFilling}.`t_wf_studenttbby`
+		WHERE CONCAT(`schoolYear`,`termInfoId`)=#{termInfo} AND  `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+		AND `useGrade`=#{useGrade} AND `accountId`=#{accountId}
+		<if test="classId!=null and classId!=''">
+			AND `classId`=#{classId}
+		</if> 
+       </select>
+       
+        <!-- 创建学生组合数据 -->
+        <update id="insertZhStudent">
+        INSERT INTO 
+        ${db_name_wishFilling}.`t_wf_zhstudent`(`schoolId`,`schoolYear`,`termInfoId`,`wfId`,`useGrade`,`classId`,`accountId`,`zhId`,`isImport`,`isAdjust`)
+		 VALUES(#{schoolId},#{schoolYear},#{termInfoId},#{wfId},#{useGrade},#{classId},#{accountId},#{zhId},#{isImport},#{isAdjust})
+        </update>
+        <!-- 创建学生组合数据@ -->
+        <update id="insertByZhStudent">
+        INSERT INTO 
+        ${db_name_wishFilling}.`t_wf_zhstudentby`(`schoolId`,`schoolYear`,`termInfoId`,`wfId`,`useGrade`,`classId`,`accountId`,`zhId`,`isFixedZh`,`isImport`,`isAdjust`)
+		 VALUES(#{schoolId},#{schoolYear},#{termInfoId},#{wfId},#{useGrade},#{classId},#{accountId},#{zhId},#{isFixedZh},#{isImport},#{isAdjust})
+        </update>
+         <!-- 获取学生组合填报数据 -->
+         <select id="getZhStudent" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" > 
+         	SELECT * FROM  ${db_name_wishFilling}.`t_wf_zhstudent` WHERE
+			CONCAT(`schoolYear`,`termInfoId`)=#{termInfo} AND `schoolId`=#{schoolId}  AND `wfId`=#{wfId}
+			 AND `useGrade`=#{useGrade} AND `classId`=#{classId} AND `accountId`=#{accountId}
+         </select>
+          <!-- 获取学生组合填报数据 @  -->
+         <select id="getByZhStudent" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" > 
+         	SELECT * FROM  ${db_name_wishFilling}.`t_wf_zhstudentby` WHERE
+			CONCAT(`schoolYear`,`termInfoId`)=#{termInfo} AND `schoolId`=#{schoolId}  AND `wfId`=#{wfId}
+			 AND `useGrade`=#{useGrade} AND `classId`=#{classId} AND `accountId`=#{accountId}
+         </select>
+          <!-- 获取所有学生组合填报数据@   -->
+         <select id="getByAllZhStudent" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" > 
+         	SELECT * FROM  ${db_name_wishFilling}.`t_wf_zhstudentby` WHERE
+			CONCAT(`schoolYear`,`termInfoId`)=#{termInfo} AND `schoolId`=#{schoolId}  AND `wfId`=#{wfId}
+         </select>
+<!-- 管理员统计 -->
+		<!-- 查询已填报人员的accountIds -->
+       <select id="getStudentIds" parameterType="com.alibaba.fastjson.JSONObject" resultType="Long"  >
+          SELECT DISTINCT stu.`accountId` FROM ${db_name_wishFilling}.`t_wf_zhstudent` stu
+			WHERE  CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} 
+			AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId}
+			<if test="classId!=null and classId!=''">
+			 AND stu.`classId`=#{classId}
+			 </if>
+			  <if test="classIdList!=null and classIdList!='' and classIdList.size()>0">
+		           AND  stu.`classId` IN
+		          <foreach collection="classIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       		  </if>
+       		  <if test="zhIdList!=null and zhIdList!='' and zhIdList.size()>0">
+		           AND  stu.`zhId` IN
+		          <foreach collection="zhIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       		  </if>
+       </select>
+       <!-- 查询补选已填报人员的accountIds@ -->
+       <select id="getByStudentIds" parameterType="com.alibaba.fastjson.JSONObject" resultType="Long"  >
+          SELECT DISTINCT stu.`accountId` FROM ${db_name_wishFilling}.`t_wf_zhstudentby` stu
+			INNER JOIN cc_wishfilling.`t_wf_zhsubject` sub 
+			    ON sub.`schoolId` = stu.`schoolId` 
+			    AND sub.`wfId` = stu.`wfId` 
+			    AND sub.`zhId` = stu.`zhId` 
+			WHERE  CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} 
+			AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId}
+			<if test="classId!=null and classId!=''">
+			 AND stu.`classId`=#{classId}
+			 </if>
+			  <if test="classIdList!=null and classIdList!='' and classIdList.size()>0">
+		           AND  stu.`classId` IN
+		          <foreach collection="classIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       		  </if>
+       		   <if test="zhIdList!=null and zhIdList!='' and zhIdList.size()>0">
+		           AND  stu.`zhId` IN
+		          <foreach collection="zhIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       		  </if>
+       		  <if test="zhWay!=null and zhWay!=''">
+				 AND sub.`zhWay`=#{zhWay}
+			 </if>
+       </select>
+        <!-- 获取组合下的学生和科目  （无效的组合也一起给出）-->
+		<select id="getStudentZhAndSubject" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" >
+			SELECT stu.`schoolId`,stu.`wfId`,stu.`useGrade`,stu.`classId`,stu.`accountId`,stu.`zhId` ,sub.`subjectIds`
+			FROM ${db_name_wishFilling}.`t_wf_zhstudent` stu 
+			INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` sub ON sub.`schoolId`=stu.`schoolId` 
+			AND sub.`schoolYear`=stu.`schoolYear`
+			AND sub.`termInfoId` = stu.`termInfoId` AND sub.`zhId`=stu.`zhId` 
+			AND sub.`wfId`=stu.`wfId`
+			WHERE  CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId}
+			<if test="classId!=null and classId!=''">
+			 AND stu.`classId`=#{classId}
+			 </if>
+			  <if test="classIdList!=null and classIdList!='' and classIdList.size()>0">
+		           AND  stu.`classId` IN
+		          <foreach collection="classIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       		  </if>
+			ORDER BY stu.`classId`,stu.`accountId`
+		</select>
+		  <!-- 获取补选组合下的学生和科目  @-->
+		<select id="getByStudentZhAndSubject" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" >
+			SELECT stu.`schoolId`,stu.`wfId`,stu.`useGrade`,stu.`classId`,stu.`accountId`,stu.`zhId` ,sub.`subjectIds`
+			FROM ${db_name_wishFilling}.`t_wf_zhstudentby` stu 
+			INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` sub ON sub.`schoolId`=stu.`schoolId` 
+			AND sub.`schoolYear`=stu.`schoolYear`
+			AND sub.`termInfoId` = stu.`termInfoId` AND sub.`zhId`=stu.`zhId` 
+			AND sub.`wfId`=stu.`wfId`
+			WHERE  CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId}
+			<if test="classId!=null and classId!=''">
+			 AND stu.`classId`=#{classId}
+			 </if>
+			  <if test="classIdList!=null and classIdList!='' and classIdList.size()>0">
+		           AND  stu.`classId` IN
+		          <foreach collection="classIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       		  </if>
+       		  <if test="zhWay!=null and zhWay!=''">
+			 	AND sub.`zhWay`=#{zhWay}
+			 </if>
+			ORDER BY stu.`classId`,stu.`accountId`
+		</select>
+		<!-- 获取已提交的学生id-->
+		  <select id="getHasSelectedStudentIds" parameterType="com.alibaba.fastjson.JSONObject" resultType="Long">
+	       SELECT DISTINCT stu.accountId  FROM ${db_name_wishFilling}.`t_wf_zhstudent` stu
+			INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` sub ON sub.`schoolId`=stu.`schoolId` AND
+			sub.`wfId`=stu.`wfId` AND sub.`zhId`=stu.`zhId` 
+			 WHERE CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId}
+			 <!-- AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+       </select>
+       <!-- 获取补选已提交的学生id @-->
+		  <select id="getByHasSelectedStudentIds" parameterType="com.alibaba.fastjson.JSONObject" resultType="Long">
+	       SELECT DISTINCT stu.accountId  FROM ${db_name_wishFilling}.`t_wf_zhstudentby` stu
+			INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` sub ON sub.`schoolId`=stu.`schoolId` AND
+			sub.`wfId`=stu.`wfId` AND sub.`zhId`=stu.`zhId` 
+			 WHERE CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId}
+			 <if test="zhWay!=null and zhWay!='' ">
+           AND  sub.`zhWay` = #{zhWay}
+          </if>
+			 <!-- AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+       </select>
+       <!-- 按科目查看 -->
+       <select id="getStaticListBySubject"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+       SELECT subjectId,GROUP_CONCAT(accountId) AS accountIds,classId
+		FROM ${db_name_wishFilling}.`t_wf_studenttb` WHERE CONCAT(`schoolYear`,`termInfoId`) = #{termInfo} AND `schoolId`=#{schoolId} AND `wfId`=#{wfId}
+		  <if test="subjectId!=null and subjectId!='' ">
+           AND  `subjectId` = #{subjectId}
+          </if>
+          <if test="sIdList!=null and sIdList!='' and sIdList.size()>0">
+		           AND  `subjectId` IN
+		          <foreach collection="sIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       		  </if>
+		GROUP BY `subjectId`,`classId`
+		order by `subjectId`
+       </select>
+       <!-- 按科目查看补选 @-->
+       <select id="getByStaticListBySubject"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+       SELECT subjectId,GROUP_CONCAT(accountId) AS accountIds,classId
+		FROM ${db_name_wishFilling}.`t_wf_studenttbby`  stuby
+		WHERE CONCAT(stuby.`schoolYear`,stuby.`termInfoId`) = #{termInfo} AND stuby.`schoolId`=#{schoolId} AND stuby.`wfId`=#{wfId}
+		  <if test="subjectId!=null and subjectId!='' ">
+           AND  stuby.`subjectId` = #{subjectId}
+          </if>
+          <if test="sIdList!=null and sIdList!='' and sIdList.size()>0">
+		           AND  stuby.`subjectId` IN
+		          <foreach collection="sIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       		  </if>
+      		   <if test="accountIdList!=null and accountIdList!='' and accountIdList.size()>0">
+	           AND  stuby.`accountId` IN
+	          <foreach collection="accountIdList" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+      		  </if>
+		GROUP BY stuby.`subjectId`,stuby.`classId`
+		order by stuby.`subjectId`
+       </select>
+        <!-- 按组合查看 -->
+       <select id="getStaticListByZh"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+       Select s.zhId,s.zhName,s.studentNum,s.zhWay,s.fixedHasNum from (
+       SELECT sub.`fixedHasNum`,sub.`zhWay`,sub.`zhId`,sub.`zhName`,COUNT(DISTINCT stu.`accountId`) AS studentNum,sub.`createDate` FROM ${db_name_wishFilling}.`t_wf_zhsubject` sub 
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhstudent` stu ON sub.`schoolId`=stu.`schoolId` AND sub.`wfId`=stu.`wfId`
+		AND  sub.`schoolYear` = stu.`schoolYear` AND sub.`termInfoId` =stu.`termInfoId` AND sub.`zhId` = stu.`zhId`
+		WHERE CONCAT(sub.`schoolYear`,sub.`termInfoId`)=#{termInfo} AND sub.`schoolId`=#{schoolId} AND sub.`wfId`=#{wfId} 
+         <if test="classIdList!=null and classIdList!='' and classIdList.size()>0">
+		     AND  stu.`classId` IN
+		          <foreach collection="classIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       	 </if>
+         <if test="useGrade!=null and useGrade!=''">
+			 AND stu.`useGrade`=#{useGrade}
+		 </if>
+      <!--  AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+       GROUP BY sub.`zhId`  order by sub.`createDate`
+       )s order by s.studentNum DESC, s.createDate ASC
+       </select>
+         <!-- 按组合查看补选@ -->
+       <select id="getByStaticListByZh"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+       Select s.zhId,s.zhName,s.studentNum,s.zhWay from (
+       SELECT sub.`zhWay`,sub.`zhId`,sub.`zhName`,COUNT(DISTINCT stu.`accountId`) AS studentNum,sub.`createDate` FROM ${db_name_wishFilling}.`t_wf_zhsubject` sub 
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhstudentby` stu ON sub.`schoolId`=stu.`schoolId` AND sub.`wfId`=stu.`wfId`
+		AND  sub.`schoolYear` = stu.`schoolYear` AND sub.`termInfoId` =stu.`termInfoId` AND sub.`zhId` = stu.`zhId`
+		WHERE CONCAT(sub.`schoolYear`,sub.`termInfoId`)=#{termInfo} AND sub.`schoolId`=#{schoolId} AND sub.`wfId`=#{wfId} 
+		 <if test="classIdList!=null and classIdList!='' and classIdList.size()>0">
+		           AND  stu.`classId` IN
+		          <foreach collection="classIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       	 </if>
+		 <if test="isNoFixed!=null and isNoFixed!='' ">
+		  AND stu.isFixedZh = 0 
+		</if>
+		 <if test="useGrade!=null and useGrade!=''">
+			 AND stu.`useGrade`=#{useGrade}
+		 </if>
+		 <if test="zhWay!=null and zhWay!='' ">
+		  AND sub.zhWay = #{zhWay}
+		</if>
+      <!--  AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+       GROUP BY sub.`zhId`  order by sub.`createDate` ASC
+       )s order by s.studentNum DESC, s.createDate ASC
+       </select>
+       <!-- 按组合查看 总选人数-->
+       <select id="getZhTotalStudentNum"  parameterType="com.alibaba.fastjson.JSONObject" resultType="Integer">
+       SELECT COUNT(DISTINCT stu.`accountId`) AS studentNum FROM ${db_name_wishFilling}.`t_wf_zhsubject` sub 
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhstudent` stu ON sub.`schoolId`=stu.`schoolId` AND sub.`wfId`=stu.`wfId`
+		AND  sub.`schoolYear` = stu.`schoolYear` AND sub.`termInfoId` =stu.`termInfoId` AND sub.`zhId` = stu.`zhId`
+		WHERE  CONCAT(sub.`schoolYear`,sub.`termInfoId`)=#{termInfo} AND sub.`schoolId`=#{schoolId} AND sub.`wfId`=#{wfId}
+       <!-- AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+        <if test="classIdList!=null and classIdList!='' and classIdList.size()>0">
+		           AND  stu.`classId` IN
+		          <foreach collection="classIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       	 </if>
+       </select>
+        <!-- 按组合查看 总选人数@-->
+       <select id="getByZhTotalStudentNum"  parameterType="com.alibaba.fastjson.JSONObject" resultType="Integer">
+       SELECT COUNT(DISTINCT stu.`accountId`) AS studentNum FROM ${db_name_wishFilling}.`t_wf_zhsubject` sub 
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhstudentby` stu ON sub.`schoolId`=stu.`schoolId` AND sub.`wfId`=stu.`wfId`
+		AND  sub.`schoolYear` = stu.`schoolYear` AND sub.`termInfoId` =stu.`termInfoId` AND sub.`zhId` = stu.`zhId`
+		WHERE  CONCAT(sub.`schoolYear`,sub.`termInfoId`)=#{termInfo} AND sub.`schoolId`=#{schoolId} AND sub.`wfId`=#{wfId}
+		  <if test="classIdList!=null and classIdList!='' and classIdList.size()>0">
+		           AND  stu.`classId` IN
+		          <foreach collection="classIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       	 </if>
+		 <if test="zhWay!=null and zhWay!='' ">
+		  AND sub.zhWay = #{zhWay}
+		</if>
+       <!-- AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+       </select>
+       <!-- 查看某个组合下的选择学生-->
+       <select id="getStudentZh"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+      SELECT sub.`zhWay`,stu.`accountId`,sub.`zhName`,sub.`zhId`,stu.`classId` FROM ${db_name_wishFilling}.`t_wf_zhstudent` stu 
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` sub ON sub.`schoolId`=stu.`schoolId` AND sub.`schoolYear`=stu.`schoolYear`
+		AND stu.`termInfoId`=sub.`termInfoId` AND sub.`zhId`=stu.`zhId` AND sub.`wfId`=stu.`wfId`
+		WHERE  CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId} 
+		<if test="zhId!=null and zhId!=''">
+			AND stu.`zhId`=#{zhId}
+		</if>
+		 <if test="useGrade!=null and useGrade!=''">
+			 AND stu.`useGrade`=#{useGrade}
+		 </if>
+		 <if test="classIdList!=null and classIdList!='' and classIdList.size()>0">
+		           AND  stu.`classId` IN
+		          <foreach collection="classIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       	 </if>
+       <!-- AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+        ORDER BY stu.`classId`,stu.`accountId`
+       </select>
+        <!-- 查看某个组合下的选择学生@-->
+       <select id="getByStudentZh"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+      SELECT sub.`zhWay`,stu.`accountId`,sub.`zhName`,sub.`zhId`,stu.`classId` FROM ${db_name_wishFilling}.`t_wf_zhstudentby` stu 
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` sub ON sub.`schoolId`=stu.`schoolId` AND sub.`schoolYear`=stu.`schoolYear`
+		AND stu.`termInfoId`=sub.`termInfoId` AND sub.`zhId`=stu.`zhId` AND sub.`wfId`=stu.`wfId`
+		WHERE  CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId} 
+		<if test="zhId!=null and zhId!=''">
+			AND stu.`zhId`=#{zhId}
+		</if>
+		 <if test="useGrade!=null and useGrade!=''">
+			 AND stu.`useGrade`=#{useGrade}
+		</if>
+		 <if test="zhWay!=null and zhWay!=''">
+			 AND sub.`zhWay`=#{zhWay}
+		</if>
+		 <if test="classIdList!=null and classIdList!='' and classIdList.size()>0">
+		           AND  stu.`classId` IN
+		          <foreach collection="classIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       	 </if>
+       	 <if test="zhIdList!=null and zhIdList!='' and zhIdList.size()>0">
+		           AND  stu.`zhId` IN
+		          <foreach collection="zhIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       	 </if>
+       <!-- AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+       ORDER BY stu.`classId`,stu.`accountId`
+       </select>
+        <!-- 按组合导出所有学生选课，查询sql -->
+         <select id="getAllStudentZh"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+         SELECT sub.`zhId`, sub.`zhName`,GROUP_CONCAT(stu.`accountId`) AS accountIds , GROUP_CONCAT(stu.`classId`) AS classIds
+		 FROM ${db_name_wishFilling}.`t_wf_zhstudent` stu 
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` sub ON sub.`schoolId`=stu.schoolId AND sub.`schoolYear`=stu.schoolYear
+		AND sub.`termInfoId`=stu.termInfoId AND sub.`wfId`=stu.wfId AND sub.`zhId`=stu.zhId
+		WHERE  CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} AND  stu.schoolId=#{schoolId} AND stu.wfId=#{wfId}
+	   <!--  AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+		<if test="zhIds!=null and zhIds!='' and zhIds.size()>0">
+	           AND  stu.`zhId` IN
+	          <foreach collection="zhIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       	</if>
+       	<if test="zhIdList!=null and zhIdList!='' and zhIdList.size()>0">
+	           AND  stu.`zhId` IN
+	          <foreach collection="zhIdList" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       	</if>
+		GROUP BY stu.`zhId` ORDER BY IF(GROUP_CONCAT(stu.`accountId`)='',0,LENGTH(GROUP_CONCAT(stu.`accountId`) )-LENGTH(REPLACE(GROUP_CONCAT(stu.`accountId`) , ',', ''))+1) DESC,sub.`createDate` ASC 
+         </select>
+          <!-- 按组合导出所有学生选课不group by，查询sql -->
+         <select id="getAllStudentZhNoGroupBy"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+         SELECT sub.`zhId`, sub.`zhName`,stu.`accountId` , stu.`classId`
+		 FROM ${db_name_wishFilling}.`t_wf_zhstudent` stu 
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` sub ON sub.`schoolId`=stu.schoolId AND sub.`schoolYear`=stu.schoolYear
+		AND sub.`termInfoId`=stu.termInfoId AND sub.`wfId`=stu.wfId AND sub.`zhId`=stu.zhId
+		WHERE  CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} AND  stu.schoolId=#{schoolId} AND stu.wfId=#{wfId}
+	   <!--  AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+		<if test="zhIds!=null and zhIds!='' and zhIds.size()>0">
+	           AND  stu.`zhId` IN
+	          <foreach collection="zhIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       	</if>
+       	<if test="zhIdList!=null and zhIdList!='' and zhIdList.size()>0">
+	           AND  stu.`zhId` IN
+	          <foreach collection="zhIdList" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       	</if>
+		 ORDER BY sub.`createDate` ,stu.`accountId`,stu.`classId`
+         </select>
+          <!-- 按组合导出所有学生选课补选，查询sql@ -->
+         <select id="getByAllStudentZh"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+         SELECT sub.`zhId`, sub.`zhName`,GROUP_CONCAT(stu.`accountId`) AS accountIds , GROUP_CONCAT(stu.`classId`) AS classIds
+		 FROM ${db_name_wishFilling}.`t_wf_zhstudentby` stu 
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` sub ON sub.`schoolId`=stu.schoolId AND sub.`schoolYear`=stu.schoolYear
+		AND sub.`termInfoId`=stu.termInfoId AND sub.`wfId`=stu.wfId AND sub.`zhId`=stu.zhId
+		WHERE  CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} AND  stu.schoolId=#{schoolId} AND stu.wfId=#{wfId}
+	   <!--  AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+		<if test="zhIds!=null and zhIds!='' and zhIds.size()>0">
+	           AND  stu.`zhId` IN
+	          <foreach collection="zhIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       	</if>
+       	<if test="isNoFixed!=null and isNoFixed!='' ">
+		  AND stu.isFixedZh = 0 
+		</if>
+		<if test="isFixed!=null and isFixed!='' ">
+		  AND stu.isFixedZh = 1 
+		</if>
+		<if test="zhWay!=null and zhWay!='' ">
+		  AND sub.zhWay = #{zhWay} 
+		</if>
+		GROUP BY stu.`zhId` ORDER BY IF(GROUP_CONCAT(stu.`accountId`)='',0,LENGTH(GROUP_CONCAT(stu.`accountId`) )-LENGTH(REPLACE(GROUP_CONCAT(stu.`accountId`) , ',', ''))+1) DESC,sub.`createDate` ASC
+         </select>
+          <!-- 按组合导出所有学生选课补选no group by，查询sql@ -->
+         <select id="getByAllStudentZhNoGroupBy"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+         SELECT sub.`zhId`, sub.`zhName`,stu.`accountId` , stu.`classId`
+		 FROM ${db_name_wishFilling}.`t_wf_zhstudentby` stu 
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` sub ON sub.`schoolId`=stu.schoolId AND sub.`schoolYear`=stu.schoolYear
+		AND sub.`termInfoId`=stu.termInfoId AND sub.`wfId`=stu.wfId AND sub.`zhId`=stu.zhId
+		WHERE  CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo} AND  stu.schoolId=#{schoolId} AND stu.wfId=#{wfId}
+	   <!--  AND LENGTH(sub.`subjectIds`)-LENGTH(REPLACE(sub.`subjectIds`, ',', ''))+1 = #{wfNum} -->
+		<if test="zhIds!=null and zhIds!='' and zhIds.size()>0">
+	           AND  stu.`zhId` IN
+	          <foreach collection="zhIds" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       	</if>
+       	<if test="isNoFixed!=null and isNoFixed!='' ">
+		  AND stu.isFixedZh = 0 
+		</if>
+		<if test="isFixed!=null and isFixed!='' ">
+		  AND stu.isFixedZh = 1 
+		</if>
+		<if test="zhWay!=null and zhWay!='' ">
+		  AND sub.zhWay = #{zhWay} 
+		</if>
+		  ORDER BY sub.`createDate` ,stu.`accountId`,stu.`classId`
+         </select>
+ <!-- 学生 -->
+ 		<!-- 获取某个已有填报数据用户的wfIdList -->
+ 		 <select id="getWfListByAccountId"  parameterType="com.alibaba.fastjson.JSONObject" resultType="String">
+          SELECT stu.`wfId` FROM ${db_name_wishFilling}.`t_wf_zhstudent` stu WHERE 
+ 			stu.`schoolId`=#{schoolId}  AND stu.`accountId`=#{accountId}
+ 				<if test="wfIdList!=null and wfIdList!='' and wfIdList.size()>0">
+	          	AND stu.`wfId`IN 
+		          <foreach collection="wfIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       			</if>
+       			UNION ALL
+       	   SELECT stu.`wfId` FROM ${db_name_wishFilling}.`t_wf_zhstudentby` stu WHERE 
+ 			stu.`schoolId`=#{schoolId}  AND stu.`accountId`=#{accountId}
+ 				<if test="wfIdList!=null and wfIdList!='' and wfIdList.size()>0">
+	          	AND stu.`wfId`IN 
+		          <foreach collection="wfIdList" index="index" item="item" open="("   separator="," close=")">
+		              #{item}
+		          </foreach>  
+       			</if>
+         </select>
+         <!-- 获取正在开放的wfIdList -->
+         <select id="getWfListByOpenTime" parameterType="com.alibaba.fastjson.JSONObject" resultType="String">
+         SELECT w.`wfId` FROM ${db_name_wishFilling}.`t_wf_wfinfo` w
+			WHERE  w.`schoolId`=#{schoolId} 
+			   <if test="wfIdList!=null and wfIdList!='' and wfIdList.size()>0">
+		          	AND w.`wfId`IN 
+			          <foreach collection="wfIdList" index="index" item="item" open="("   separator="," close=")">
+			              #{item}
+			          </foreach>  
+       			</if>
+       			<if test="wfUseGrade!=null and wfUseGrade!=''">
+				 AND w.`wfUseGrade`=#{wfUseGrade} 
+				</if>
+			AND (
+				NOW() BETWEEN w.`wfStartTime` AND w.`wfEndTime`
+				OR NOW()  BETWEEN w.`byStartTime` AND w.`byEndTime`
+			)
+         </select>
+<!-- appH5学生家长 -->
+	<select id="getLastOpenTb" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT * FROM ${db_name_wishFilling}.`t_wf_wfinfo` w
+		WHERE w.`schoolId`=#{schoolId}  AND 
+	((NOW() BETWEEN w.`byStartTime` AND w.`byEndTime`) OR (NOW() BETWEEN w.`wfStartTime` AND w.`wfEndTime`))
+		AND w.`wfUseGrade`=#{wfUseGrade} ORDER BY w.`createDate` DESC;
+	</select>
+<!-- 图片文件操作 -->
+   <update id="insertFileWF" parameterType="com.alibaba.fastjson.JSONObject" >
+   INSERT INTO ${db_name_wishFilling}.`t_wf_attachment`(`schoolId`,`schoolYear`,`termInfoId`,`accountId`,`attachmentAddr`,`attachmentName`,`createDate`,`attachmentId`)
+		VALUES (#{schoolId},#{schoolYear},#{termInfoId},#{accountId},#{attachmentAddr},#{attachmentName},now(),#{attachmentId})
+   </update>
+   <update  id="deleteFileWF" parameterType="com.alibaba.fastjson.JSONObject" >
+   	DELETE FROM ${db_name_wishFilling}.`t_wf_attachment` WHERE `attachmentId`=#{attachmentId}
+   </update>
+   <select  id="getFileWF" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+   SELECT * FROM  ${db_name_wishFilling}.`t_wf_attachment` 
+   		WHERE `schoolId`=#{schoolId} AND `schoolYear`=#{schoolYear} AND `termInfoId`=#{termInfoId} 
+   		AND `accountId`=#{accountId} 
+   </select>
+    <select  id="getFileByIdWF" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+   SELECT * FROM  ${db_name_wishFilling}.`t_wf_attachment` 
+   		WHERE  `attachmentId`=#{attachmentId}
+   </select>
+   
+   <select id="getTWfWfinfo" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+    SELECT * FROM  ${db_name_wishFilling}.`t_wf_wfinfo` 
+   		WHERE  `schoolId`=#{schoolId} and `wfId`=#{wfId}
+   </select>
+</mapper>

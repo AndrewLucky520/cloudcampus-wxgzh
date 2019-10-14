@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.workbench.dao.WorkbenchDao">
+	<delete id="delComonNavs">
+		delete from ${db_name_workbench}.t_nav_teacher_fre
+		where teacherId = #{teacherId}
+	</delete>
+	
+   <update id="addCommonNavs" parameterType="com.alibaba.fastjson.JSONObject">
+   		insert into ${db_name_workbench}.t_nav_teacher_fre(teacherId,navId) values
+   		<foreach collection="navIds" item="item" index="index" separator=",">
+   		(#{teacherId},#{item})
+   		</foreach>
+   </update>
+
+   <select id="selectNavs" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		select t_n_i.parentId,t_n_i.navId,t_n_i.navName,t_n_i.sort,t_n_i.iconUrl,t_n_i.navUrl,if(isnull(t_n_t_f.navId),0,1) isFrequent
+		from ${db_name_workbench}.t_nav_school t_n_s
+		 	inner join ${db_name_workbench}.t_nav_type t_n_t on (t_n_s.schoolId=#{schoolId} and t_n_s.navTypeId = t_n_t.navTypeId)
+		 	inner join ${db_name_workbench}.t_nav_info t_n_i on (
+		 	t_n_i.role in (
+		 		<foreach collection="roles" item="item" index="index" separator=",">
+				#{item}
+			</foreach> )
+		 	and t_n_s.navTypeId = t_n_i.navTypeId)
+			left join ${db_name_workbench}.t_nav_teacher_fre t_n_t_f on ( t_n_t_f.teacherId = #{teacherId} and t_n_t_f.navId = t_n_i.navId)
+	</select>
+    <update id="addNavSchoolBatch" parameterType="java.util.List">
+   		INSERT INTO ${db_name_workbench}.`t_nav_school`(`schoolId`,`navTypeId`,`createTime`) VALUES  
+   		<foreach collection="list" item="item" index="index" separator=",">
+   		(#{item.schoolId},#{item.navTypeId},now())
+   		</foreach>
+   </update>
+</mapper>

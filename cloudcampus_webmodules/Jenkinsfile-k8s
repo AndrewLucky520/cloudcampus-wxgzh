@@ -1,0 +1,198 @@
+def docker_image = "${env.DOCKER_REGISTRY_URL}"
+pipeline {
+  agent {
+    kubernetes {
+      label "jenkins-slave-${UUID.randomUUID().toString()}"
+      defaultContainer 'jnlp'
+      yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: jenkins-slave
+spec:
+  serviceAccount: cicd
+  nodeSelector:
+    ci/slave: 'true'
+  containers:
+  - name: jnlp
+    volumeMounts:
+    - mountPath: /home/jenkins
+      name: jenkins-slave
+  - name: maven
+    image: ming19871211/maven-oraclejdk:8-alpine
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - mountPath: /data/maven-repository
+      name: maven-repository
+    - mountPath: /usr/share/maven/conf/settings.xml
+      subPath: settings.xml
+      name: maven-settings
+    - mountPath: /home/jenkins
+      name: jenkins-slave
+  - name: docker
+    image: docker
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - mountPath: /home/jenkins
+      name: jenkins-slave
+    - mountPath: /var/run/docker.sock
+      name: docker-docker
+    - mountPath: /root/.docker/config.json
+      subPath: config.json
+      name: docker-config
+  - name: k8s-kubectl
+    image: lachlanevenson/k8s-kubectl
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - mountPath: /home/jenkins
+      name: jenkins-slave
+  volumes:
+  - name: jenkins-slave
+    persistentVolumeClaim:
+      claimName: jenkins-slave
+  - name: maven-repository
+    persistentVolumeClaim:
+      claimName: maven-repository
+  - name: maven-settings
+    configMap:
+      name: maven-config
+      items:
+      - key: settings.xml
+        path: settings.xml
+  - name: docker-docker
+    hostPath:
+      path: /var/run/docker.sock
+  - name: docker-config
+    secret:
+      secretName: ${env.DOCKER_REGISTRY_SECRET}
+      items:
+      - key: .dockerconfigjson
+        path: config.json
+"""
+    }
+  }
+  options {
+    //超时一小时
+    timeout(time: 1, unit: 'HOURS')
+   }
+// #######################需要修改的区域 开始#################################
+  environment {
+    // 服务的域名 不需要配置端口所有端口为8080
+    DOMAIN_NAME='cloudcampus-webmodules'
+    // 注册中心的实例数量
+    REPLICAS_NUM=1
+    // 配置文件存在的git仓库 配置文件存放格式是repo/$PROJECT_NAME/config
+    CONFIG_GIT_URL='https://git.talkweb.com.cn/talkweb-repo/talkweb-school/school-mvn.git'
+    // Tomcat中部署的项目项目名称，默认为ROOT,有些为项目名称PROJECT_NAME
+    TOMCAT_PROJECT_NAME='cloudcampus_webmodules'
+    // 编译后的war文件名称,不带.war的后缀
+    // JAVA_WAR='你的编译后war文件名称,不带.war的后缀'
+  }
+  parameters {
+     // 修改部署的域名空间
+    string(name:'name_space', defaultValue: "talkweb-school", description: '发布的命名空间')
+    // 修改为子项目名称
+    string(name:'module', defaultValue: "cloudcampus_webmodules", description: '发布的子项目')
+    // 修改部署环境选择 直接在界面配置 dev、devk、test、prod
+    //choice(name: 'profile', choices: ['dev','test', 'prod'], description: '部署环境')
+    // 选择发布类型-按标签还是按分支发布，默认值是分支（remotes）,标签(tags)
+    choice(name: 'pub_type', choices: ['remotes','tags'], description: '按标签还是按分支发布，默认值是分支（remotes）,标签(tags)')
+  }
+// ########################需要修改的区域 结束################################
+  stages {
+    stage('Run maven') {
+      steps {
+        script{
+            if (params.Tag && params.pub_type == "tags" ) {
+                tag = "$params.Tag"
+            } else {
+                sh "git rev-parse --short HEAD > commit-id"
+                tag = readFile('commit-id').replace("\n", "").replace("\r", "")
+            }
+            docker_image = "$docker_image/${params.name_space}/${env.DOMAIN_NAME}:${params.profile}-$tag"
+        }
+        dir("${env.WORKSPACE}") {
+            container('maven') {
+              sh 'mvn -version'
+              sh "mvn clean package -pl ${params.module} -am -P${params.profile} -Dmaven.test.skip=true"
+            }
+        }
+      }
+    }
+    stage('Build And Push Docker Image'){
+      steps {
+        dir("${env.WORKSPACE}") {
+          container('docker') {
+            echo "整理JAR包，准备打包成DOCKER镜像......"
+            script {
+                if (env.JAVA_WAR) {
+                     mvn_war="${env.JAVA_WAR}"
+                } else {
+                     mvn_war="${params.module}"
+                }
+                sh "docker build -t $docker_image --build-arg JAVA_WAR=$mvn_war --build-arg TOMCAT_PROJECT_NAME=${env.TOMCAT_PROJECT_NAME} ${env.WORKSPACE}/${params.module}"
+            }
+            echo "完成DOCKER镜像打包......"
+            sh "docker push $docker_image"
+            sh "docker image rm $docker_image"
+          }
+        }
+      }
+    }
+    stage('Deploy'){
+      steps{
+        dir("${env.WORKSPACE}") {
+          container('k8s-kubectl') {
+            stash name: "k8s.yaml", includes: "${params.module}/k8s.yaml"
+            echo "部署应用的配置"
+            git  branch: "${params.profile}", credentialsId: "${env.CREDENTIALS_ID}", url: "${env.CONFIG_GIT_URL}"
+            sh "if [ \$(kubectl get  configmap -n ${params.name_space}|awk '{ print \$1 }' |grep -Fx ${params.name_space}-${env.DOMAIN_NAME}-config ) = ${params.name_space}-${env.DOMAIN_NAME}-config ]; then  \
+                  kubectl  -n ${params.name_space} delete configmap  ${params.name_space}-${env.DOMAIN_NAME}-config; \
+               fi;"
+            sh "if [ \$(kubectl get  configmap -n ${params.name_space}|awk '{ print \$1 }' |grep -Fx ${params.name_space}-${env.DOMAIN_NAME}-constant ) = ${params.name_space}-${env.DOMAIN_NAME}-constant ]; then  \
+                  kubectl  -n ${params.name_space} delete configmap  ${params.name_space}-${env.DOMAIN_NAME}-constant; \
+               fi;"
+            sh "kubectl -n ${params.name_space} create configmap  ${params.name_space}-${env.DOMAIN_NAME}-config --from-file=repo/${env.DOMAIN_NAME}/config"
+            sh "kubectl -n ${params.name_space} create configmap  ${params.name_space}-${env.DOMAIN_NAME}-constant --from-file=repo/${env.DOMAIN_NAME}/constant"
+
+            echo "部署应用"
+            unstash name: "k8s.yaml"
+            sh "sed -e 's#__DOCKER_IMAGE__#'$docker_image'#'  \
+            -e 's#__DOCKER_REGISTRY_SECRET__#'${env.DOCKER_REGISTRY_SECRET}'#' \
+            -e 's#__DOMAIN_NAME__#'${env.DOMAIN_NAME}'#' \
+            -e 's#__NAME_SPACE__#'${params.name_space}'#' \
+            -e 's#__REPLICAS_NUM__#'${env.REPLICAS_NUM}'#' \
+            -e 's#__CONFIG_MAP__#'${params.name_space}-${env.DOMAIN_NAME}-config'#' \
+            -e 's#__CONSTANT_MAP__#'${params.name_space}-${env.DOMAIN_NAME}-constant'#' \
+            -e 's#__TOMCAT_PROJECT_NAME__#'${env.TOMCAT_PROJECT_NAME}'#' \
+            ${params.module}/k8s.yaml | kubectl apply -f -"
+          }
+        }
+      }
+    }
+  }
+  post {
+    always {
+        echo '执行完成。'
+    }
+    success {
+        echo '恭喜你，发布成功了!'
+    }
+    unstable {
+        echo 'I am unstable :发布不稳定哦！'
+    }
+    failure {
+        echo '发布失败啦，请查明原因哦！'
+    }
+    changed {
+        echo 'Things were different before...'
+    }
+  }
+}

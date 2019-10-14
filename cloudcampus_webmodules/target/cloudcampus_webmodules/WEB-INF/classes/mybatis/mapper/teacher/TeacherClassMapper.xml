@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.teacher.dao.TeacherClassDao">
+	<cache eviction="FIFO" flushInterval="60000" size="1024"
+		readOnly="false" />
+     <!-- 任课列表查询 -->
+	<select id="queryTeacherList" parameterType="hashmap"
+		resultType="hashmap">
+		SELECT
+		e.bh AS bh,
+		e.bjmc AS bjmc,
+		GROUP_CONCAT(cc SEPARATOR ';') AS kmdm
+		FROM
+		(SELECT a.bh,
+		b.BJMC as bjmc,
+		a.kmdm, d.XM,
+		CONCAT(kmdm,':',GROUP_CONCAT(XM SEPARATOR ',')) AS cc
+		FROM zhx.t_tr_courseteachers a
+		LEFT JOIN zhx.t_ss_class b ON a.bh = b.BH
+		LEFT JOIN zhx.t_ss_classenrol c ON a.bh = c.BH AND a.xn = c.XN AND a.xqm
+		=c.XQM LEFT JOIN zhx.t_hr_teacher d ON a.zgh = d.ZGH
+		<where>
+			1=1
+			<if test="xnxq != null">
+				AND CONCAT(a.xn,a.xqm) = #{xnxq}
+			</if>
+			<if test="bh != null">
+				AND a.bh IN
+				<foreach collection="bh" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test="grade != null">
+				AND b.SYNJ IN
+				<foreach collection="grade" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+		GROUP BY bh,kmdm
+		) e GROUP BY bh
+		</where>
+	</select>
+	<!-- 查询单个班级课程任课教师列表 -->
+	<select id="queryTeacherOne" parameterType="hashMap" resultType="hashMap">
+		SELECT
+		a.kmdm AS mkdm,
+		b.ZWMC AS mkmc,
+		a.zgh,
+		c.XM AS xm
+		FROM
+		${zhx_conn}.t_tr_courseteachers a
+		LEFT JOIN ${zhx_conn}.t_tp_lessoninfo
+		b ON a.kmdm = b.KMDM
+		LEFT JOIN ${zhx_conn}.t_hr_teacher c ON a.zgh =
+		c.ZGH
+		<where>
+			1=1
+			<if test="#{xnxq} != null">
+				AND CONCAT(a.xn,a.xqm) = #{xnxq}
+			</if>
+			<if test="#{bh} != null">
+				AND a.bh = #{bh}
+			</if>
+		</where>
+	</select>
+	<!-- 查询课程信息 -->
+	<select id="querylessoninfo" resultType="hashMap">
+		SELECT KMDM AS mkdm,ZWMC
+		AS mkmc FROM ${zhx_conn}.t_tp_lessoninfo
+	</select>
+	<!-- 保存教师修改信息 -->
+	<insert id="saveOneTeacher" parameterType="hashMap">
+		INSERT INTO
+		${zhx_conn}.t_tr_courseteachers
+		(
+		xn,
+		xqm,
+		xxdm,
+		zgh,
+		bh,
+		kmdm
+		)
+		VALUES
+		(
+		#{xn,jdbcType=VARCHAR},
+		#{xqm,jdbcType=VARCHAR},
+		#{xxdm,jdbcType=VARCHAR},
+		#{zgh,jdbcType=VARCHAR},
+		#{bh,jdbcType=VARCHAR},
+		#{kmdm,jdbcType=VARCHAR}
+		)
+	</insert>
+	<!-- 保存修改信息前，先删除班级信息 -->
+	<delete id="saveDelete" parameterType="hashMap">
+		DELETE FROM
+		${zhx_conn}.t_tr_courseteachers
+		WHERE
+		CONCAT(xn,xqm) = #{xnxq}
+		AND xxdm =
+		#{xxdm}
+		AND bh = #{bh}
+	</delete>
+</mapper>

@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.MaterialDeclare.dao.MaterialDeclareDao">
+ 
+  	    <select id= "getAuditMaterialDeclare" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			 select  a.teacherId  from  ${db_name_materialdeclare}.t_md_audit_member a
+			 where   a.teacherId = #{teacherId} and a.schoolId = #{schoolId}
+	    </select>
+	    
+	    <insert id= "insertMaterialDeclareDepartment" parameterType="com.alibaba.fastjson.JSONObject" >
+			 insert into  ${db_name_materialdeclare}.t_md_department (schoolId , departmentId , departmentName , voided) VALUES
+			 (#{schoolId},#{departmentId},#{departmentName}  , '1')
+	    </insert>
+	    
+	    <delete id= "deleteMaterialDeclareDepartment" parameterType="com.alibaba.fastjson.JSONObject" >
+			 delete from  ${db_name_materialdeclare}.t_md_department where departmentId = #{departmentId}
+	    </delete>
+	    
+	     <update id= "deleteMaterialDeclareDepartment2" parameterType="com.alibaba.fastjson.JSONObject" >
+			update  ${db_name_materialdeclare}.t_md_department set voided = '-1'  where departmentId = #{departmentId}
+	    </update>
+	    
+	    <select id="getDepartmentCnt" parameterType="com.alibaba.fastjson.JSONObject"  resultType="java.lang.Integer">
+	       select count(a.departmentId) as cnt from ${db_name_materialdeclare}.t_md_application a 
+	       where a.departmentId = #{departmentId}
+	    </select>
+	    
+	    <update id= "updateMaterialDeclareDepartment" parameterType="com.alibaba.fastjson.JSONObject" >
+			 update ${db_name_materialdeclare}.t_md_department
+             set  departmentName = #{departmentName} 
+             where schoolId = #{schoolId} and departmentId = #{departmentId}
+	    </update>
+	 
+	   <select id= "getMaterialDeclareDepartment" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			 select   departmentId , departmentName from  ${db_name_materialdeclare}.t_md_department
+			 where schoolId = #{schoolId} and voided > 0
+			 order by departmentName
+	    </select>
+	    
+	    
+	      <select id= "getAdminMaterialDeclareCnt" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.Integer">
+              SELECT count(1) as cnt  from  ${db_name_materialdeclare}.t_md_application a
+              where   a.schoolId = #{schoolId}
+               <if test="applyStart!=null and applyStart!=''">
+					AND a.applyDate &gt;=  #{applyStart}
+			 </if>
+			 <if test="applyEnd!=null and applyEnd!=''">
+				   AND a.applyDate &lt;=  #{applyEnd}
+			</if>
+			 <if test="status!=null and status!=''">
+				  AND a.status =   #{status}
+			</if>
+			 <if test="departmentId!=null and departmentId!=''">
+				  AND a.departmentId =   #{departmentId}
+			 </if>
+	      </select>
+	      
+	      
+	    <select id= "getApplayMaterialDeclareCnt" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.Integer">
+              SELECT count(1) as cnt  from  ${db_name_materialdeclare}.t_md_application a
+              where   a.schoolId = #{schoolId}  and  a.teacherId = #{teacherId}
+               <if test="applyStart!=null and applyStart!=''">
+					AND a.applyDate &gt;=  #{applyStart}
+			 </if>
+			 <if test="applyEnd!=null and applyEnd!=''">
+				   AND a.applyDate &lt;=  #{applyEnd}
+			</if>
+			 <if test="status!=null and status!=''">
+				  AND a.status =   #{status}
+			</if>
+			 <if test="departmentId!=null and departmentId!=''">
+				  AND a.departmentId =   #{departmentId}
+			 </if>
+	      </select>
+	      
+	      <select id= "getAuditMaterialDeclareCnt" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.Integer">
+              SELECT count(1) as cnt  from  ${db_name_materialdeclare}.t_md_application a
+              where   a.schoolId = #{schoolId}  
+             <if test="departmentId!=null and departmentId!=''">
+				  AND a.departmentId = #{departmentId}
+			 </if> 
+			 <choose>
+			    <when test='status!=null  and status.indexOf("4")> -1'>
+			      
+			    </when>
+			     <when test='status!=null  and status.indexOf("5")> -1'>
+			     
+			    </when>
+			    <when test="status!=null and status!=''">
+			      and a.status = #{status}
+			    </when>
+			    <otherwise>
+			       and a.status = '1'
+			    </otherwise>
+			 </choose> 
+              AND EXISTS (
+                  select '1' from  ${db_name_materialdeclare}.t_md_procedure b
+                  left join ${db_name_materialdeclare}.t_md_procedure_member c 
+                  on (b.applicationId = c.applicationId and b.levelNum = c.levelNum)
+                  where a.applicationId = b.applicationId  
+              <choose>
+                <when test='status!=null  and status.indexOf("4")> -1'>
+			      
+			    </when>
+			    <when test='status!=null  and status.indexOf("5")> -1'>
+			      and  b.status >=2
+			    </when>
+                <when test="status!=null and status!=''">
+			      and b.status = #{status}
+			    </when>
+			    <otherwise>
+			       and b.status = '1'
+			    </otherwise>
+			  </choose> 
+                  and c.teacherId = #{teacherId}
+              )
+	      </select>
+	      
+	       <select id= "getAuditedMaterialDeclareCnt" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.Integer">
+              SELECT count(1) as cnt  from  ${db_name_materialdeclare}.t_md_application a
+              where   a.schoolId = #{schoolId} 
+              AND EXISTS (
+                  select '1' from  ${db_name_materialdeclare}.t_md_procedure b
+                  left join ${db_name_materialdeclare}.t_md_procedure_member c 
+                  on (b.applicationId = c.applicationId and b.levelNum = c.levelNum)
+                  where a.applicationId = b.applicationId and b.status > '1' and c.teacherId = #{teacherId}
+              )
+                <if test="teacherList!=null ">
+				      AND a.teacherId in
+				     <foreach collection="teacherList" index="index" item="item" open="(" separator="," close=")">
+						${item}
+				    </foreach>
+				</if>
+			<if test="applyStart!=null and applyStart!=''">
+					AND a.applyDate &gt;=  #{applyStart}
+			 </if>
+			 <if test="applyEnd!=null and applyEnd!=''">
+				   AND a.applyDate &lt;=  #{applyEnd}
+			</if>
+			 <if test="status!=null and status!=''">
+				  AND a.status =   #{status}
+			</if>
+			<if test="departmentId!=null and departmentId!=''">
+				  AND a.departmentId =   #{departmentId}
+			</if>
+				
+	      </select>
+	      
+	    
+ 	   <resultMap type="com.alibaba.fastjson.JSONObject" id="materialDeclareList">
+   		<result column="applicationId" property="applicationId"/>
+  		<result column="teacherId" property="teacherId"/>
+  		<result column="departmentId" property="departmentId"/>
+  		<result column="departmentName" property="departmentName"/>
+  		<result column="reason" property="reason"/>
+  		<result column="applyDate" property="applyDate"/>
+        <result column="status" property="status"/>
+        <result column="total" property="total"/>
+         <collection property="auditDetail" javaType="java.util.List" resultMap="auditmenberSet"/>
+      </resultMap> 
+      
+       
+       <resultMap type="com.alibaba.fastjson.JSONObject" id="auditmenberSet">
+              <result column="auditor" property="auditor"/>
+              <result column="checkStatus" property="checkStatus"/>
+              <result column="levelNum" property="levelNum"/>
+              <result column="processDate" property="processDate"/>
+              <result column="suggestion" property="suggestion"/>
+              <collection property="members" javaType="java.util.List" resultMap="menberSet"/>
+       </resultMap>
+       
+       <resultMap type="com.alibaba.fastjson.JSONObject" id="menberSet">
+              <result column="member" property="member"/>
+       </resultMap>
+       
+ 
+	    <select id="getAdminMaterialDeclareList" parameterType="com.alibaba.fastjson.JSONObject"  resultMap="materialDeclareList" >
+	       select   a.applicationId ,a.teacherId ,a.departmentId ,e.departmentName, a.reason , a.applyDate , a.status ,
+		   d.teacherId as auditor ,  d.member , d.status as  checkStatus , d.levelNum, d.processDate, a.total
+		   from (
+	       SELECT  a.schoolId , a.applicationId ,a.teacherId , a.departmentId ,a.reason ,a.applyDate ,a.status ,a.total 
+	       from  ${db_name_materialdeclare}.t_md_application a
+           where   a.schoolId = #{schoolId}
+               <if test="applyStart!=null and applyStart!=''">
+					AND a.applyDate &gt;=  #{applyStart}
+			 </if>
+			 <if test="applyEnd!=null and applyEnd!=''">
+				   AND a.applyDate &lt;=  #{applyEnd}
+			</if>
+			 <if test="status!=null and status!=''">
+				  AND a.status =   #{status}
+			</if>
+			 <if test="departmentId!=null and departmentId!=''">
+				  AND a.departmentId =   #{departmentId}
+			 </if>
+			 order by a.applyDate desc
+             LIMIT #{position} , #{pageSize} 
+           ) a 
+           left join  (
+			     select b.applicationId ,b.teacherId , b.status,b.processDate,b.levelNum, b.suggestion , c.teacherId as member  from ${db_name_materialdeclare}.t_md_procedure b 
+			     left join ${db_name_materialdeclare}.t_md_procedure_member c on(b.applicationId = c.applicationId and b.levelNum = c.levelNum)
+		   ) d on (a.applicationId = d.applicationId)
+		  left join ${db_name_materialdeclare}.t_md_department e on(a.departmentId = e.departmentId )
+		  order by d.levelNum , a.applyDate desc
+	    </select>
+	    
+	    <select id="getApplayMaterialDeclareList"  parameterType="com.alibaba.fastjson.JSONObject"  resultMap="materialDeclareList">
+	        select   a.applicationId ,a.teacherId ,a.departmentId ,e.departmentName, a.reason , a.applyDate , a.status ,
+		    d.teacherId as auditor ,  d.member , d.status as  checkStatus , d.levelNum, d.processDate, a.total , a.count
+	        FROM ( 
+	         SELECT   a.schoolId , a.applicationId ,a.teacherId , a.departmentId ,a.reason ,a.applyDate ,a.status ,a.total , a.count
+	         FROM  ${db_name_materialdeclare}.t_md_application a
+             WHERE   a.schoolId = #{schoolId}  and  a.teacherId = #{teacherId}
+               <if test="applyStart!=null and applyStart!=''">
+					AND a.applyDate &gt;=  #{applyStart}
+			 </if>
+			 <if test="applyEnd!=null and applyEnd!=''">
+				   AND a.applyDate &lt;=  #{applyEnd}
+			</if>
+			 <if test="status!=null and status!=''">
+				  AND a.status =   #{status}
+			</if>
+			 <if test="departmentId!=null and departmentId!=''">
+				  AND a.departmentId =   #{departmentId}
+			 </if>  
+			  order by  a.status , a.applyDate desc
+             LIMIT #{position} , #{pageSize}  
+             ) a 
+            left join  (
+			     select b.applicationId ,b.teacherId , b.status,b.processDate,b.levelNum, b.suggestion , c.teacherId as member  from ${db_name_materialdeclare}.t_md_procedure b 
+			     left join ${db_name_materialdeclare}.t_md_procedure_member c on(b.applicationId = c.applicationId and b.levelNum = c.levelNum)
+		    ) d on (a.applicationId = d.applicationId)
+		  left join ${db_name_materialdeclare}.t_md_department e on(a.departmentId = e.departmentId )
+		  order by d.levelNum   , a.status ,d.status,  a.applyDate desc
+	    </select>
+	    
+	    
+	    <select id="getAuditMaterialDeclareList"  parameterType="com.alibaba.fastjson.JSONObject"  resultMap="materialDeclareList" >
+	        select   a.applicationId ,a.teacherId ,a.departmentId ,e.departmentName, a.reason , a.applyDate , a.status ,
+		    d.teacherId as auditor ,  d.member , d.status as  checkStatus , d.levelNum, d.processDate, a.total
+	        FROM ( 
+	          SELECT  a.schoolId , a.applicationId ,a.teacherId , a.departmentId ,a.reason ,a.applyDate ,a.status ,a.total 
+	           from  ${db_name_materialdeclare}.t_md_application a
+              where   a.schoolId = #{schoolId}  
+			 <if test="departmentId!=null and departmentId!=''">
+				  AND a.departmentId =   #{departmentId}
+			 </if>  
+			  <choose>
+			    <when test='status!=null  and status.indexOf("4")> -1 '>
+			       
+			    </when>
+			    <when test='status!=null  and status.indexOf("5")> -1'>
+			     
+			    </when>
+			    <when test="status!=null and status!='' ">
+			      and a.status = #{status}
+			    </when>
+			    <otherwise>
+			       and a.status = '1'
+			    </otherwise>
+			 </choose> 
+              AND EXISTS (
+                  select '1' from  ${db_name_materialdeclare}.t_md_procedure b
+                  left join ${db_name_materialdeclare}.t_md_procedure_member c 
+                  on (b.applicationId = c.applicationId and b.levelNum = c.levelNum)
+                  where a.applicationId = b.applicationId 
+               <choose>
+                <when test='status!=null and status.indexOf("4")> -1 '>
+                
+			    </when>
+			    <when test='status!=null  and status.indexOf("5")> -1'>
+			      and  b.status >=2
+			    </when>
+                <when test="status!=null and status!=''">
+			      and b.status = #{status}
+			    </when>
+			    <otherwise>
+			       and b.status = '1'
+			    </otherwise>
+			  </choose> 
+                  and c.teacherId = #{teacherId}
+              )
+              order by a.applyDate desc
+              LIMIT #{position} , #{pageSize}  
+	        ) a 
+           left join  (
+			     select b.applicationId ,b.teacherId , b.status,b.processDate,b.levelNum, b.suggestion , c.teacherId as member  from ${db_name_materialdeclare}.t_md_procedure b 
+			     left join ${db_name_materialdeclare}.t_md_procedure_member c on(b.applicationId = c.applicationId and b.levelNum = c.levelNum)
+		   ) d on (a.applicationId = d.applicationId)
+		  left join ${db_name_materialdeclare}.t_md_department e on(a.departmentId = e.departmentId )
+		  order by d.levelNum  , a.applyDate desc
+	    </select>
+	    
+	    <select id="getAuditedMaterialDeclareList"  parameterType="com.alibaba.fastjson.JSONObject"  resultMap="materialDeclareList" >
+	        select   a.applicationId ,a.teacherId ,a.departmentId ,e.departmentName, a.reason , a.applyDate , a.status ,
+		    d.teacherId as auditor ,  d.member , d.status as  checkStatus , d.levelNum, d.processDate, a.total
+	        FROM ( 
+	          SELECT  a.schoolId , a.applicationId ,a.teacherId , a.departmentId ,a.reason ,a.applyDate ,a.status ,a.total 
+	          from  ${db_name_materialdeclare}.t_md_application a
+              where   a.schoolId = #{schoolId} 
+              AND EXISTS (
+                  select '1' from  ${db_name_materialdeclare}.t_md_procedure b
+                  left join ${db_name_materialdeclare}.t_md_procedure_member c 
+                  on (b.applicationId = c.applicationId and b.levelNum = c.levelNum)
+                  where a.applicationId = b.applicationId and b.status > '1' and c.teacherId = #{teacherId}
+              )
+                <if test="teacherList!=null ">
+				      AND a.teacherId in
+				     <foreach collection="teacherList" index="index" item="item" open="(" separator="," close=")">
+						${item}
+				    </foreach>
+				</if>
+				 <if test="applyStart!=null and applyStart!=''">
+					AND a.applyDate &gt;=  #{applyStart}
+			     </if>
+				 <if test="applyEnd!=null and applyEnd!=''">
+					   AND a.applyDate &lt;=  #{applyEnd}
+				</if>
+				 <if test="status!=null and status!=''">
+					  AND a.status =   #{status}
+				</if>
+				<if test="departmentId!=null and departmentId!=''">
+				  AND a.departmentId =   #{departmentId}
+			   </if>
+				
+				  order by a.applyDate desc
+              LIMIT #{position} , #{pageSize}  
+		    ) a 
+           left join  (
+			     select b.applicationId ,b.teacherId , b.status,b.processDate,b.levelNum, b.suggestion , c.teacherId as member  from ${db_name_materialdeclare}.t_md_procedure b 
+			     left join ${db_name_materialdeclare}.t_md_procedure_member c on(b.applicationId = c.applicationId and b.levelNum = c.levelNum)
+		   ) d on (a.applicationId = d.applicationId)
+		  left join ${db_name_materialdeclare}.t_md_department e on(a.departmentId = e.departmentId )
+		  order by d.levelNum , a.applyDate desc
+	    </select>
+	    
+ 
+	    
+	   <resultMap type="com.alibaba.fastjson.JSONObject" id="materialDeclareDetail">
+   		<result column="applicationId" property="applicationId"/>
+  		<result column="teacherId" property="teacherId"/>
+  		<result column="departmentId" property="departmentId"/>
+  		<result column="departmentName" property="departmentName"/>
+  		<result column="reason" property="reason"/>
+  		<result column="applyDate" property="applyDate"/>
+        <result column="status" property="status"/>
+        <result column="total" property="total"/>
+         <collection property="auditDetail" javaType="java.util.List" resultMap="auditmenberSet"/>
+         <collection property="items" javaType="java.util.List" resultMap="itemsSet"/>
+      </resultMap> 
+     <resultMap type="com.alibaba.fastjson.JSONObject" id="itemsSet">
+  		<result column="productName" property="productName"/>
+  		<result column="model" property="model"/>
+  		<result column="cnt" property="cnt"/>
+        <result column="unitPrice" property="unitPrice"/>
+        <result column="sum" property="sum"/>
+      </resultMap>     
+ 
+	  <select id= "getMaterialDeclareDetail" parameterType="com.alibaba.fastjson.JSONObject"  resultMap="materialDeclareDetail">
+			 select  a.applicationId ,a.teacherId ,a.departmentId , e.departmentName, a.reason ,
+			  a.applyDate , a.status,  d.teacherId as auditor ,  d.member , d.status as  checkStatus ,d.levelNum , d.suggestion ,d.processDate , a.total,
+			  f.productName ,f.model , f.cnt , f.unitPrice , f.cnt*f.unitPrice as sum 
+			  from  ${db_name_materialdeclare}.t_md_application a
+			   left join  (
+			     select b.applicationId ,b.teacherId , b.status,b.processDate,b.levelNum, b.suggestion , c.teacherId as member  from ${db_name_materialdeclare}.t_md_procedure b 
+			     left join ${db_name_materialdeclare}.t_md_procedure_member c on(b.applicationId = c.applicationId and b.levelNum = c.levelNum)
+			  ) d on (a.applicationId = d.applicationId)
+			   left join ${db_name_materialdeclare}.t_md_department  e on (a.departmentId = e.departmentId)
+			   left join ${db_name_materialdeclare}.t_md_itemdetail f on(f.applicationId = a.applicationId )
+			   where a.applicationId = #{applicationId} and a.schoolId = #{schoolId}
+			   <if test='teacherId!=null and teacherId!=""'>
+			   	  and a.teacherId = #{teacherId}
+			   </if>
+			   order by d.levelNum , f.seq
+	    </select>
+	 
+	    <insert id= "insertMaterialDeclare" parameterType="com.alibaba.fastjson.JSONObject" >
+			 insert into ${db_name_materialdeclare}.t_md_application (schoolId , applicationId ,teacherId ,departmentId , reason , applyDate , status , total, count)
+			 VALUES (#{schoolId} ,#{applicationId} , #{teacherId} , #{departmentId} , #{reason} , #{applyDate} , #{status} , #{total}, #{count}) 
+	    </insert>
+	    
+	    <delete id= "deleteMaterialDeclare" parameterType="com.alibaba.fastjson.JSONObject" >
+			 delete from ${db_name_materialdeclare}.t_md_application where applicationId = #{applicationId}
+	    </delete>
+	 
+	 
+	    <update id= "updateMaterialDeclareStatus" parameterType="com.alibaba.fastjson.JSONObject" >
+			 update ${db_name_materialdeclare}.t_md_application set status = #{status}
+			 where applicationId = #{applicationId}
+	    </update>
+	 
+	 	<update id= "updateMaterialDeclareCount" parameterType="com.alibaba.fastjson.JSONObject" >
+			 update ${db_name_materialdeclare}.t_md_application set count = count - 1
+			 where applicationId = #{applicationId}
+	    </update>
+ 
+		<insert id= "insertMaterialDeclareAuditMenber" parameterType="java.util.List" >
+			  insert into ${db_name_materialdeclare}.t_md_audit_member ( schoolId , moneyBegin ,moneyEnd , teacherId, levelNum) VALUES 
+			  <foreach collection="list" index="index" item="item" separator=",">
+		        (#{item.schoolId},#{item.moneyBegin},#{item.moneyEnd} ,  #{item.teacherId} ,   #{item.levelNum} )
+		    </foreach>
+	    </insert>
+		 <delete id= "deleteMaterialDeclareAuditMenber" parameterType="com.alibaba.fastjson.JSONObject">
+			  delete  from   ${db_name_materialdeclare}.t_md_audit_member where schoolId = #{schoolId}
+	    </delete>
+	    
+	    
+	  <resultMap type="com.alibaba.fastjson.JSONObject" id="auditMenberList">
+   		<result column="moneyBegin" property="moneyBegin"/>
+  		<result column="moneyEnd" property="moneyEnd"/>
+        <collection property="auditorLevel" javaType="java.util.List" resultMap="auditorLevel"/>
+      </resultMap> 
+      <resultMap type="com.alibaba.fastjson.JSONObject" id="auditorLevel">
+         <result column="levelNum" property="levelNum"/>
+   		  <collection property="auditors" javaType="java.util.List" resultMap="auditors"/>
+      </resultMap> 
+       <resultMap type="com.alibaba.fastjson.JSONObject" id="auditors">
+   		 <result column="teacherId" property="teacherId"/>
+      </resultMap>
+      
+	    <select id= "getMaterialDeclareAuditMenber" parameterType="com.alibaba.fastjson.JSONObject"  resultMap="auditMenberList">
+			 select  moneyBegin ,moneyEnd , teacherId, levelNum 
+			 from  ${db_name_materialdeclare}.t_md_audit_member  a 
+			 where a.schoolId = #{schoolId}
+			 order by a.moneyBegin , a.levelNum
+	    </select>
+	    
+	     <select id= "getMaterialDeclareAuditMenberByTotal" parameterType="com.alibaba.fastjson.JSONObject" resultMap="auditMenberList">
+			 select   a.moneyBegin , IFNULL(a.moneyEnd,999999999) as moneyEnd  , a.teacherId, a.levelNum 
+			 from  ${db_name_materialdeclare}.t_md_audit_member  a 
+			 where a.schoolId = #{schoolId}
+			 <if test='total!=null and total!=""'>
+			   and moneyBegin &lt;=#{total} and IFNULL(a.moneyEnd,999999999)  &gt; #{total}
+			 </if>
+			 order by moneyBegin , levelNum
+	    </select>
+	    
+	    
+	    <insert id= "insertMaterialDeclareProcedureMenber" parameterType="java.util.List" >
+			 insert into ${db_name_materialdeclare}.t_md_procedure_member (applicationId , teacherId ,levelNum) VALUES 
+			  <foreach collection="list" index="index" item="item" separator=",">
+		        (#{item.applicationId},#{item.teacherId},#{item.levelNum}  )
+		     </foreach>
+	    </insert>
+	     <delete id= "deleteMaterialDeclareProcedureMenber" parameterType="com.alibaba.fastjson.JSONObject" >
+			 delete from ${db_name_materialdeclare}.t_md_procedure_member 
+			 where applicationId = #{applicationId}
+	    </delete>
+	    
+	    <insert id= "insertMaterialDeclareProcedure" parameterType="java.util.List" >
+			 insert into  ${db_name_materialdeclare}.t_md_procedure (applicationId , status,  levelNum )VALUES
+			   <foreach collection="list" index="index" item="item" separator=",">
+		        (#{item.applicationId},#{item.status},#{item.levelNum}  )
+		     </foreach>
+	    </insert>
+	    
+	     <delete id= "deleteMaterialDeclareProcedure" parameterType="com.alibaba.fastjson.JSONObject" >
+			 delete from  ${db_name_materialdeclare}.t_md_procedure where applicationId = #{applicationId}
+	    </delete>
+	    
+	    
+		<update id= "updateMaterialDeclareProcedure" parameterType="com.alibaba.fastjson.JSONObject" >
+			 update  ${db_name_materialdeclare}.t_md_procedure 
+			 set status = #{status} 
+			 <if test="processDate!=null and processDate!=''">
+						 , processDate = #{processDate} ,suggestion = #{suggestion} , teacherId = #{teacherId}
+			 </if>
+			 where applicationId = #{applicationId} and levelNum = #{levelNum}
+	    </update>
+	    
+	    <select  id= "getMaterialDeclareProcedureLevelNum" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			 SELECT  levelNum  from  ${db_name_materialdeclare}.t_md_procedure 
+			 where applicationId = #{applicationId} and levelNum = #{levelNum}
+	    </select>
+	    
+	     <select  id= "getMaterialDeclareProcedureTeacherLevelNum" parameterType="com.alibaba.fastjson.JSONObject"  resultType="com.alibaba.fastjson.JSONObject">
+			 SELECT  a.levelNum  from  ${db_name_materialdeclare}.t_md_procedure  a 
+			 left join  ${db_name_materialdeclare}.t_md_procedure_member b on (a.applicationId = b.applicationId and a.levelNum = b.levelNum)
+			 where a.status ='1' and b.teacherId = #{teacherId} and a.applicationId = #{applicationId}
+	    </select>
+	    
+	
+	   	<insert id= "insertMaterialDeclareItemdetail" parameterType="java.util.List" >
+			 insert into  ${db_name_materialdeclare}.t_md_itemdetail (schoolId ,applicationId,productName,model,cnt,unitPrice , seq) VALUES
+			  <foreach collection="list" index="index" item="item" separator=",">
+		        (#{item.schoolId} , #{item.applicationId} , #{item.productName} , #{item.model} , #{item.cnt} , #{item.unitPrice} ,#{item.seq}  )
+		      </foreach>
+	    </insert>
+	    
+	     <delete id= "deleteMaterialDeclareItemdetail" parameterType="com.alibaba.fastjson.JSONObject" >
+			 delete from  ${db_name_materialdeclare}.t_md_itemdetail where applicationId = #{applicationId}
+	    </delete>
+	    
+	    <select  id= "getApplicationById" parameterType="String" resultType="com.alibaba.fastjson.JSONObject">
+			 select t.schoolId,t.applicationId,t.teacherId,t.departmentId,t.total ,t.count ,t.reason from ${db_name_materialdeclare}.t_md_application t where t.applicationId=#{applicationId}
+	    </select>
+	    
+	     <select id= "getItemDetailById" parameterType="String" resultType="com.alibaba.fastjson.JSONObject">
+	     	select schoolId,applicationId,productName,model,seq from ${db_name_materialdeclare}.t_md_itemdetail t where t.applicationId=#{applicationId}
+	     </select>
+	     
+	     <select id= "getProcedureMember" parameterType="String" resultType="com.alibaba.fastjson.JSONObject">
+	     	select applicationId,teacherId,levelNum from ${db_name_materialdeclare}.t_md_procedure_member t
+	     	 where t.applicationId=#{applicationId}
+	     </select>
+	     
+	     <select id= "getProcedure" parameterType="String" resultType="com.alibaba.fastjson.JSONObject">
+	     	select t.applicationId,t.teacherId,t.`status`,t.processDate,t.levelNum,t.suggestion from ${db_name_materialdeclare}.t_md_procedure t 
+	     	where t.applicationId=#{applicationId}
+	     </select>
+	     
+	     <select id= "getBaseDataSchoolById" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	     	select id, name,extId from ${dbname_common}.t_school where id=#{schoolId}
+	     </select>
+	     
+	     <select id= "getMaterialDeclareStatistics" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			    SELECT  a.departmentId , a.applyTotal , IFNULL( b.auditTotal , 0)  as auditTotal , c.departmentName  from (
+				select  sum(total) as applyTotal , c.departmentId from ${db_name_materialdeclare}.t_md_application c
+				where  schoolId = #{schoolId}
+				<if test="applyStart!=null and applyStart!=''">
+						AND c.applyDate &gt;=  #{applyStart}
+				</if>
+				<if test="applyEnd!=null and applyEnd!=''">
+					    AND c.applyDate &lt;=  #{applyEnd}
+				</if>
+				 <if test="departmentId!=null and departmentId!=''">
+				        AND c.departmentId =   #{departmentId}
+			    </if>
+				GROUP BY departmentId )a
+				LEFT JOIN (
+				select  sum(total) as auditTotal, d.departmentId from ${db_name_materialdeclare}.t_md_application d
+				where   schoolId = #{schoolId} and status = '2'
+				<if test="applyStart!=null and applyStart!=''">
+						AND d.applyDate &gt;=  #{applyStart}
+				</if>
+				<if test="applyEnd!=null and applyEnd!=''">
+					    AND d.applyDate &lt;=  #{applyEnd}
+				</if>
+				 <if test="departmentId!=null and departmentId!=''">
+				        AND d.departmentId =   #{departmentId}
+			    </if>
+				GROUP BY departmentId
+				)b on (a.departmentId = b.departmentId)
+				LEFT JOIN ${db_name_materialdeclare}.t_md_department c 
+			    on (a.departmentId = c.departmentId)
+	    </select>
+	    
+	    
+	    <select id="getHasSetMember"  parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.Integer">
+	        select count(1) as cnt  from    ${db_name_materialdeclare}.t_md_audit_member
+	        where schoolId = #{schoolId} 
+	    </select>
+	    
+
+</mapper>

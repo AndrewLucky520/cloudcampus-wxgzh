@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.exammanagement.dao.examManagement">
+	<select id="getExamManagementList" parameterType="splitDbAndTableRule" resultType="com.talkweb.exammanagement.domain.ExamManagement">
+		SELECT examManagementId, name, status, termInfo, autoIncr FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_exammanagement}
+			WHERE schoolId = #{data.schoolId} AND termInfo = #{data.termInfo}
+			<if test="data.rmExamManagementId != null">
+				AND examManagementId != #{data.rmExamManagementId}
+			</if>
+		ORDER BY createDateTime DESC
+	</select>
+	
+	<select id="getExamManagementListById" parameterType="splitDbAndTableRule" resultType="com.talkweb.exammanagement.domain.ExamManagement">
+		SELECT * FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_exammanagement}
+			WHERE schoolId = #{data.schoolId} AND termInfo = #{data.termInfo}
+				AND examManagementId = #{data.examManagementId}
+			LIMIT 1
+	</select>
+	
+	<select id="ifExsitsSameNameInExamManagement" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+		SELECT 1 FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_exammanagement}
+			WHERE schoolId = #{data.schoolId} AND termInfo = #{data.termInfo}
+				AND name = #{data.name} 
+			<if test="data.examManagementId != null">
+				AND examManagementId != #{data.examManagementId}
+			</if>
+			LIMIT 1
+	</select>
+	
+	<insert id="insertExamManagement" parameterType="splitDbAndTableRule">
+		 INSERT INTO ${dbRule.db_name_exammanagement}.${tableRule.t_em_exammanagement}
+		 	(examManagementId, schoolId, name, createDateTime, accountId, status, termInfo) 
+		 VALUES (#{data.examManagementId}, #{data.schoolId}, #{data.name}, #{data.createDateTime}, #{data.accountId}, 
+		 			#{data.status}, #{data.termInfo})
+	</insert>
+	
+	<update id="updateExamManagement" parameterType="splitDbAndTableRule">
+		UPDATE ${dbRule.db_name_exammanagement}.${tableRule.t_em_exammanagement}
+		<set>
+			<if test="data.name != null">
+				name = #{data.name},
+			</if>
+			<if test="data.serialNumber != null">
+				serialNumber = #{data.serialNumber},
+			</if>
+		</set>
+		WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId} 
+			AND termInfo = #{data.termInfo}
+	</update>
+	
+	<update id="updateExamManagementStatus" parameterType="splitDbAndTableRule">
+		UPDATE ${dbRule.db_name_exammanagement}.${tableRule.t_em_exammanagement}
+			SET status = #{data.status}
+			WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId} 
+				AND termInfo = #{data.termInfo}
+				AND status &lt; #{data.status}
+	</update>
+	
+	<delete id="deleteExamManagement" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_exammanagement}
+			WHERE schoolId = #{data.schoolId} AND termInfo = #{data.termInfo}
+				AND examManagementId = #{data.examManagementId}
+	</delete>
+	
+	
+	<!-- **************************************** 考试计划 ******************************************* -->
+	<select id="getExamPlanList" parameterType="splitDbAndTableRule" resultType="com.talkweb.exammanagement.domain.ExamPlan">
+		SELECT examPlanId, examManagementId, schoolId, usedGrade, scheduleId, termInfo, testNumPrefix, gradeDigit, 
+				serialNumDigit, status
+ 			FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplan}
+ 		WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId}
+ 			AND termInfo = #{data.termInfo}
+ 		<if test="data.examPlanId != null">
+ 			AND examPlanId = #{data.examPlanId}
+ 		</if>
+ 		<if test="data.examPlanIds != null">
+ 			AND examPlanId IN
+ 			<foreach collection="data.examPlanIds" open="(" separator="," close=")" item="item">
+ 				#{item}
+ 			</foreach>
+ 		</if>
+ 		<if test="data.usedGrade != null">
+ 			AND usedGrade = #{data.usedGrade}
+ 		</if>
+ 		order by usedGrade DESC 
+	</select>
+	
+	<select id="getExamSubjectList" parameterType="splitDbAndTableRule" resultType="com.talkweb.exammanagement.domain.ExamSubject">
+		SELECT examSubjectId, schoolId, examManagementId, examPlanId, subjectId, subjectLevel, examSubjName, examSubjSimpleName, startTime, 
+	 			endTime, termInfo, scene 
+		 	FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_examsubject}
+ 		WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId}
+ 			AND termInfo = #{data.termInfo} 
+ 		<if test="data.examSubjectId != null">
+ 			AND examSubjectId = #{data.examSubjectId}
+ 		</if>
+ 		<if test="data.examSubjectIds != null">
+ 			AND examSubjectId in 
+ 			<foreach collection="data.examSubjectIds" open="(" separator="," close=")" item="item">
+ 				#{item}
+ 			</foreach>
+ 		</if>
+ 		<if test="data.examPlanId != null">
+ 			AND examPlanId = #{data.examPlanId}
+ 		</if>
+ 		<if test="data.examPlanList != null">
+ 			AND examPlanId IN
+ 			<foreach collection="data.examPlanList" open="(" separator="," close=")" item="item">
+ 				#{item.examPlanId}
+ 			</foreach>
+ 		</if>
+ 		<if test="data.isOrder == true">
+ 			ORDER BY subjectId, subjectLevel
+ 		</if>
+	</select>
+	
+	<delete id="deleteExamPlan" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplan}
+			WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId}
+ 				AND termInfo = #{data.termInfo}
+ 			<if test="data.examPlanId != null">
+ 				AND examPlanId = #{data.examPlanId}
+ 			</if>
+ 			<if test="data.usedGrade != null">
+ 				AND usedGrade = #{data.usedGrade}
+ 			</if>
+	</delete>
+	
+	<delete id="deleteExamSubject" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_examsubject}
+			WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId}
+ 				AND termInfo = #{data.termInfo}
+ 			<if test="data.examPlanId != null">
+ 				AND examPlanId = #{data.examPlanId}
+ 			</if>
+ 			<if test="data.usedGrade != null">
+ 				AND examPlanId IN (
+ 					SELECT examPlanId FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplan}
+ 						WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId}
+ 							AND termInfo = #{data.termInfo} 
+ 							AND usedGrade = #{data.usedGrade}
+ 				)
+ 			</if>
+	</delete>
+	
+	<insert id="insertExamPlan" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplan}
+			(examPlanId, examManagementId, schoolId, usedGrade, scheduleId, termInfo)
+		VALUES
+			(#{data.examPlanId}, #{data.examManagementId}, #{data.schoolId}, #{data.usedGrade}, 
+				#{data.scheduleId}, #{data.termInfo})
+	</insert>
+	
+	<update id="updateExamPlan" parameterType="splitDbAndTableRule">
+		UPDATE ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplan}
+		<set>
+			<if test="data.testNumPrefix != null">
+				testNumPrefix = #{data.testNumPrefix},
+			</if>
+			<if test="data.gradeDigit != null">
+				gradeDigit = #{data.gradeDigit},
+			</if>
+			<if test="data.serialNumDigit != null">
+				serialNumDigit = #{data.serialNumDigit},
+			</if>
+			<if test="data.status != null">
+				status = #{data.status},
+			</if>
+		</set>
+		WHERE schoolId = #{data.schoolId} AND examManagementId = #{data.examManagementId}
+			AND termInfo = #{data.termInfo} AND examPlanId = #{data.examPlanId}
+	</update>
+	
+	<insert id="insertExamSubjectBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_exammanagement}.${tableRule.t_em_examsubject}
+			(examSubjectId, schoolId, examManagementId, examPlanId, subjectId, subjectLevel, examSubjName, examSubjSimpleName, startTime, endTime, 
+				termInfo, scene)
+		VALUES
+		<foreach collection="data" separator="," item="item">
+			(#{item.examSubjectId}, #{item.schoolId}, #{item.examManagementId}, #{item.examPlanId}, #{item.subjectId},
+				#{item.subjectLevel}, #{item.examSubjName}, #{item.examSubjSimpleName}, #{item.startTime}, #{item.endTime}, #{item.termInfo}, #{item.scene})
+		</foreach>
+	</insert>
+	
+	<!-- 考场下拉框 -->
+	<select id="getCommPlaceList"  parameterType="splitDbAndTableRule" resultType="JSONObject">
+	    select a.examPlaceId,a.examPlaceName,a.examPlaceCode from  ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplaceinfo} a
+	    left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamplaceinfo} b 
+	    on a.schoolId=b.schoolId
+	    and a.examManagementId=b.examManagementId
+	    and a.examPlaceId=b.examPlaceId
+	    where a.schoolId=#{data.schoolId}
+	    and a.examManagementId=#{data.examManagementId}
+	    <if test="data.examSubjectGroupIds!=null and data.examSubjectGroupIds!=''">
+				AND b.examSubjectGroupId in
+				<foreach collection="data.examSubjectGroupIds" open="(" separator="," close=")" item="item">
+ 				#{item}
+ 			</foreach>
+			</if>
+			group by a.examPlaceId
+			order by a.examPlaceCode+0
+	</select>
+	
+	<!-- **************************************** 安排考试 ******************************************* -->
+	<select id="getExamPlaceInfoInArrange" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT examPlaceId, examPlaceCode, examPlaceName, numOfExaminee, buildingName, 
+			CONCAT(buildingName, FLOOR, roomName) AS examPlace
+			FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplaceinfo}
+			WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId}
+ 				AND termInfo = #{data.termInfo} 
+	</select>
+	
+	<select id="getArrangeExamRule" parameterType="splitDbAndTableRule" resultType="com.talkweb.exammanagement.domain.ArrangeExamRule">
+		SELECT schoolId, examManagementId, examSubjectGroupId, examPlanId, createDateTime, numOfSubject, termInfo 
+			FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamrule}
+			WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId}
+ 				AND termInfo = #{data.termInfo} 
+ 			<if test="data.examPlanId != null">
+ 				AND examPlanId = #{data.examPlanId}
+ 			</if>
+ 			<if test="data.examPlanIds != null">
+ 				AND examPlanId IN
+ 				<foreach collection="data.examPlanIds" open="(" separator="," close=")" item="item">
+ 					#{item}
+ 				</foreach>
+ 			</if>
+ 			ORDER BY createDateTime DESC
+	</select>
+	
+	<select id="getArrangeExamClassInfo" parameterType="splitDbAndTableRule" resultType="com.talkweb.exammanagement.domain.ArrangeExamClassInfo">
+		SELECT examManagementId, schoolId, termInfo, examSubjectGroupId, usedGrade, tClassId 
+			FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamclassinfo}
+			WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId}
+ 				AND termInfo = #{data.termInfo} 
+ 			<if test="data.examSubjectGroupObjs != null">
+ 				AND examSubjectGroupId IN
+ 				<foreach collection="data.examSubjectGroupObjs" open="(" separator="," close=")" item="item">
+ 					#{item.examSubjectGroupId}
+ 				</foreach>
+ 			</if>
+ 			<if test="data.examSubjectGroupIds != null">
+ 			    AND examSubjectGroupId IN
+ 				<foreach collection="data.examSubjectGroupIds" open="(" separator="," close=")" item="item">
+ 					#{item}
+ 				</foreach>
+ 			</if>
+	</select>
+	<!-- 去掉sort -->
+	<select id="getArrangeExamSubjectInfo" parameterType="splitDbAndTableRule" resultType="com.talkweb.exammanagement.domain.ArrangeExamSubjectInfo">
+		SELECT examManagementId, schoolId, termInfo, examSubjectGroupId, examSubjectId
+			FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamsubjectinfo}
+			WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId}
+ 				AND termInfo = #{data.termInfo} 
+ 			<if test="data.examSubjectGroupObjs != null">
+ 				AND examSubjectGroupId IN 
+ 				<foreach collection="data.examSubjectGroupObjs" open="(" separator="," close=")" item="item">
+ 					#{item.examSubjectGroupId}
+ 				</foreach>
+ 			</if>
+ 			ORDER BY examSubjectGroupId
+	</select>
+		
+	
+	<select id="getArrangeExamSubjectAndsubject" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.examManagementId, a.schoolId, a.termInfo, a.examSubjectGroupId, a.examSubjectId,b.startTime,b.endTime
+			FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamsubjectinfo} a
+			inner join ${dbRule.db_name_exammanagement}.${tableRule.t_em_examsubject} b
+			on a.schoolId=b.schoolId
+			and a.examManagementId=b.examManagementId
+			and a.examSubjectId=b.examSubjectId
+			WHERE a.examManagementId = #{data.examManagementId} AND a.schoolId = #{data.schoolId}
+ 			AND a.termInfo = #{data.termInfo} 
+ 			order by b.subjectId,b.subjectLevel
+	</select>
+	
+	<select id="getExamSubjectGroupList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+    	SELECT a.examSubjectGroupId,b.createDateTime,
+		    IF (
+				COUNT(*) = 1, e.examSubjName,
+					GROUP_CONCAT(e.examSubjSimpleName ORDER BY e.subjectId, e.subjectLevel SEPARATOR '+')
+			) AS examSubjectGroupName,
+			GROUP_CONCAT(CONCAT(e.subjectId, '_', e.subjectLevel) ORDER BY e.subjectId, e.subjectLevel SEPARATOR ',') AS subjKeys
+		FROM
+		   ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamsubjectinfo} a,
+		    ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamrule} b,
+		   ${dbRule.db_name_exammanagement}.${tableRule.t_em_examsubject} e 
+		WHERE a.examManagementId = e.examManagementId 
+		    AND a.schoolId = e.schoolId 
+		    AND a.termInfo = e.termInfo 
+		    AND a.examSubjectId = e.examSubjectId
+		    and a.examManagementId = b.examManagementId 
+		     AND a.schoolId = b.schoolId 
+		    AND a.termInfo = b.termInfo 
+		    AND a.examSubjectGroupId = b.examSubjectGroupId
+		   	AND a.examManagementId = #{data.examManagementId} 
+			AND a.schoolId = #{data.schoolId}
+			AND a.termInfo = #{data.termInfo}
+		    <if test="data.examSubjectGroupObjs != null">
+				AND a.examSubjectGroupId IN 
+				<foreach collection="data.examSubjectGroupObjs" open="(" separator="," close=")" item="item">
+				 	#{item.examSubjectGroupId}
+				</foreach> 				
+			</if>		 				
+			GROUP BY a.examSubjectGroupId
+	</select>
+	
+	<select id="getArrangeExamPlaceInfo" parameterType="splitDbAndTableRule" resultType="com.talkweb.exammanagement.domain.ArrangeExamPlaceInfo">
+		SELECT examManagementId, schoolId, termInfo, examSubjectGroupId, examPlaceId, remainNumOfStuds, numOfStuds 
+			FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamplaceinfo} 
+			WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId}
+ 				AND termInfo = #{data.termInfo} 
+ 			<if test="data.examSubjectGroupObjs != null">
+ 				AND examSubjectGroupId IN
+ 				<foreach collection="data.examSubjectGroupObjs" open="(" separator="," close=")" item="item">
+ 					#{item.examSubjectGroupId}
+ 				</foreach>
+ 			</if>
+ 			<if test="data.examPlaceId != null and data.examPlaceId!=''">
+ 				AND examPlaceId =#{data.examPlaceId}
+ 			</if>
+	</select>
+	
+	<delete id="deleteArrangeExamRule" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamrule}
+			WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId}
+ 				AND termInfo = #{data.termInfo} 
+ 			<if test="data.examSubjectGroupId != null">
+ 				AND examSubjectGroupId = #{data.examSubjectGroupId}
+ 			</if>
+	</delete>
+	
+	<delete id="deleteArrangeExamClassInfo" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamclassinfo}
+			WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId}
+ 				AND termInfo = #{data.termInfo} 
+ 			<if test="data.examSubjectGroupId != null">
+ 				AND examSubjectGroupId = #{data.examSubjectGroupId}
+ 			</if>
+	</delete>
+	
+	<delete id="deleteArrangeExamSubjectInfo" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamsubjectinfo}
+			WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId}
+ 				AND termInfo = #{data.termInfo} 
+ 			<if test="data.examSubjectGroupId != null">
+ 				AND examSubjectGroupId = #{data.examSubjectGroupId}
+ 			</if>
+	</delete>
+	
+	<delete id="deleteArrangeExamPlaceInfo" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamplaceinfo}
+			WHERE examManagementId = #{data.examManagementId} AND schoolId = #{data.schoolId}
+ 				AND termInfo = #{data.termInfo} 
+ 			<if test="data.examSubjectGroupId != null">
+ 				AND examSubjectGroupId = #{data.examSubjectGroupId}
+ 			</if>
+	</delete>
+	
+	<insert id="insertArrExamRule" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamrule}
+			(schoolId, examManagementId, examSubjectGroupId, examPlanId, createDateTime, numOfSubject, termInfo)
+		VALUES 
+			(#{data.schoolId}, #{data.examManagementId}, #{data.examSubjectGroupId}, #{data.examPlanId}, 
+				#{data.createDateTime}, #{data.numOfSubject}, #{data.termInfo})
+	</insert>
+	
+	<insert id="insertArrExamClassInfoBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamclassinfo}
+			(examSubjectGroupId, schoolId, examManagementId, usedGrade, tClassId, termInfo)
+		VALUES 
+		<foreach collection="data" separator="," item="item">
+			(#{item.examSubjectGroupId}, #{item.schoolId}, #{item.examManagementId}, 
+				#{item.usedGrade}, #{item.tClassId}, #{item.termInfo})
+		</foreach>
+	</insert>
+	
+	<insert id="insertArrExamSubjInfoBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamsubjectinfo}
+			(examSubjectGroupId, schoolId, examManagementId, examSubjectId, termInfo)
+		VALUES 
+		<foreach collection="data" separator="," item="item">
+			(#{item.examSubjectGroupId}, #{item.schoolId}, #{item.examManagementId}, 
+				#{item.examSubjectId}, #{item.termInfo})
+		</foreach>
+	</insert>
+	
+	<insert id="insertArrExamPlaceInfoBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamplaceinfo}
+			(examSubjectGroupId, examPlaceId, schoolId, examManagementId, remainNumOfStuds, numOfStuds, termInfo)
+		VALUES
+		<foreach collection="data" separator="," item="item">
+			(#{item.examSubjectGroupId}, #{item.examPlaceId}, #{item.schoolId}, #{item.examManagementId},
+				 #{item.remainNumOfStuds}, #{item.numOfStuds}, #{item.termInfo})
+		</foreach>
+	</insert>
+	
+	<update id="updateRemainNumOfStuds" parameterType="splitDbAndTableRule">
+		UPDATE ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamplaceinfo}
+			SET remainNumOfStuds = #{data.remainNumOfStuds}
+		WHERE schoolId = #{data.schoolId} AND examManagementId = #{data.examManagementId} 
+			AND examSubjectGroupId = #{data.examSubjectGroupId} AND examPlaceId = #{data.examPlaceId}
+	</update>
+	
+	<!-- **************************************** 智能排考 ******************************************* -->
+	<insert id="insertArrExamResultBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamresult}
+			(schoolId, examManagementId, examSubjectGroupId, examPlaceId, seatNumber, examPlanId, 
+				 tClassId, accountId, testNumber, termInfo)
+		VALUES
+		<foreach collection="data" separator="," item="item">
+			(#{item.schoolId}, #{item.examManagementId}, #{item.examSubjectGroupId}, #{item.examPlaceId},
+				 #{item.seatNumber}, #{item.examPlanId}, #{item.tClassId}, #{item.accountId}, 
+				 #{item.testNumber}, #{item.termInfo})
+		</foreach>
+	</insert>
+	
+	<select id="getTestNumberInfo" parameterType="splitDbAndTableRule" resultType="com.talkweb.exammanagement.domain.TestNumberInfo">
+		SELECT usedGrade, accountId, testNumber 
+			FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_testnumberinfo}
+			WHERE schoolId = #{data.schoolId} AND termInfo = #{data.termInfo}
+					AND examManagementId = #{data.examManagementId}
+	</select>
+	
+	<insert id="insertTestNumberInfoBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_exammanagement}.${tableRule.t_em_testnumberinfo}
+			(examManagementId, schoolId, testNumber, usedGrade, accountId, termInfo)
+		VALUES
+		<foreach collection="data" separator="," item="item">
+			(#{item.examManagementId}, #{item.schoolId}, #{item.testNumber}, #{item.usedGrade},
+				 #{item.accountId}, #{item.termInfo})
+		</foreach>
+			on duplicate key update accountId=values(accountId);
+	</insert>
+	
+	<insert id="insertStudsWaitingBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_exammanagement}.${tableRule.t_em_studswaiting}
+			(schoolId, examManagementId, examPlanId, tClassId, examSubjectGroupId, accountId, testNumber, termInfo)
+		VALUES
+		<foreach collection="data" separator="," item="item">
+			(#{item.schoolId}, #{item.examManagementId}, #{item.examPlanId}, #{item.tClassId},
+				 #{item.examSubjectGroupId}, #{item.accountId}, #{item.testNumber}, #{item.termInfo})
+		</foreach>
+	</insert>
+	
+	<delete id="deleteTestNumberInfo" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_testnumberinfo}
+			WHERE schoolId = #{data.schoolId} AND termInfo = #{data.termInfo}
+				AND examManagementId = #{data.examManagementId}
+	</delete>
+	
+	<delete id="deleteArrExamResult" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamresult}
+			WHERE schoolId = #{data.schoolId} AND termInfo = #{data.termInfo}
+				AND examManagementId = #{data.examManagementId}
+				<if test="data.examSubjectGroupId != null">
+ 				AND examSubjectGroupId = #{data.examSubjectGroupId}
+ 			</if>
+	</delete>
+	
+	<select id="getStudsNotTakingExam" parameterType="splitDbAndTableRule" resultType="com.talkweb.exammanagement.domain.StudNotTakingExam">
+		SELECT examPlanId, tClassId, accountId, examSubjectId
+			FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_studnottakingexam}
+				WHERE schoolId = #{data.schoolId} AND examManagementId = #{data.examManagementId}
+					AND termInfo = #{data.termInfo}
+	</select>
+	
+	
+	<delete id="deleteExamPlaceInfo" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplaceinfo} 
+			WHERE schoolId = #{data.schoolId} AND examManagementId = #{data.examManagementId}
+					AND termInfo = #{data.termInfo}
+	</delete>
+	
+	<delete id="deleteStudsNotTakingExam" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_studnottakingexam} 
+			WHERE schoolId = #{data.schoolId} AND examManagementId = #{data.examManagementId}
+					AND termInfo = #{data.termInfo}
+	</delete>
+	
+	<delete id="deleteStudsWaiting" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_exammanagement}.${tableRule.t_em_studswaiting} 
+			WHERE schoolId = #{data.schoolId} AND examManagementId = #{data.examManagementId}
+					AND termInfo = #{data.termInfo}
+	</delete>
+	
+	<!-- **************************************** 成绩下拉选项 ******************************************* -->
+	<select id="getExternalScoreList" parameterType="hashmap" resultType="JSONObject">
+		SELECT d.kslcdm AS examId, d.kslcmc AS examName FROM ${db_name_scoreManage}_${termInfo}.t_gm_degreeinfo d 
+			WHERE d.xxdm = #{schoolId} 
+			and d.xnxq=#{termInfo}
+				AND d.kslcdm IN (
+				SELECT kslcdm FROM ${db_name_scoreManage}_${termInfo}.t_gm_degreeinfo_nj 
+					WHERE xxdm = #{schoolId} 
+						AND nj IN 
+						<foreach collection="usedGrades" open="(" separator="," close=")" item="item">
+							#{item}
+						</foreach>
+				GROUP BY kslcdm
+					HAVING COUNT(1) = #{size}
+				) and d.drflag='1'
+		ORDER BY cdate DESC
+	</select>
+	
+	<select id="getDegreeinfo"  parameterType="hashmap" resultType="JSONObject">
+	    SELECT  SUBSTR(a.autoIncr,-1) AS tableKey
+	    FROM ${db_name_scoreManage}_${termInfo}.t_gm_degreeinfo a
+	    where a.xxdm = #{schoolId} and a.kslcdm = #{examId}
+	</select>
+	
+	<select id="getScoreInfo" parameterType="hashmap" resultType="JSONObject">
+		SELECT xh AS accountId, kmdm AS subjectId, IFNULL(cj, 0) AS score FROM ${db_name_scoreManage}_${termInfo}.t_gm_scoreinfo_${tableKey}
+			WHERE kslc = #{examId} AND xxdm = #{schoolId} 
+				AND nj = #{usedGrade}
+	</select>
+	
+	
+</mapper>

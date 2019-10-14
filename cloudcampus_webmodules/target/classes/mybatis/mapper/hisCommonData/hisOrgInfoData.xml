@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.commondata.dao.HisCommonDataDao">
+  
+    <select id="getTeacherHeaderAccount" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT 
+	  o.orgId,
+	  t.orgName,
+	  t.orgType,
+	  GROUP_CONCAT(DISTINCT u.accountId) headerIds
+	FROM
+	  ${db_name_hisCommonData}${termInfoId}.t_school_org o 
+	  LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_orginfo t 
+	    ON o.orgId = t.id 
+	  LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_org_header h 
+	    ON o.orgId = h.orgId 
+	  LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_user u 
+	    ON h.`headerId` = u.id 
+	WHERE o.schoolId = #{schoolId}
+	  AND t.status = 1 
+	  <if test="orgId != null and orgId != ''">
+	      AND o.orgId = #{orgId}
+      </if>
+      <if test="ids != null and ids.size() > 0">
+          AND o.orgId in
+       		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+      <if test="type != null and type != ''"> 
+          AND t.orgType = #{type}
+      </if>
+       GROUP BY o.orgId 
+    </select>
+	<select id="getAllOrgMembers"  parameterType="JSONObject" resultType="JSONObject">
+	    SELECT a.`id`,a.`name`,r.userId,r.`type` 
+		 FROM ${db_name_hisCommonData}${termInfoId}.t_account a ,(
+		SELECT 2 AS `type`,m.`userId` AS  userId,u.`accountId` FROM ${db_name_hisCommonData}${termInfoId}.t_school_org so LEFT JOIN 
+		${db_name_hisCommonData}${termInfoId}.`t_org_member` m ON m.`orgId` = so.`orgId`
+		LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_user u ON u.`id`= m.`userId`
+		 WHERE so.`schoolId`=#{schoolId}
+		 UNION 
+		 SELECT  1 AS `type`,h.`headerId` AS userId,u.`accountId` FROM ${db_name_hisCommonData}${termInfoId}.t_school_org so LEFT JOIN 
+		${db_name_hisCommonData}${termInfoId}.`t_org_header` h ON h.`orgId` = so.`orgId`
+		LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_user u ON u.`id`= h.`headerId`
+		 WHERE so.`schoolId`=#{schoolId}
+		 )r WHERE r.accountId= a.`id`
+	</select>
+    <select id="getSchoolOrgList" parameterType="JSONObject" resultType="JSONObject">
+  	  SELECT o.orgId,t.orgName,t.orgType,GROUP_CONCAT(distinct h.headerId) headerIds,GROUP_CONCAT(DISTINCT ol.`lessonId`) lessonIds,
+  	  GROUP_CONCAT(distinct u.accountId) memberIds, GROUP_CONCAT(distinct os.scopeId) scopeIds
+  	  FROM ${db_name_hisCommonData}${termInfoId}.t_school_org o
+	  LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_orginfo t ON o.orgId = t.id 
+	  LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_org_header h ON o.orgId = h.orgId 
+   	  LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_org_member m ON o.orgId = m.orgId
+   	  LEFT JOIN ${db_name_hisCommonData}${termInfoId}.`t_org_scope` os ON o.orgId = os.orgId 
+   	  LEFT JOIN  ${db_name_csCurCommonData}${termInfoId}.`t_org_lesson` ol ON ol.`orgId`=o.`orgId`
+   	  LEFT JOIN ${db_name_hisCommonData}${termInfoId}.t_user u ON m.userId = u.id 
+	  WHERE  o.schoolId = #{schoolId}  AND t.status = 1     
+	  <if test="orgId != null and orgId != ''">
+	      AND o.orgId = #{orgId}
+      </if>
+      <if test="ids != null and ids.size() > 0">
+          AND o.orgId in
+       		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          		#{item}
+       		</foreach>  
+    	</if>
+      <if test="type != null and type != ''"> 
+          AND t.orgType = #{type}
+      </if>
+       GROUP BY o.orgId
+  </select>
+
+</mapper>

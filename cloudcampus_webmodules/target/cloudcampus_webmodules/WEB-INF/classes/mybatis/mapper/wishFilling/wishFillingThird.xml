@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.wishFilling.dao.WishFillingThirdDao">
+<!-- 获取选课列表 -->
+	<select id="getWfListToThird" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT 
+  w.`wfWay`,w.`isByElection`,w.`wfId`,w.`wfName`,CONCAT(w.`schoolYear`,w.`termInfoId`) AS wfTermInfo 
+  FROM ${db_name_wishFilling}.`t_wf_wfinfo` w
+		 WHERE w.`schoolId`=#{schoolId} AND w.`wfUseGrade`=#{gradeId}
+		 AND IF(
+		    w.`isByElection` = 0,
+		    IF(w.`wfEndTime`  &lt;    NOW(), "1", "0"),
+		    IF(w.`byEndTime`  &lt;    NOW(),"1","0")
+		  )=1
+		  order by w.createDate DESC;
+	</select>
+	<!-- 获取所有组合学生列表 -->
+	<select id="getZhStudentToThird" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT sub.`accountId`,sub.`classId`,sub.`useGrade` AS gradeId,zhsub.`zhName`,zhsub.`subjectIds`  FROM ${db_name_wishFilling}.`t_wf_zhstudent` sub
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` zhsub ON zhsub.`schoolId`=sub.`schoolId` AND zhsub.`wfId`=sub.`wfId`
+		AND sub.`schoolYear`=zhsub.`schoolYear` AND sub.`termInfoId`=zhsub.`termInfoId` AND sub.`zhId`=zhsub.`zhId` 
+		 WHERE CONCAT(sub.`schoolYear`,sub.`termInfoId`)=#{termInfo} AND 
+		 sub.`schoolId`=#{schoolId} AND sub.`wfId`=#{wfId}
+		 ORDER BY sub.`zhId`,sub.`classId`
+	</select>
+	<!-- 获取补选所有组合学生列表 -->
+	<select id="getByZhStudentToThird" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT sub.`accountId`,sub.`classId`,sub.`useGrade` AS gradeId,zhsub.`zhName`,zhsub.`subjectIds`  FROM ${db_name_wishFilling}.`t_wf_zhstudentby` sub
+		INNER JOIN ${db_name_wishFilling}.`t_wf_zhsubject` zhsub ON zhsub.`schoolId`=sub.`schoolId` AND zhsub.`wfId`=sub.`wfId`
+		AND sub.`schoolYear`=zhsub.`schoolYear` AND sub.`termInfoId`=zhsub.`termInfoId` AND sub.`zhId`=zhsub.`zhId` 
+		 WHERE CONCAT(sub.`schoolYear`,sub.`termInfoId`)=#{termInfo} AND 
+		 sub.`schoolId`=#{schoolId} AND sub.`wfId`=#{wfId}
+		 <if test="zhWay!=null and zhWay!=''">
+			 AND zhsub.`zhWay`=#{zhWay} 
+		</if>
+		 ORDER BY sub.`zhId`,sub.`classId`
+	</select>
+	<!-- 获取科目学生数 -->
+	<select id="getSubjectNumToThird" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT dic.`subjectName`,stu.`subjectId`,COUNT(DISTINCT `accountId`) AS studentNum
+	    from  ${db_name_wishFilling}.`t_wf_studenttb` stu 
+	    INNER JOIN  ${db_name_wishFilling}.`t_wf_dicsubject` dic ON dic.`subjectId`=stu.`subjectId`
+		WHERE CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo}
+			AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId} GROUP BY stu.`subjectId`
+	</select>
+	<!-- 获取补选科目学生数 -->
+	<select id="getBySubjectNumToThird" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT  dic.`subjectName`,stu.`subjectId`,COUNT(DISTINCT `accountId`) AS studentNum
+		from   ${db_name_wishFilling}.`t_wf_studenttbby` stu 
+		INNER JOIN ${db_name_wishFilling}.`t_wf_subjecttb` sub ON sub.`schoolId`=stu.`schoolId` AND sub.`wfId`=stu.`wfId`
+			AND sub.`subjectId`=stu.`subjectId`
+		INNER JOIN  ${db_name_wishFilling}.`t_wf_dicsubject` dic ON dic.`subjectId`=stu.`subjectId`
+		WHERE CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo}
+			AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId} 
+			 <if test="subjectIsBy!=null and subjectIsBy!=''">
+			       AND sub.`subjectIsBy`=#{subjectIsBy} 
+		     </if>
+		      <if test="isFixedZh!=null and isFixedZh!=''">
+			     AND stu.`isFixedZh`!=#{isFixedZh}
+		     </if>
+			GROUP BY stu.`subjectId`
+	</select>
+	<!-- 获取科目学生列表 -->
+	<select id="getSubjectStudentToThird" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT stu.`accountId`,stu.`classId`,stu.`useGrade` AS gradeId , stu.`subjectId` FROM ${db_name_wishFilling}.`t_wf_studenttb` stu WHERE CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo}
+			AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId}
+	</select>
+	<!-- 获取补选科目学生列表 -->
+	<select id="getBySubjectStudentToThird" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT stu.`accountId`,stu.`classId`,stu.`useGrade` AS gradeId , stu.`subjectId` 
+		FROM ${db_name_wishFilling}.`t_wf_studenttbby` stu 
+		INNER JOIN ${db_name_wishFilling}.`t_wf_subjecttb` sub ON sub.`schoolId`=stu.`schoolId` AND sub.`wfId`=stu.`wfId`
+			AND sub.`subjectId`=stu.`subjectId`
+		WHERE CONCAT(stu.`schoolYear`,stu.`termInfoId`)=#{termInfo}
+			AND stu.`schoolId`=#{schoolId} AND stu.`wfId`=#{wfId}
+			 <if test="subjectIsBy!=null and subjectIsBy!=''">
+			       AND sub.`subjectIsBy`=#{subjectIsBy} 
+		     </if>
+		     <if test="isFixedZh!=null and isFixedZh!=''">
+			     AND stu.`isFixedZh`!=#{isFixedZh}
+		     </if>
+	</select>
+	 <select id="getDicSubjectListToThird" parameterType="com.alibaba.fastjson.JSONObject"  resultType="com.alibaba.fastjson.JSONObject">
+	SELECT l.* FROM (
+		SELECT d.subjectId AS ssubjectId,d.`isDivided`,d.`pycc`,d.`scopeId`,d.`scopeType`,d.`sort`,d.`subjectId`
+		,d.`subjectName`,d.`subjectSimpleName`,d.`subjectType`
+		 FROM   ${db_name_wishFilling}.`t_wf_dicsubject` d
+				WHERE d.pycc = #{pycc} AND d.`isDivided`=0
+		UNION 
+		SELECT d.subjectId AS ssubjectId, d.`isDivided`,d.`pycc`,d.`scopeId`,d.`scopeType`,d.`sort`+dd.`sort` AS sort,dd.`subjectDividedId` AS subjectId
+		,dd.`subjectDividedName` AS subjectName,dd.`subjectDividedSimpleName` AS subjectSimpleName ,dd.`subjectDividedType` AS subjectType FROM ${db_name_wishFilling}.`t_wf_dicsubject` d
+		INNER JOIN ${db_name_wishFilling}.`t_wf_dicdividesubject` dd ON dd.`subjectId`=d.`subjectId`
+		WHERE d.pycc = #{pycc} AND d.`isDivided`=1
+		) l  ORDER BY l.`subjectId` ASC;
+	</select>
+</mapper>

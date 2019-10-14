@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.talkweb.teacher.dao.DepartmentDao">  
+	
+	
+	<resultMap type="com.talkweb.teacher.domain.page.TTrBmxx" id="departmentMap">
+	</resultMap>
+	
+	<parameterMap type="com.talkweb.teacher.domain.page.TTrBmxx" id="departmentParam">
+	</parameterMap>
+
+	<!-- 查询指定学校下的科室机构列表信息 -->
+	<select id="getDepartmentList" resultType="hashmap" parameterMap="departmentParam">
+	select
+	t.jgh,
+	t.jgmc,
+	p.xm,
+	r.fzrgh,
+	w.bmrs
+	from ${zhx_conn}.t_tr_bmxx t
+	left join ${zhx_conn}.t_tr_bmfzr r on r.jgh=t.jgh
+	left join(select count(*) as bmrs,bm from ${zhx_conn}.t_hr_teadept group by bm)w on
+	w.bm = t.jgh
+	left join ${zhx_conn}.t_hr_teacher p on p.zgh=r.FZRGH
+	where t.jglb = '0' and t.xxdm=#{xxdm}
+	</select>
+	
+	<!-- 查询指定学校下的年级组列表信息 -->
+	<select id="getGradeList" resultType="hashmap" parameterMap="departmentParam">
+	  	select m.*,p.xm,q.mc as grade from (
+			select t.jgh,t.jgmc,r.fzrgh,w.bmrs,n.nj  from ${zhx_conn}.t_tr_bmxx t
+			left join ${zhx_conn}.t_tr_bmfzr r on r.jgh=t.jgh
+			left join(select count(*) as bmrs,bm from ${zhx_conn}.t_hr_teadept group by bm)
+				w on w.bm = t.jgh
+			left join ${zhx_conn}.t_tr_bmxx_nj n on n.jgh = t.jgh
+			where t.jglb = '1' and t.xxdm=#{xxdm}
+		)m 
+		left join ${zhx_conn}.t_hr_teacher p on p.zgh=m.fzrgh
+		left join ${zhx_conn}.t_dm_nj q on q.dm=m.nj
+	</select>
+	
+	<!-- 查询教研组列表 -->
+	<select id="getResearchGroupList" resultType="hashmap" parameterMap="departmentParam">
+		select m.*,p.xm,l.zwmc from (
+			select t.jgh,t.jgmc,r.fzrgh,w.bmrs,k.yjkm from ${zhx_conn}.t_tr_bmxx t
+			left join ${zhx_conn}.t_tr_bmfzr r on r.jgh=t.jgh
+			left join(select count(*) as bmrs,bm from ${zhx_conn}.t_hr_teadept group by bm)w on w.bm = t.jgh
+			left join ${zhx_conn}.t_tr_bmxx_km k on k.jgh = t.jgh
+			where t.jglb = '2' and t.xxdm=#{xxdm}
+		)m 
+		left join ${zhx_conn}.t_hr_teacher p on p.zgh=m.fzrgh
+		left join ${zhx_conn}.t_tp_lessoninfo l on l.kmdm=m.yjkm
+	</select>
+	
+	<!-- 查询备课组列表 -->
+	<select id="LessonPlanningGroupList" resultType="hashmap" parameterMap="departmentParam">
+		select m.*,p.xm from (
+			select t.jgh,t.jgmc,r.fzrgh,w.bmrs  from ${zhx_conn}.t_tr_bmxx t
+			left join ${zhx_conn}.t_tr_bmfzr r on r.jgh=t.jgh
+			left join(select count(*) as bmrs,bm from ${zhx_conn}.v_hr_teadept_bkz group by bm)w on w.bm = t.jgh
+			where t.jglb = #{jglb} and t.xxdm=#{xxdm}
+		)m 
+		left join ${zhx_conn}.t_hr_teacher p on p.zgh=m.fzrgh
+	</select>
+	
+	<!-- 查询备课组研究科目列表-->
+	<select id="getLessonPlanningGroupYjkmList" resultType="hashmap" parameterType="list">
+		select yjkm,jgh,l.zwmc from ${zhx_conn}.t_tr_bmxx_km k 
+		left join ${zhx_conn}.t_tp_lessoninfo l on l.kmdm=k.yjkm
+		where k.jgh in
+		<foreach collection="list" index="index" item="item" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+	<!-- 查询单个科室信息 -->
+	<select id="getOneDepartment"  parameterType="String" resultMap="departmentMap">
+		select * from ${zhx_conn}.t_tr_bmxx where jglb=#{jglb} and jgh = #{jgh}
+	</select>
+	
+	<!-- 查询单个年级组 -->
+	<select id="getOneGradeById" resultType="hashmap" parameterMap="departmentParam">
+		select a.jgh,a.jgmc,b.nj as grade from ${zhx_conn}.t_tr_bmxx a 
+		join ${zhx_conn}.t_tr_bmxx_nj b on a.jgh = b.jgh
+		where a.jglb=#{jglb} and a.jgh=#{jgh}
+	</select>
+	
+	<!-- 查询单个教研组 -->
+	<select id="getOneResearchGroup" resultType="hashmap" parameterMap="departmentParam">
+		select t.jgh,t.jgmc,k.yjkm from ${zhx_conn}.t_tr_bmxx t
+		left join ${zhx_conn}.t_tr_bmxx_km k on k.jgh = t.jgh
+		where t.jglb = #{jglb} and t.jgh=#{jgh}
+	</select>
+	
+	<!-- 查询单个备课组 -->
+	<select id="getOneLessonPlanningGroup" resultType="hashmap" parameterMap="departmentParam">
+		select  t.jgh,t.jgmc,j.nj,k.yjkm from ${zhx_conn}.t_tr_bmxx t
+		left join ${zhx_conn}.t_tr_bmxx_nj j on j.jgh = t.jgh
+		left join ${zhx_conn}.t_tr_bmxx_km k  on t.jgh=k.jgh
+		where t.jglb = #{jglb} and t.jgh=#{jgh}
+	</select>
+
+	<!-- 添加机构 -->
+	<insert id="addDepartment" parameterMap="departmentParam" >
+		insert into ${zhx_conn}.t_tr_bmxx(xxdm,jgh,jgmc,jglb)
+		values(#{xxdm},#{jgh},#{jgmc},#{jglb})
+	</insert>
+	
+	<!-- 修改机构 -->
+	<update id="updateDepartment" parameterMap="departmentParam">
+		update ${zhx_conn}.t_tr_bmxx set jgmc=#{jgmc}
+		where jgh=#{jgh}
+	</update>
+	
+	<!-- 删除机构 -->
+	<delete id="deleteDepartment" parameterType="String">
+		delete from ${zhx_conn}.t_tr_bmxx where jgh=#{jgh}
+	</delete>
+</mapper>

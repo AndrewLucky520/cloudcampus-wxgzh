@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.commondata.dao.LessonManageDao">
+     <select id="getLessonByName" resultType="JSONObject" parameterType="String">
+		SELECT l.`name` FROM ${db_name_csCurCommonData}${termInfoId}.t_lessoninfo l 
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.`t_school_lesson` sl 
+		 ON sl.`lessonId`=l.`id` AND sl.`schoolId`=#{schoolId}
+		WHERE l.`id`!=#{id} AND l.name = #{name}	AND l.`isDefaultLesson`=0
+		UNION ALL 
+		SELECT l.`name` FROM  ${db_name_csCurCommonData}${termInfoId}.t_lessoninfo l 
+		WHERE l.`id`!=#{id} AND l.name = #{name}	AND l.`isDefaultLesson`=1
+   </select>
+   <select id="getLessonList" resultType="JSONObject" parameterType="JSONObject">
+		SELECT b.`isDefaultLesson`,b.id AS lessonId,b.name AS lessonName,b.simpleName AS lessonSimpleName,b.lessonType
+		FROM ${db_name_csCurCommonData}${termInfoId}.t_school_lesson a RIGHT JOIN ${db_name_csCurCommonData}${termInfoId}.t_lessoninfo b
+		ON b.id = a.lessonId WHERE a.schoolId = #{schoolId} AND b.status = 1
+		 order by b.id				
+   </select>
+   
+   <update id="updateLesson" parameterType="JSONObject">
+        UPDATE ${db_name_csCurCommonData}${termInfoId}.t_lessoninfo SET name = #{name}, simpleName = #{simpleName} 
+        WHERE id = #{id}
+   </update>
+   
+   <insert id="insertLesson" parameterType="JSONObject" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ${db_name_csCurCommonData}${termInfoId}.t_lessoninfo(uuid,status,name,simpleName,engName,
+        engSimpleName,area,lessonType,intro,demand,flag,autoCreateTime,autoUpdateTime) 
+        VALUES(#{uuid},#{status},#{name},#{simpleName},#{engName},#{engSimpleName},#{area},
+        #{lessonType},#{intro},#{demand},#{flag},#{autoCreateTime},#{autoUpdateTime})
+   </insert>
+   
+   <insert id="insertSchoolLesson" parameterType="JSONObject">
+        INSERT INTO ${db_name_csCurCommonData}${termInfoId}.t_school_lesson(schoolId,lessonId)VALUES(#{schoolId},#{lessonId})
+   </insert>
+
+   <delete id="deleteLesson" parameterType="JSONObject">
+        DELETE ${db_name_csCurCommonData}${termInfoId}.t_lessoninfo,${db_name_csCurCommonData}${termInfoId}.t_school_lesson FROM 
+        ${db_name_csCurCommonData}${termInfoId}.t_lessoninfo LEFT JOIN ${db_name_csCurCommonData}${termInfoId}.t_school_lesson ON 
+        ${db_name_csCurCommonData}${termInfoId}.t_lessoninfo.id = ${db_name_csCurCommonData}${termInfoId}.t_school_lesson.lessonId 
+        WHERE ${db_name_csCurCommonData}${termInfoId}.t_lessoninfo.id IN
+        <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+   </delete>
+
+</mapper>

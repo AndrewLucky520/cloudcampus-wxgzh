@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.talkweb.teacher.dao.TeadeptDao">  
+
+	<parameterMap type="com.talkweb.teacher.domain.page.THrTeadept" id="teadeptParam">
+	</parameterMap>
+	
+	<!-- 添加部门人员 -->
+	<insert id="addTeadept" parameterMap="teadeptParam" >
+		insert into ${zhx_conn}.t_hr_teadept(xxdm,zgh,bm,jglb)
+		values(#{xxdm},#{zgh},#{bm},#{jglb})
+	</insert>
+	
+	<!-- 删除部门人员 -->
+	<delete id="deleteTeadept" parameterMap="teadeptParam">
+		delete from ${zhx_conn}.t_hr_teadept where zgh=#{zgh} and bm=#{bm}
+	</delete>
+
+	<!-- 查询已安排的人员列表 -->
+	<select id="getPeopleStaffList" resultType="hashmap" parameterType="hashmap">
+		select t.*,d.mc as xb from(
+				select a.zgh,b.xm,b.xbm,b.jsdm  from  ${zhx_conn}.t_hr_teadept a join  
+				${zhx_conn}.t_hr_teacher  b on a.zgh = b.zgh
+				
+				where a.xxdm=#{xxdm} and a.bm=#{jgh}
+				<if test="xm!=null and xm!=''">
+					and (b.xm like CONCAT('%',#{xm},'%') or b.jsdm like CONCAT('%',#{xm},'%'))
+				</if>
+				<if test="yjkm!=null and yjkm!=''">
+					and a.bm in(select jgh from ${zhx_conn}.t_tr_bmxx_km where yjkm = #{yjkm})
+				</if>
+			) t
+ 			left join ${zhx_conn}.t_dm_xb d on d.dm = t.xbm
+	</select>
+
+	<!-- 查询备课组已安排的人员列表 -->
+	<select id="getLessonStaffList" resultType="hashmap" parameterType="hashmap">
+		select t.zgh,t.jsdm,t.xm,t.xbm,x.mc  from ${zhx_conn}.t_hr_teacher t 
+		inner join(
+			select a.zgh from ${zhx_conn}.v_hr_teadept_bkz as a 
+			where a.bm=#{bm}
+		)m on t.zgh = m.zgh
+		left join ${zhx_conn}.t_dm_xb x on x.dm=t.xbm
+		<if test="xm !=null and xm!=''">
+			where t.xm like CONCAT('%',#{xm},'%') or t.jsdm like CONCAT('%',#{xm},'%')
+		</if>
+	</select>
+	
+	<!-- 查询未安排的人员列表 -->
+	<select id="getPeopleNoStaffList" resultType="hashmap" parameterType="hashmap">
+		select m.zgh,m.jsdm,m.xm,x.mc from (
+			select t.zgh,t.jsdm,t.xm,t.xbm from ${zhx_conn}.t_hr_teacher t
+			<where>
+				t.xxdm=#{xxdm}
+				<if test="xm!=null and xm!=''">
+					and (t.xm like CONCAT('%',#{xm},'%') or t.jsdm like CONCAT('%',#{xm},'%'))
+				</if>
+				<if test="isDeparent!='' and isDeparent!=null">
+					and t.zgh not in(
+						select zgh from ${zhx_conn}.t_hr_teadept where bm=#{jgh} and jglb=#{jglb}
+					)
+				</if>
+			</where>
+		)m
+		left join ${zhx_conn}.t_dm_xb x on x.dm = m.xbm
+	</select>
+
+</mapper>

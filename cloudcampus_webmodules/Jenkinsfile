@@ -1,0 +1,116 @@
+def docker_image = "${env.DOCKER_REGISTRY_URL}"
+pipeline {
+    agent { label 'Slave1' }
+    options {
+        //超时一小时
+        timeout(time: 1, unit: 'HOURS') 
+    }
+// #######################需要修改的区域 开始#################################
+    environment {
+        //域名-需要修改
+        DOMAIN_NAME='cloudcampus_webmodules'
+        //端口-需要修改
+        APP_PORT=48103
+        // Tomcat中部署的项目项目名称，默认为ROOT,有些为项目名称PROJECT_NAME
+        TOMCAT_PROJECT_NAME='cloudcampus_webmodules'
+        // 编译后的war文件名称,不带.war的后缀
+        // JAVA_WAR='你的编译后war文件名称,不带.war的后缀'
+    }
+    // 注意需要配置选择 profile,测试环境的值为test,生产环境的值为prod
+    parameters {
+       //发布模块 -需要修改
+       string(name:'module', defaultValue: "cloudcampus_webmodules", description: '发布模块')   
+       //发布stack名称 - 需要修改
+       string(name:'stack_name', defaultValue: "zhx", description: '发布的栈名称')       
+// ########################需要修改的区域 结束##################################  
+       //发布集群地址  IP:PORT:
+       string(name:'swarm', defaultValue: "${env.DOCKER_SWARM_ADDR}", description: '发布集群地址')
+    }
+    tools {
+        maven 'maven3' 
+        jdk 'jdk8'
+    }
+    stages {
+        stage('参数') {
+            steps {              
+                echo "发布集群地址：${params.swarm}"  
+                echo "发布模块：${params.module}"
+                sh 'java -version'
+                sh 'mvn --version'
+                script{
+                    if (params.Tag) {
+                        tag = "$params.Tag"
+                    } else {
+                        sh "git rev-parse --short HEAD > commit-id"
+                        tag = readFile('commit-id').replace("\n", "").replace("\r", "")
+                    }
+                    docker_image = "$docker_image/${params.stack_name}/${params.module}:$tag"
+                    // 若为svn版本库时注释本块其他代码，打开下面注释
+                    // docker_image = "$docker_image/${params.stack_name}/${params.module}:${env.BUILD_NUMBER}"
+                }
+            }        
+        }
+        stage('编译JAR包') {
+            steps {
+                dir("${env.WORKSPACE}") {
+                  echo "开始使用maven编译......"
+                  sh "mvn clean package -pl ${params.module} -am   -P${params.profile}  -Dmaven.test.skip=true"
+                }
+            }      
+        }
+        stage('编译DOCKER镜像') {
+            steps { 
+                dir("${env.WORKSPACE}/${params.module}") {
+                    echo "整理war包，准备打包成DOCKER镜像......"  
+                    script {
+                        if (env.JAVA_WAR) {                
+                            mvn_war="${env.JAVA_WAR}"
+                        } else {
+                            mvn_war="${params.module}"
+                        }
+                        sh "docker build -t $docker_image --build-arg JAVA_WAR=$mvn_war --build-arg TOMCAT_PROJECT_NAME=${env.TOMCAT_PROJECT_NAME} . "
+                    }
+                    echo " 完成打包成DOCKER镜像......"  
+                }
+            }      
+        }
+        stage('上传镜像') {         
+            steps {
+                dir("${env.WORKSPACE}/${params.module}") {
+                 echo "上传本地Docker镜像到私服......"  
+                  sh "docker push $docker_image"
+                }
+            }     
+        }        
+        stage('编排部署') {
+            steps {
+                dir("${env.WORKSPACE}/${params.module}") {
+                   echo '部署到生产环境'
+                   sh "pwd"
+                   echo '设置服务名称'
+                   sh "sed -i 's/__DOMAIN_NAME__/${env.DOMAIN_NAME}/g' docker-compose.yml"
+                   echo '设置环境变量'
+	               sh "export docker_image=${docker_image} && docker -H ${params.swarm} stack deploy -c docker-compose.yml --with-registry-auth ${params.stack_name}"
+                }
+            }        
+        }        
+    }
+
+    post {        
+        always {            
+            echo '执行完成'            
+        }        
+        success {            
+            echo '成功!'        
+        }        
+        unstable {            
+            echo 'I am unstable :/'        
+        }        
+        failure {            
+            echo '失败 :('        
+        }        
+        changed {            
+            echo 'Things were different before...'        
+        }    
+    }
+}

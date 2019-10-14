@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.scoreReport.dao.StudentScoreReportDao">
+	<select id="getbjcjgzxs" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT b.zf, CONCAT_WS('|', CAST(IFNULL(b.bjpm, 0) AS CHAR), CAST(IFNULL(b.bjpmgz, 0) AS CHAR)) AS bjpm,
+			CONCAT_WS('|', CAST(IFNULL(b.njpm, 0) AS char), CAST(IFNULL(b.njpmgz, 0) AS CHAR)) AS njpm, a.xh
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a 
+				LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} b 
+					ON a.xxdm = b.xxdm AND a.xnxq = b.xnxq AND a.kslc = b.kslc AND a.xh = b.xh
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} 
+		<if test="data.xhList != null">
+			AND a.xh IN
+			<foreach collection="data.xhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<select id="getbjcjgzsmxx" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		<!-- 先获取当前班级所在分组，再并获取分组下的所有班级，统计分组名称和分组人数 -->
+		SELECT a.fzmc, SUM(c.ckrs) AS fzrs, 
+			(
+				SELECT ckrs 
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics}
+				WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+					AND bh = #{data.bh}
+			) AS ckrs
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} b 
+					ON a.kslc = b.kslc AND a.xxdm = b.xxdm AND a.xnxq = b.xnxq AND a.bmfz = b.bmfz AND a.lb = '01'
+						AND a.bmfz IN (	
+							SELECT bmfz FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj}
+							WHERE kslc = #{data.kslc} AND xxdm = #{data.xxdm} AND xnxq = #{data.xnxq}
+								AND bh = #{data.bh}
+						)
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} c
+					ON b.kslc = c.kslc AND b.xxdm = c.xxdm AND b.xnxq = c.xnxq AND b.bh = c.bh
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} 
+			GROUP BY a.bmfz
+	</select>
+	
+	<select id="getbjcjgzdbkslc" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT a.dbkslc, a.dbxnxq 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank} a
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} 
+		<if test="data.xhList != null">
+			AND a.xh IN
+			<foreach collection="data.xhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		AND IFNULL(a.dbkslc, '') != ''
+		AND IFNULL(a.dbxnxq, '') != ''
+	</select>
+	
+	<select id="getBjcjMkGZ" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT a.kmdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} AND a.nj = #{data.nj}
+		<if test="data.xhList != null">
+			AND a.xh IN
+			<foreach collection="data.xhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		AND a.bh = #{data.bh}
+		UNION ALL
+		SELECT DISTINCT a.kmdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} a
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.nj = #{data.nj} 
+	</select>
+	
+	<select id="getbjcjgzcj" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.xh, a.kmdm, a.cj, CONCAT_WS('|', CAST(IFNULL(b.bjpm, 0) AS CHAR),
+			CAST(IFNULL(b.bjpmgz, 0) AS CHAR)) AS bjpm, CONCAT_WS('|', CAST(IFNULL(b.njpm, 0) AS CHAR),
+			CAST(IFNULL(b.njpmgz, 0) AS CHAR)) AS njpm
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a
+				LEFT OUTER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} b 
+					ON a.xxdm = b.xxdm AND a.xnxq = b.xnxq AND a.kslc = b.kslc AND a.kmdm = b.kmdm AND a.xh = b.xh
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc}
+			AND a.nj = #{data.nj}
+		<if test="data.xhList != null">
+			AND a.xh IN
+			<foreach collection="data.xhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		UNION ALL
+		SELECT a.xh, a.kmdm, a.cj, CONCAT_WS('|', CAST(IFNULL(a.bjpm, 0) AS CHAR),
+			CAST(IFNULL(a.bjpmgz, 0) AS CHAR)) AS bjpm, CONCAT_WS('|', CAST(IFNULL(a.njpm, 0) AS CHAR),
+			CAST(IFNULL(a.njpmgz, 0) AS CHAR)) AS njpm
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} a
+				INNER JOIN (
+					SELECT m.*, n.bh
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} m, 
+						${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} n
+					WHERE m.xxdm = n.xxdm AND m.xnxq = n.xnxq AND m.kslc = n.kslc AND m.bmfz = n.bmfz
+						AND m.lb = '01'
+				) d ON a.xxdm = d.xxdm AND a.xnxq = d.xnxq AND a.kslc = d.kslc
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} b 
+					ON a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.xnxq = b.xnxq AND d.bmfz = b.fzdm AND a.kmdm = b.kmdm
+		WHERE a.kslc = #{data.kslc} AND a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq}
+		<if test="data.xhList != null">
+			AND a.xh IN
+			<foreach collection="data.xhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+</mapper>

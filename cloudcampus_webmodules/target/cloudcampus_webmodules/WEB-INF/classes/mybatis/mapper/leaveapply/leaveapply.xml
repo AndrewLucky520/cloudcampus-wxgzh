@@ -1,0 +1,780 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.leaveapply.dao.LeaveApplicationDao">
+ 
+ 
+ 	   <resultMap type="com.alibaba.fastjson.JSONObject" id="leaveApplys">
+  		<result column="schoolId" property="schoolId"/>
+  		<result column="applicationId" property="applicationId"/>
+  		<result column="applyUserId" property="applyUserId"/>
+  		<result column="groupId" property="groupId"/>
+  		<result column="applyDate" property="applyDate"/>
+  		<result column="leaveType" property="leaveType"/>
+  		<result column="typeName" property="typeName"/>
+  		<result column="leaveStartTime" property="leaveStartTime"/>
+  		<result column="leaveStartTimeAMPM" property="leaveStartTimeAMPM"/>
+  		<result column="leaveEndTime" property="leaveEndTime"/>
+  		<result column="leaveEndTimeAMPM" property="leaveEndTimeAMPM"/>
+  		<result column="leavedays" property="leavedays"/>
+  		<result column="actualDays" property="actualDays"/>
+  		<result column="reason" property="reason"/>
+  		<result column="status" property="status"/>
+		<collection property="auditDetail" javaType="java.util.List" resultMap="auditDetailSet"/>
+		<collection property="files"       javaType="java.util.List" resultMap="filesSet"/>
+      </resultMap> 
+      
+       <resultMap type="com.alibaba.fastjson.JSONObject" id="teacherIdSet">
+  	     <result column="teacherId" property="teacherId"/>
+       </resultMap> 
+      
+       <resultMap type="com.alibaba.fastjson.JSONObject" id="auditDetailSet">
+  	     <result column="statusDetail" property="status"/>
+  	     <result column="suggestion" property="suggestion"/>
+  	     <result column="auditor" property="auditor"/>
+  	     <result column="processDate" property="processDate"/>
+  	     <result column="levelNum" property="levelNum"/>
+  	     <collection property="audits" javaType="java.util.List" resultMap="teacherIdSet"/>
+      </resultMap> 
+       <resultMap type="com.alibaba.fastjson.JSONObject" id="filesSet">
+  	     <result column="appFileName" property="appFileName"/>
+  	     <result column="fileUrl" property="fileUrl"/>
+      </resultMap> 
+
+ 
+ 	 <select id= "getleaveApply" parameterType="com.alibaba.fastjson.JSONObject" resultMap="leaveApplys">
+			 SELECT c.schoolId , c.applicationId ,c.applyUserId , c.groupId , c.applyDate , c.leaveType , f.typeName, c.leaveStartTime ,c.leaveStartTimeAMPM,
+			 c.leaveEndTime ,c.leaveEndTimeAMPM,  c.leavedays , c.actualDays, c.reason, c.status ,  d.statusDetail , ifnull(d.suggestion , '') as suggestion, ifnull(d.processDate , '') as processDate, d.levelNum, d.teacherId , d.auditor,
+			 e.appFileName , e.fileUrl
+			 FROM ${db_name_leaveApply}.t_la_leaveApply c 
+			  left join  (
+                 SELECT  a.applicationId , a.groupId ,a.auditor , 
+				 a.`status` as statusDetail , a.suggestion  ,a.processDate,  a.levelNum , b.teacherId 
+				 from ${db_name_leaveApply}.t_la_procedure a
+				 LEFT JOIN  ${db_name_leaveApply}.t_la_procedure_member b on (a.levelNum = b.levelNum and a.applicationId = b.applicationId )
+			 )d  on (c.applicationId = d.applicationId)
+			 left join  ${db_name_leaveApply}.t_la_file e on(c.applicationId = e.applicationId)
+			 left join  ${db_name_leaveApply}.t_la_leaveType f on (c.leaveType = f.types)
+			 WHERE c.schoolId = #{schoolId} and c.applicationId = #{applicationId} 
+			 
+			 order by d.levelNum
+	 </select>
+	 
+	 <select id="getAdminLeaveApplyListCnt" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.Integer">
+     	SELECT count(1) as cnt 
+        FROM  ${db_name_leaveApply}.t_la_leaveApply c where c.schoolId = #{schoolId} 
+		<if test="applyStart!=null and applyDateStart!=''">
+	    	AND c.applyDate &gt;=  #{applyStart}
+		</if>
+		<if test="applyEnd!=null and applyEnd!=''">
+	      	AND c.applyDate &lt;=  #{applyEnd}
+		</if>
+		<if test="startTime!=null and startTime!=''">
+	      	AND c.leaveStartTime &gt;=  #{startTime}
+		</if>
+		<if test="endTime!=null and endTime!=''">
+	      	AND c.leaveStartTime &lt;=  #{endTime}
+		</if>
+		<if test="status!=null and status!=''">
+	      	AND c.status =   #{status}
+		</if>
+		<if test="leaveType!=null and leaveType!=''">
+			AND c.leaveType = #{leaveType}
+		</if>
+		<if test="teacherList!=null ">
+	      	AND c.applyUserId in
+	     	<foreach collection="teacherList" index="index" item="item" open="(" separator="," close=")">
+			${item}
+	    	</foreach>
+		</if>
+	</select>
+	 
+	 
+	  <resultMap type="com.alibaba.fastjson.JSONObject" id="adminLeaveApplyList">
+  		<result column="schoolId" property="schoolId"/>
+  		<result column="applicationId" property="applicationId"/>
+  		<result column="applyUserId" property="applyUserId"/>
+  		<result column="groupId" property="groupId"/>
+  		<result column="applyDate" property="applyDate"/>
+  		<result column="leaveType" property="leaveType"/>
+  		<result column="leaveStartTime" property="leaveStartTime"/>
+  		<result column="leaveStartTimeAMPM" property="leaveStartTimeAMPM"/>
+  		<result column="leaveEndTime" property="leaveEndTime"/>
+  		<result column="leaveEndTimeAMPM" property="leaveEndTimeAMPM"/>
+  		<result column="leavedays" property="leavedays"/>
+  		<result column="actualDays" property="actualDays"/>
+  		<result column="status" property="status"/>
+  		<result column="reason" property="reason"/>
+		<collection property="auditDetail" javaType="java.util.List" resultMap="auditDetailSet"/>
+      </resultMap> 
+ 
+ 
+	 <select id="getAdminLeaveApplyList" parameterType="com.alibaba.fastjson.JSONObject" resultMap="adminLeaveApplyList">
+			SELECT   c.schoolId , c.applicationId ,c.applyUserId , c.groupId , c.applyDate , c.leaveType ,c.leaveStartTime ,c.leaveStartTimeAMPM, c.leaveEndTime ,c.leaveEndTimeAMPM, c.leavedays  ,
+			         c.actualDays, c.status,c.reason, d.statusDetail , d.levelNum,  d.teacherId ,  d.auditor    from  (
+                                 SELECT c.schoolId , c.applicationId ,c.applyUserId , c.groupId , 
+                                 c.applyDate , c.leaveType ,c.leaveStartTime ,c.leaveStartTimeAMPM, 
+                                 c.leaveEndTime ,c.leaveEndTimeAMPM, c.leavedays  ,c.actualDays, c.status,c.reason
+                                 FROM  ${db_name_leaveApply}.t_la_leaveApply c where c.schoolId = #{schoolId} 
+								<if test="applyStart!=null and applyDateStart!=''">
+								      AND c.applyDate &gt;=  #{applyStart}
+								</if>
+								<if test="applyEnd!=null and applyEnd!=''">
+								      AND c.applyDate &lt;=  #{applyEnd}
+								</if>
+								<if test="startTime!=null and startTime!=''">
+								      AND c.leaveStartTime &gt;=  #{startTime}
+								</if>
+								<if test="endTime!=null and endTime!=''">
+								      AND c.leaveStartTime &lt;=  #{endTime}
+								</if>
+								
+								<if test="status!=null and status!=''">
+								      AND c.status =   #{status}
+								</if>
+								<if test="leaveType!=null and leaveType!=''">
+									AND c.leaveType = #{leaveType}
+								</if>
+								<if test="teacherList!=null ">
+								      AND c.applyUserId in
+								     <foreach collection="teacherList" index="index" item="item" open="(" separator="," close=")">
+										${item}
+								    </foreach>
+								</if>
+						   order by c.applyDate desc
+                           LIMIT #{position} , #{pageSize} 
+                  )c
+                   left join  (
+                        SELECT  a.applicationId , a.groupId ,a.auditor ,
+				        a.`status` as statusDetail , a.levelNum,  b.teacherId 
+				        from ${db_name_leaveApply}.t_la_procedure a
+				        LEFT JOIN  ${db_name_leaveApply}.t_la_procedure_member b on (a.levelNum = b.levelNum and a.applicationId = b.applicationId )
+				         
+			     )d  on (c.applicationId = d.applicationId)  
+			   
+			     order by  c.applyDate desc , d.levelNum
+  
+	   	</select>
+      
+		<select id="getAuditLeaveApplyListCnt" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.Integer">
+			SELECT count(1) as cnt 
+	        FROM  ${db_name_leaveApply}.t_la_leaveApply c where c.schoolId = #{schoolId} 
+	 		<if test="applyStart!=null and applyStart!=''">
+	        	AND  c.applyDate &gt;=  #{applyStart}
+			</if>
+			<if test="applyEnd!=null and applyEnd!=''">
+	      		AND c.applyDate &lt;=  #{applyEnd}
+			</if>
+			<if test="startTime!=null and startTime!=''">
+		 		AND c.leaveStartTime &gt;=  #{startTime}
+			</if>
+			<if test="endTime!=null and endTime!=''">
+				AND c.leaveStartTime &lt;=  #{endTime}
+			</if>
+		
+			<if test="status!=null and status!=''">
+	      		AND c.status =   #{status}
+			</if>
+			
+			<if test="leaveType!=null and leaveType!=''">
+				AND c.leaveType = #{leaveType}
+			</if>
+			
+	   		<if test="teacherList!=null">
+	      		AND c.applyUserId in
+		     	<foreach collection="teacherList" index="index" item="item" open="(" separator="," close=")">
+					${item}
+		    	</foreach>
+			</if>
+	
+			<if test="mystatus=='0'.toString() ">
+	      		AND c.status  = '1' 
+	      		AND EXISTS  ( select '1' from   ${db_name_leaveApply}.t_la_procedure g 
+	      		left join  ${db_name_leaveApply}.t_la_procedure_member  k
+	      		on(g.levelNum=k.levelNum and g.applicationId = k.applicationId) 
+	      		where g.applicationId = c.applicationId and g.status = '1' and k.teacherId =#{accountId}
+	      		<if test="leaveType!=null and leaveType!=''">
+					AND c.leaveType = #{leaveType}
+				</if> )  
+			</if>
+	
+			<if test="mystatus=='1'.toString() ">
+	     		AND EXISTS  ( select '1' from   ${db_name_leaveApply}.t_la_procedure g where g.applicationId = c.applicationId and g.auditor =#{accountId} and g.status in ('-1' , '2')  )
+     		    <if test="leaveType!=null and leaveType!=''">
+					AND c.leaveType = #{leaveType}
+				</if>
+			</if>
+	
+			<if test="mystatus=='2'.toString() ">
+				AND (
+					c.status  = '1'
+					<if test="leaveType!=null and leaveType!=''">
+						AND c.leaveType = #{leaveType}
+					</if>
+	      			AND EXISTS  ( select '1' from   ${db_name_leaveApply}.t_la_procedure g 
+	      			left join  ${db_name_leaveApply}.t_la_procedure_member  k
+	      			on(g.levelNum=k.levelNum and g.applicationId = k.applicationId) 
+	      			where g.applicationId = c.applicationId and g.status = '1' and k.teacherId =#{accountId} )
+				)
+				OR (
+					EXISTS  ( select '1' from   ${db_name_leaveApply}.t_la_procedure g where g.applicationId = c.applicationId and g.auditor =#{accountId} and g.status in ('-1' , '2')  )
+					<if test="leaveType!=null and leaveType!=''">
+						AND c.leaveType = #{leaveType}
+					</if>
+				)
+			</if>
+	    </select>
+ 
+		<select id="getAuditLeaveApplyList" parameterType="com.alibaba.fastjson.JSONObject" resultMap="adminLeaveApplyList">
+			 SELECT c.schoolId , c.applicationId ,c.applyUserId , c.groupId , c.applyDate , c.leaveType ,c.leaveStartTime ,c.leaveStartTimeAMPM, c.leaveEndTime ,c.leaveEndTimeAMPM,  c.leavedays , 
+			        c.actualDays,c.status,c.reason, d.statusDetail ,d.levelNum, d.teacherId , d.auditor   
+			 from (
+			      SELECT c.schoolId , c.applicationId ,c.applyUserId , c.groupId , c.applyDate , c.leaveType ,c.leaveStartTime ,c.leaveStartTimeAMPM, c.leaveEndTime ,c.leaveEndTimeAMPM,  c.leavedays , 
+			      c.actualDays,c.status,c.reason
+			      FROM ${db_name_leaveApply}.t_la_leaveApply c
+			      where  c.schoolId = #{schoolId}  
+					<if test="applyStart!=null and applyStart!=''">
+			      		AND  c.applyDate &gt;=  #{applyStart}
+					</if>
+					<if test="applyEnd!=null and applyEnd!=''">
+						AND c.applyDate &lt;=  #{applyEnd}
+					</if>
+					<if test="startTime!=null and startTime!=''">
+						AND c.leaveStartTime &gt;=  #{startTime}
+					</if>
+					<if test="endTime!=null and endTime!=''">
+						AND c.leaveStartTime &lt;=  #{endTime}
+					</if>
+					<if test="status!=null and status!=''">
+					    AND c.status =   #{status}
+					</if>
+					
+				    <if test="teacherList!=null ">
+					    AND c.applyUserId in
+					    <foreach collection="teacherList" index="index" item="item" open="(" separator="," close=")">
+							${item}
+					    </foreach>
+					</if>
+					
+					<if test="mystatus=='0'.toString() ">
+					    AND c.status  = '1' 
+					    AND EXISTS  ( select '1' from   ${db_name_leaveApply}.t_la_procedure g 
+					    left join  ${db_name_leaveApply}.t_la_procedure_member k
+					    on(g.levelNum=k.levelNum and g.applicationId = k.applicationId) 
+					    where g.applicationId = c.applicationId and g.status = '1' and k.teacherId =#{accountId} )  
+					</if>
+					
+					<if test="mystatus=='1'.toString() ">
+					    AND EXISTS  ( select '1' from ${db_name_leaveApply}.t_la_procedure g where g.applicationId = c.applicationId and g.auditor =#{accountId}  )  
+					</if>
+					
+					<if test="mystatus=='2'.toString() ">
+						AND (
+							c.status  = '1' 
+					      	AND EXISTS  (
+					      		select '1' from   ${db_name_leaveApply}.t_la_procedure g 
+						      	left join  ${db_name_leaveApply}.t_la_procedure_member k
+						      	on(g.levelNum=k.levelNum and g.applicationId = k.applicationId) 
+						      	where g.applicationId = c.applicationId and g.status = '1' and k.teacherId =#{accountId} 
+						    )
+					    )
+					    
+					    OR EXISTS ( select '1' from ${db_name_leaveApply}.t_la_procedure g where g.applicationId = c.applicationId and g.auditor =#{accountId}  )
+					</if>
+					order by c.applyDate desc
+			        LIMIT #{position} , #{pageSize} 
+			 )c 
+			 left join (
+                SELECT a.applicationId, a.auditor, a.`status` as statusDetail , a.levelNum, b.teacherId 
+				 from ${db_name_leaveApply}.t_la_procedure a
+				 LEFT JOIN  ${db_name_leaveApply}.t_la_procedure_member b on (a.levelNum = b.levelNum and a.applicationId = b.applicationId )
+				
+			 )d on (c.applicationId = d.applicationId)
+			  WHERE c.schoolId = #{schoolId} 
+			  	<if test="leaveType!=null and leaveType!=''">
+					AND c.leaveType = #{leaveType}
+				</if>
+			 order by c.applyDate desc , d.levelNum
+		</select>
+	   
+		<select id="getLeaveApplyListCnt" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.Integer">
+        	SELECT count(1) as cnt 
+            FROM  ${db_name_leaveApply}.t_la_leaveApply c
+	 	 	where c.applyUserId=#{accountId}  and  c.schoolId = #{schoolId} 
+			<if test="applyStart!=null and applyStart!=''">
+		    	AND  c.applyDate &gt;=  #{applyStart}
+			</if>
+			<if test="applyEnd!=null and applyEnd!=''">
+		    	AND c.applyDate &lt;=  #{applyEnd}
+			</if>
+			<if test="startTime!=null and startTime!=''">
+	        	AND c.leaveStartTime &gt;=  #{startTime}
+	   		</if>
+	   		<if test="endTime!=null and endTime!=''">
+	        	AND c.leaveStartTime &lt;=  #{endTime}
+	  		</if>
+			<if test="status!=null and status!=''">
+		    	AND c.status =   #{status}
+			</if>
+			<if test="leaveType!=null and leaveType!=''">
+				AND c.leaveType = #{leaveType}
+			</if>
+       	</select>
+	   
+	   	<select id="getLeaveApplyList" parameterType="com.alibaba.fastjson.JSONObject" resultMap="adminLeaveApplyList">
+
+			 SELECT c.schoolId , c.applicationId ,c.applyUserId , c.groupId , c.applyDate , c.leaveType ,c.leaveStartTime ,c.leaveEndTime ,c.leaveEndTimeAMPM , c.leavedays ,
+			 c.actualDays,  c.status, c.reason,d.statusDetail , d.levelNum, d.teacherId , d.auditor  from (
+				 SELECT c.schoolId , c.applicationId ,c.applyUserId , c.groupId , c.applyDate , c.leaveType ,c.leaveStartTime ,c.leaveStartTimeAMPM , c.leaveEndTime , c.leaveEndTimeAMPM , c.leavedays ,
+				 c.actualDays,  c.status,c.reason
+				  FROM ${db_name_leaveApply}.t_la_leaveApply c 
+				  	 where    c.applyUserId=#{accountId}  and  c.schoolId = #{schoolId} 
+					<if test="applyStart!=null and applyStart!=''">
+					      AND  c.applyDate &gt;=  #{applyStart}
+					</if>
+					<if test="applyEnd!=null and applyEnd!=''">
+					      AND c.applyDate &lt;=  #{applyEnd}
+					</if>
+					<if test="startTime!=null and startTime!=''">
+						AND c.leaveStartTime &gt;=  #{startTime}
+					</if>
+					<if test="endTime!=null and endTime!=''">
+						AND c.leaveStartTime &lt;=  #{endTime}
+					</if>
+					<if test="status!=null and status!=''">
+					      AND c.status =   #{status}
+					</if>
+					<if test="leaveType!=null and leaveType!=''">
+						AND c.leaveType = #{leaveType}
+					</if>
+				order by   c.applyDate desc
+			    LIMIT #{position} , #{pageSize} 
+			    
+			 ) c
+			 left join (
+                 SELECT  a.applicationId , a.groupId ,a.auditor ,
+				 a.`status` as statusDetail , a.levelNum,  b.teacherId 
+				 from ${db_name_leaveApply}.t_la_procedure a
+				 LEFT JOIN  ${db_name_leaveApply}.t_la_procedure_member b on (a.levelNum = b.levelNum and a.applicationId = b.applicationId )
+			 )d on (c.applicationId = d.applicationId)
+			  WHERE c.schoolId = #{schoolId} 
+		    order by   c.applyDate desc , d.levelNum
+	   </select>
+	   
+	   
+	   <update id="insertLeaveApplyRecord" parameterType="com.alibaba.fastjson.JSONObject">
+		    INSERT INTO ${db_name_leaveApply}.t_la_leaveApply (schoolId , schoolYear , 
+		    term , applicationId ,applyUserId, groupId, applyDate ,  leaveType , leaveStartTime , leaveStartTimeAMPM, leaveEndTime ,leaveEndTimeAMPM,  leavedays ,
+		    actualDays, reason , status) 
+		    VALUES(#{schoolId},#{schoolYear},#{term},#{applicationId},
+		    #{applyUserId},#{groupId},#{applyDate} ,#{leaveType} , #{leaveStartTime} , #{leaveStartTimeAMPM},#{leaveEndTime} ,#{leaveEndTimeAMPM}, #{leavedays} ,
+		    #{actualDays}, #{reason} , #{status})
+	    </update>
+	    
+	    <update id="updateLeaveApplyStatus" parameterType="com.alibaba.fastjson.JSONObject">
+	       update ${db_name_leaveApply}.t_la_leaveApply  set status = #{status}
+	       where applicationId =  #{applicationId};
+	    </update>
+	    
+	     <delete id="delLeaveApply" parameterType="com.alibaba.fastjson.JSONObject">
+	       delete from ${db_name_leaveApply}.t_la_leaveApply where applicationId = #{applicationId} ;
+	    </delete>
+	    
+	    
+	     <select id="getLeaveApplyFileList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			 select  a.applicationId ,  a.appFileName , a.fileUrl  from   ${db_name_leaveApply}.t_la_file a 
+			 where a.applicationId = #{applicationId}
+	    </select>
+	    
+	     <update id="insertleaveApplyfile" parameterType="com.alibaba.fastjson.JSONObject">
+		    INSERT INTO ${db_name_leaveApply}.t_la_file (applicationId , appFileName ,fileUrl ) 
+		    VALUES(#{applicationId},#{appFileName},#{fileUrl});
+	     </update>
+	     
+	    <delete id="delleaveApplyfile" parameterType="com.alibaba.fastjson.JSONObject">
+	       delete from ${db_name_leaveApply}.t_la_file where  applicationId =#{applicationId}   
+	       <if test="fileUrl!=null and fileUrl!=''">
+			   AND  fileUrl=#{fileUrl}
+		   </if>
+	       
+	    </delete>
+	    
+	  <resultMap type="com.alibaba.fastjson.JSONObject" id="auditorLevelSet">
+          <result column="levelNum" property="levelNum"/>
+          <collection property="auditors" javaType="java.util.List" resultMap="teacherIdSet"/>
+       </resultMap>  
+       
+	  <resultMap type="com.alibaba.fastjson.JSONObject" id="groupMemberAndAuditdaysList">
+  		<result column="groupId" property="groupId"/>
+  		<result column="schoolId" property="schoolId"/>
+  		<result column="groupName" property="groupName"/>
+		<collection property="auditflows" javaType="java.util.List" resultMap="auditdaysSet"/>
+		<collection property="members" javaType="java.util.List" resultMap="memberSet"/>
+      </resultMap> 
+
+      <resultMap type="com.alibaba.fastjson.JSONObject" id="auditdaysSet">
+  	     <result column="daysBegin" property="daysBegin"/>
+  	     <result column="daysEnd" property="daysEnd"/>
+  	     <collection property="auditorLevel" javaType="java.util.List" resultMap="auditorLevelSet"/>
+      </resultMap>
+       
+
+       <resultMap type="com.alibaba.fastjson.JSONObject" id="memberSet">
+  	     <result column="Member" property="teacherId"/>
+       </resultMap> 
+ 
+	   <select id="getGroupMemberAndAuditdaysList" parameterType="com.alibaba.fastjson.JSONObject" resultMap="groupMemberAndAuditdaysList">
+			   select  a.groupId , a.schoolId , a.groupName , c.teacherId as Member, b.daysBegin , b.daysEnd , b.teacherId ,b.levelNum  from  
+			   ${db_name_leaveApply}.t_la_group a 
+			   left join ${db_name_leaveApply}.t_la_group_member c on(c.groupId = a.groupId)
+			   left join (
+				      SELECT a.schoolId, a.groupId , a.daysBegin , a.daysEnd , b.teacherId , b.levelNum  from  ${db_name_leaveApply}.t_la_audit_days a
+		              LEFT JOIN ${db_name_leaveApply}.t_la_audit_member b on (a.groupId = b.groupId and a.daysBegin = b.daysBegin)
+			   )b on(a.groupId = b.groupId)
+			   where a.schoolId = #{schoolId}
+			   order by b.daysBegin , b.levelNum , Member
+	   </select>
+	   
+	   
+	  <resultMap type="com.alibaba.fastjson.JSONObject" id="groupMemberList">
+  		<result column="groupId" property="groupId"/>
+  		<result column="schoolId" property="schoolId"/>
+  		<result column="groupName" property="groupName"/>
+		<collection property="members" javaType="java.util.List" resultMap="teacherIdSet"/>
+      </resultMap> 
+
+      
+	    <select id="getGroupMemberList" parameterType="com.alibaba.fastjson.JSONObject" resultMap="groupMemberList">
+			 select  a.groupId , a.schoolId , a.groupName , b.teacherId from   ${db_name_leaveApply}.t_la_group a 
+			 left join ${db_name_leaveApply}.t_la_group_member b on (a.groupId = b.groupId)
+			 where a.groupId = #{groupId} and a.schoolId= #{schoolId}
+	    </select>
+	    
+	    <select id="getTeacherGroup" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			 select  a.groupId   from   ${db_name_leaveApply}.t_la_group_member a 
+			 where  a.teacherId= #{teacherId} and  a.schoolId = #{schoolId}
+	    </select>
+	   
+	   <update id="insertGroupRecord" parameterType="com.alibaba.fastjson.JSONObject">
+		    INSERT INTO ${db_name_leaveApply}.t_la_group (groupId , schoolId ,  groupName  ) 
+		    VALUES(#{groupId},#{schoolId},#{groupName} )
+	        on DUPLICATE KEY UPDATE
+	        groupName=values(groupName);
+	    </update>
+	    
+	    
+	     <delete id="delGroup" parameterType="com.alibaba.fastjson.JSONObject">
+	       delete from ${db_name_leaveApply}.t_la_group where groupId = #{groupId};
+	    </delete>
+	    
+	    
+	     <insert id="insertGroupMember" parameterType="com.alibaba.fastjson.JSONObject">
+		    INSERT INTO ${db_name_leaveApply}.t_la_group_member (schoolId , groupId ,  teacherId  ) 
+		    VALUES(#{schoolId},#{groupId},#{teacherId} )
+	     </insert>
+	      <insert id="delGroupMember" parameterType="com.alibaba.fastjson.JSONObject">
+		     delete  from  ${db_name_leaveApply}.t_la_group_member 
+		     where  groupId =  #{groupId}  
+	     </insert>
+	     
+	    
+	    
+	  <resultMap type="com.alibaba.fastjson.JSONObject" id="auditdaysList">
+	    <result column="groupId" property="groupId"/>
+  		<result column="daysBegin" property="daysBegin"/>
+  		<result column="daysEnd" property="daysEnd"/>
+  		<collection property="auditorLevel" javaType="java.util.List" resultMap="auditorLevelSet"/>
+       </resultMap> 
+ 
+      
+	    <select id="getAuditdaysList" parameterType="com.alibaba.fastjson.JSONObject" resultMap="auditdaysList">
+			 SELECT a.groupId , a.daysBegin, a.daysEnd , b.teacherId , b.levelNum
+			 FROM ${db_name_leaveApply}.t_la_audit_days  a 
+			 left join ${db_name_leaveApply}.t_la_audit_member b on (a.groupId = b.groupId and a.daysBegin = b.daysBegin)
+			 WHERE a.schoolId = #{schoolId}  AND  a.groupId=#{groupId}
+		     order by a.daysBegin, b.levelNum
+ 	   </select>
+	   
+	   
+	   <select id="getAuditorList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			 SELECT a.schoolId , a.groupId ,a.teacherId , a.daysBegin , a.daysEnd ,  a.levelNum 
+			 FROM ${db_name_leaveApply}.t_la_audit_member  a 
+			 WHERE schoolId = #{schoolId} 
+			  <if test="teacherId!=null and teacherId!=''">
+			      AND  teacherId=#{teacherId}
+		     </if>
+	   </select>
+	    
+	    
+	    <update id="insertAuditdays" parameterType="com.alibaba.fastjson.JSONObject">
+		    INSERT INTO ${db_name_leaveApply}.t_la_audit_days ( schoolId ,  groupId , daysBegin ,  daysEnd ) 
+		    VALUES( #{schoolId},#{groupId},#{daysBegin} , #{daysEnd} )
+	    </update>
+	    
+	    <delete id="deleteAuditdays" parameterType="com.alibaba.fastjson.JSONObject">
+	       delete from ${db_name_leaveApply}.t_la_audit_days where groupId = #{groupId};
+	    </delete>
+	    
+	    
+	     <update id="insertAuditMember" parameterType="com.alibaba.fastjson.JSONObject">
+		    INSERT INTO ${db_name_leaveApply}.t_la_audit_member ( schoolId ,  groupId , teacherId,  daysBegin ,  daysEnd , levelNum) 
+		    VALUES(#{schoolId},#{groupId},#{teacherId},#{daysBegin} , #{daysEnd} , #{levelNum})
+	    </update>
+	    
+	     <delete id="deleteAuditMember" parameterType="com.alibaba.fastjson.JSONObject">
+	       delete from ${db_name_leaveApply}.t_la_audit_member where groupId = #{groupId};
+	    </delete>
+	    
+	    <select id="getLeaveApplyprocedureList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			 SELECT a.applicationId , a.groupId ,a.auditor , a.status , a.suggestion , a.processDate , a.levelNum    
+			 FROM ${db_name_leaveApply}.t_la_procedure a 
+			 WHERE a.applicationId = #{applicationId}
+			  <if test="levelNum!=null and levelNum!=''">
+			      AND  levelNum=#{levelNum}
+		     </if>
+			 order by a.levelNum 
+	   </select>
+	   
+	 <select id="getLeaveApplyprocedureLevelByTeacherId" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			 SELECT a.levelNum as levelNum
+			 FROM ${db_name_leaveApply}.t_la_procedure a  
+			 where a.status = '1' and  a.applicationId = #{applicationId}  and EXISTS 
+			 ( select 1 from ${db_name_leaveApply}.t_la_procedure_member b 
+			 where a.levelNum = b.levelNum and b.teacherId = #{accountId} and b.applicationId=#{applicationId} )  
+	   </select>
+	   
+ 
+	    <insert id="insertLeaveApplyprocedure" parameterType="com.alibaba.fastjson.JSONObject">
+		    INSERT INTO ${db_name_leaveApply}.t_la_procedure (applicationId , groupId ,  status ,   levelNum) 
+		    VALUES(#{applicationId},#{groupId}, #{status} , #{levelNum})
+	    </insert>
+	    
+	     <update id="updateLeaveApplyprocedure" parameterType="com.alibaba.fastjson.JSONObject">
+		     update  ${db_name_leaveApply}.t_la_procedure  set auditor =  #{auditor} ,status =  #{status},
+		     suggestion = #{suggestion} , processDate =  #{processDate} 
+		     where applicationId = #{applicationId} and levelNum = #{levelNum};
+	    </update>
+	    
+	     <update id="updateLeaveApplyprocedureStatus" parameterType="com.alibaba.fastjson.JSONObject">
+		     update  ${db_name_leaveApply}.t_la_procedure  set  status =  #{status}
+		     where applicationId = #{applicationId} and levelNum = #{levelNum};
+	    </update>
+	
+	 
+	 	 <delete id="deleteLeaveApplyprocedure" parameterType="com.alibaba.fastjson.JSONObject">
+		    delete from ${db_name_leaveApply}.t_la_procedure where applicationId = #{applicationId};
+         </delete>
+	 
+	   <select id="getLeaveTypeList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			 SELECT a.schoolId , a.types , a.typeName , a.seq  FROM ${db_name_leaveApply}.t_la_leaveType a where a.schoolId =  #{schoolId}
+			 order by a.seq
+	   </select>
+	   
+	    <select id="getFestivalList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			 SELECT  a.festivalName , a.festivalDay ,a.onduty , a.ampm  , a.sign FROM ${db_name_leaveApply}.t_la_festival a 
+			  where schoolId=#{schoolId}
+			  <if test="startTime!=null and startTime!=''">
+			      AND   a.festivalDay &gt;=  #{startTime}
+		     </if>
+		      <if test="endTime!=null and endTime!=''">
+			      AND   a.festivalDay &lt;=  #{endTime}
+		     </if>
+		      <if test="leaveStartTime!=null and leaveStartTime!=''">
+			      AND   a.festivalDay &gt;=  #{leaveStartTime}
+		     </if>
+		      <if test="leaveEndTime!=null and leaveEndTime!=''">
+			      AND   a.festivalDay &lt;=  #{leaveEndTime}
+		     </if>
+	   </select>
+	   
+	 
+	   
+	    <delete id="deleteFestival" parameterType="com.alibaba.fastjson.JSONObject">
+	        delete from ${db_name_leaveApply}.t_la_festival where schoolId=#{schoolId}
+	        and festivalDay  &gt;=  #{startTime} and festivalDay  &lt;=  #{endTime}
+	    </delete>
+	    
+	    <insert id="insertFestivalList"  parameterType="java.util.List">
+		    INSERT INTO ${db_name_leaveApply}.t_la_festival (uuid , schoolId ,  festivalName  , festivalDay , onduty , ampm , sign ) VALUES
+		    <foreach collection="list" index="index" item="item" separator=",">
+		        (#{item.uuid},#{item.schoolId},#{item.festivalName} ,#{item.festivalDay} ,#{item.onduty},#{item.ampm} , #{item.sign}  )
+		    </foreach>
+	    </insert>
+	   
+	   
+	   
+	   
+	   
+	    <select id="getLeaveSelectedTeacherIds" parameterType="com.alibaba.fastjson.JSONObject" resultType="String">
+			 SELECT GROUP_CONCAT(a.teacherId) AS teacherIds  FROM ${db_name_leaveApply}.t_la_group_member a 
+			 where a.schoolId = #{schoolId}
+			 <if test="groupId!=null and groupId!=''">
+			      AND  a.groupId != #{groupId}
+		     </if>
+	   </select>
+	  
+	  
+	  <select id="getLeaveStatisticsCnt" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.Integer">
+			  SELECT count(1) as cnt  from (
+              SELECT  count(1)   FROM  ${db_name_leaveApply}.t_la_leaveApply c  where c.status = '2' and c.schoolId = #{schoolId}
+             
+              <if test="startTime!=null and startTime!=''  and  endTime!=null and endTime!='' ">
+				 AND ( (c.leaveStartTime &gt;=  #{startTime}  AND c.leaveStartTime &lt;=  #{endTime}) or  (c.leaveStartTime &lt; #{startTime}  and c.leaveEndTime  &gt;=  #{startTime} ) )
+			  </if>
+			  
+			 <if test="teacherList!=null ">
+			      AND c.applyUserId in
+			     <foreach collection="teacherList" index="index" item="item" open="(" separator="," close=")">
+					${item}
+			    </foreach>
+			</if>
+			   
+               GROUP BY c.applyUserId , c.leaveType ) a
+	   </select>
+	   
+	   <select id="getLeaveStatistics" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+
+			 SELECT  c.applyUserId , c.leaveType ,c.leaveStartTime ,c.leaveStartTimeAMPM,c.leaveEndTime , c.leaveEndTimeAMPM
+			   FROM  ${db_name_leaveApply}.t_la_leaveApply c ,
+			    (SELECT  c.applyUserId , c.leaveType  FROM  ${db_name_leaveApply}.t_la_leaveApply c  where c.status = '2' and c.schoolId = #{schoolId}
+               <if test="startTime!=null and startTime!=''  and  endTime!=null and endTime!='' ">
+				 AND ( (c.leaveStartTime &gt;=  #{startTime}  AND c.leaveStartTime &lt;=  #{endTime}) or  (c.leaveStartTime &lt; #{startTime}  and c.leaveEndTime  &gt;=  #{startTime} ) )
+			  </if>
+			 
+			 <if test="teacherList!=null ">
+			      AND c.applyUserId in
+			     <foreach collection="teacherList" index="index" item="item" open="(" separator="," close=")">
+					${item}
+			    </foreach>
+			 </if>
+			 
+             GROUP BY c.applyUserId , c.leaveType
+             LIMIT #{position} , #{pageSize} ) b  
+             where c.leaveType = b.leaveType and c.applyUserId = b.applyUserId and c.status = '2' and c.schoolId = #{schoolId}
+	   </select>
+	   
+	    <insert id="insertLeaveApplyTemp" parameterType="com.alibaba.fastjson.JSONObject">
+		    INSERT INTO ${db_name_leaveApply}.t_la_leaveApply_temp (uuid , calNo ,  applyUserId ,   leaveType ,leavedays , actualDays) 
+		    VALUES(#{uuid},#{calNo}, #{applyUserId} , #{leaveType} , #{leavedays} , #{actualDays})
+	    </insert>
+	    <delete id="deleteLeaveApplyTemp" parameterType="com.alibaba.fastjson.JSONObject">
+	       delete from ${db_name_leaveApply}.t_la_leaveApply_temp where calNo = #{calNo};
+	    </delete>
+	    
+	    
+ 
+	   <select id="getLeaveApplyTempStatistics" parameterType="com.alibaba.fastjson.JSONObject"  resultType="com.alibaba.fastjson.JSONObject">
+			 SELECT  applyUserId , leaveType , sum(leavedays) as leavedays, sum(actualDays) as actualDays  FROM ${db_name_leaveApply}.t_la_leaveApply_temp a 
+			 where a.calNo = #{calNo}
+			 group by a.applyUserId , a.leaveType
+	   </select>
+	   
+	   
+	   <select id="getLeaveApplyProcedureMember" parameterType="com.alibaba.fastjson.JSONObject"  resultType="com.alibaba.fastjson.JSONObject">
+			 SELECT   teacherId , levelNum  FROM ${db_name_leaveApply}.t_la_procedure_member
+			 WHERE applicationId = #{applicationId}
+			 <if test="levelNum!=null and levelNum!=''">
+				 AND c.levelNum  =  #{levelNum}
+			 </if>
+	   </select>
+	   <insert id="insertLeaveApplyProcedureMember" parameterType="com.alibaba.fastjson.JSONObject">
+		    INSERT INTO ${db_name_leaveApply}.t_la_procedure_member ( applicationId , teacherId , levelNum  ) 
+		    VALUES(#{applicationId},#{teacherId}, #{levelNum} )
+	   </insert>
+	    <delete id="deleteLeaveApplyProcedureMember" parameterType="com.alibaba.fastjson.JSONObject">
+	        delete from ${db_name_leaveApply}.t_la_procedure_member where applicationId = #{applicationId};
+	    </delete>
+	    
+	    
+	    
+	  <resultMap type="com.alibaba.fastjson.JSONObject" id="auditorList">
+  		<result column="daysBegin" property="daysBegin"/>
+  		<result column="daysEnd" property="daysEnd"/>
+		<collection property="levelList" javaType="java.util.List" resultMap="levelSet"/>
+      </resultMap> 
+      <resultMap type="com.alibaba.fastjson.JSONObject" id="levelSet">
+         <result column="levelNum" property="levelNum"/>
+         <collection property="teacherList" javaType="java.util.List" resultMap="teacherSet"/>
+      </resultMap>
+      <resultMap type="com.alibaba.fastjson.JSONObject" id="teacherSet">
+          <result column="teacherId" property="teacherId"/>
+      </resultMap>
+      
+	 <select id="getLeaveApplyAuditorForTeacherZone" parameterType="com.alibaba.fastjson.JSONObject"  resultMap="auditorList" >
+	        SELECT  a.teacherId , a.daysBegin , a.daysEnd , a.levelNum from 
+            ${db_name_leaveApply}.t_la_audit_member a
+            where a.groupId in (
+            SELECT  b.groupId  FROM  ${db_name_leaveApply}.t_la_group_member  b
+            where b.teacherId = #{teacherId}  and b.schoolId = #{schoolId})
+            ORDER BY a.daysBegin , a.levelNum 
+	 </select>
+	 
+	<resultMap type="com.alibaba.fastjson.JSONObject" id="teacherZoneSet">
+	    <result column="applicationId" property="applicationId"/>
+	    <result column="leaveType" property="leaveType"/>
+	    <result column="applyDate" property="applyDate"/>
+		<collection property="levelList" javaType="java.util.List" resultMap="teacherZoneLevelSet"/>
+	 </resultMap>
+	 <resultMap type="com.alibaba.fastjson.JSONObject" id="teacherZoneLevelSet">
+	    <result column="levelNum" property="levelNum"/>
+	     <result column="status" property="status"/>
+	     <result column="processDate" property="processDate"/>
+	     <collection property="teacherList" javaType="java.util.List" resultMap="teacherZoneteacherSet"/> 
+	 </resultMap>
+ 
+	  <resultMap type="com.alibaba.fastjson.JSONObject" id="teacherZoneteacherSet">
+	     <result column="teacherId" property="teacherId"/>
+	 </resultMap>
+	 
+	 <resultMap type="com.alibaba.fastjson.JSONObject" id="permissionpcTeacherSet">
+	     <result column="userId" property="teacherUserId"/>
+	 </resultMap>
+ 
+	 <select id="getLeaveApplyFinshedForTeacherZone" parameterType="com.alibaba.fastjson.JSONObject"   resultMap="teacherZoneSet" >
+		SELECT   b.applicationId , b.levelNum , b.teacherId , b.status , a.leaveType , a.applyDate , b.processDate FROM
+		(
+		SELECT  a.applicationId , a.`status` , a.leaveType , a.applyDate from 
+		 ${db_name_leaveApply}.t_la_leaveapply a 
+		where `status` in ('-1' ,'2') and a.applyUserId =#{teacherId} and  a.schoolId = #{schoolId}
+		ORDER BY applyDate DESC 
+		LIMIT 0 , 1 
+		) a
+		LEFT JOIN (
+		SELECT  a.applicationId , a.levelNum , a.teacherId , b.status , b.processDate FROM
+		${db_name_leaveApply}.t_la_procedure_member a
+		LEFT JOIN ${db_name_leaveApply}.t_la_procedure b on (a.applicationId = b.applicationId  and a.levelNum = b.levelNum)
+		ORDER BY a.levelNum
+		)b on (a.applicationId = b.applicationId)
+		ORDER BY a.applicationId , b.levelNum 
+	 </select>
+ 
+	 <select id="getLeaveApplyPendingForTeacherZone"  parameterType="com.alibaba.fastjson.JSONObject"  resultMap="teacherZoneSet" >
+	   SELECT   b.applicationId , b.levelNum , b.teacherId , b.status , a.leaveType , a.applyDate ,  b.processDate  FROM
+		 ${db_name_leaveApply}.t_la_leaveapply a 
+		LEFT JOIN (
+		SELECT  a.applicationId , a.levelNum , a.teacherId , b.status , b.processDate FROM
+		 ${db_name_leaveApply}.t_la_procedure_member a
+		LEFT JOIN  ${db_name_leaveApply}.t_la_procedure b on (a.applicationId = b.applicationId  and a.levelNum = b.levelNum)
+		ORDER BY a.levelNum
+		)b on (a.applicationId = b.applicationId)
+		where a.`status` = '1' and a.applyUserId = #{teacherId} and a.schoolId = #{schoolId}
+		ORDER BY  a.applicationId ,  a.applyDate desc , b.levelNum 
+	 </select>
+	    
+	   
+	 <!-- 根据mouleId查询权限教师列表 -->
+	 <select id="getTeacherListByMoudleId" parameterType="com.alibaba.fastjson.JSONObject" resultMap="permissionpcTeacherSet">
+	 	SELECT c.userId from ${dbname_common}.t_dic_permissiontype a 
+		LEFT JOIN (
+			SELECT a.permissionid,a.permissiontype FROM ${dbname_common}.t_permissionpc_type a
+		)b ON a.type=b.permissionType
+		LEFT JOIN (
+			SELECT userId,permissionid FROM ${dbname_common}.t_user_permissionspc
+		)c ON c.permissionid = b.permissionid
+		where a.type=#{moudleId}
+	 </select>
+	    
+	   
+
+</mapper>

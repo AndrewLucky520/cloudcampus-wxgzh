@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.talkweb.commondata.dao.UpGradeDao">  
+
+	<select id="getTermInfosUPGRADE" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT * FROM ${db_name_csCurCommonData}${termInfoId}.`t_terminfo`;  
+	</select>
+	
+	<select id="getTermInfosBySchoolIdUPGRADE" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		 SELECT * FROM ${db_name_csCurCommonData}${termInfoId}.`t_terminfo`
+		  WHERE schoolId=#{schoolId};  
+	</select>
+	
+	<update id="updateTermInfosUPGRADE"  parameterType="com.alibaba.fastjson.JSONObject" >
+			UPDATE ${db_name_csCurCommonData}${termInfoId}.t_terminfo
+				SET startTime = #{startTime}, endTime = #{endTime}
+			WHERE uuid = #{uuid} AND status = 1  
+	</update>
+</mapper>

@@ -1,0 +1,804 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.elective.dao.ElectiveDao">
+<!-- 选课公共接口 -->
+    <!-- 查询课程类别列表 -->
+	<select id="getCourseTypeList" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	     SELECT t.`CourseSortId` AS value ,t.`CourseSortName` AS text FROM ${db_name_elective}.T_SE_CourseSort t WHERE schoolId=#{schoolId} AND t.`ElectiveId`=#{electiveId}
+	        <if test="courseSortName!=null and courseSortName!=''">
+				and t.`courseSortName`=#{courseSortName}
+		   </if> 
+		   <if test="courseSortId!=null and courseSortId!=''">
+				and t.`CourseSortId`!=#{courseSortId}
+		   </if>
+	</select>
+	<!-- 查询年级下的选修课程列表 -->
+	<select id="getElectiveListByGrade" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	    SELECT DISTINCT tc.`CourseId` AS value,t.`CourseName` AS text FROM ${db_name_elective}.T_SE_OfferCoursesForClass tc INNER JOIN ${db_name_elective}.T_SE_OfferCourses t 
+        ON tc.`ElectiveId`=t.`ElectiveId` AND tc.`CourseId`=t.`CourseId` WHERE tc.`SchoolId`=#{schoolId} 
+        AND  tc.`ElectiveId`=#{electiveId}
+           <if test="gradeList!=null and gradeList!=''">
+				and tc.`UseGrade` in
+				<foreach collection="gradeList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		   </if> 
+	</select>
+	<!-- 课程下面的班级列表 -->
+	<select id="getClassListByCourse" parameterType="hashmap" resultType="String">
+	    SELECT GROUP_CONCAT(t.`classId`) AS classIds FROM ${db_name_elective}.T_SE_OfferCoursesForClass t WHERE schoolId=#{schoolId} AND t.`ElectiveId`=#{electiveId} AND t.`CourseId`=#{courseId}
+	        <if test="gradeList!=null and gradeList!=''">
+				and t.`UseGrade` in
+				<foreach collection="gradeList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		   </if> 
+	</select>
+
+<!-- 选课首页 管理员 -->
+    <!-- 获取选课列表 -->
+<!--     <select id="getAdminElectiveList" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	    SELECT t.`electiveId`,t.`electiveName`,IFNULL(t.`startTime`,'')AS  startTime ,IFNULL(t.`endTime`,'') AS endTime,count(tc.`CourseId`) AS sum1,count(tr.`ClassId`) AS sum2,count(ts.`ClassId`) AS sum3 
+		FROM ${db_name_elective}.T_SE_ElectiveInfo t 
+		LEFT JOIN ${db_name_elective}.T_SE_OfferCourses tc ON t.`ElectiveId`=tc.`ElectiveId`
+		LEFT JOIN ${db_name_elective}.T_SE_RequireOfClass tr ON t.`ElectiveId`=tr.`ElectiveId`
+		LEFT JOIN ${db_name_elective}.T_SE_RequireOfCourseSort ts ON t.`ElectiveId`=ts.`ElectiveId`
+		WHERE t.`SchoolId`=#{schoolId}  and CONCAT(t.`SchoolYear`,t.`term`)=#{termInfo}
+		group by t.electiveId ORDER BY t.`CreateTime` DESC;
+	</select> -->
+	    <select id="getAdminElectiveList" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	    SELECT t.`electiveId`,t.`electiveName`,IFNULL(t.`startTime`,'')AS  startTime ,IFNULL(t.`endTime`,'') AS endTime
+		FROM ${db_name_elective}.T_SE_ElectiveInfo t 
+		WHERE t.`SchoolId`=#{schoolId}  and CONCAT(t.`SchoolYear`,t.`term`)=#{termInfo}
+		ORDER BY t.`CreateTime` DESC;
+	</select>
+	<!--课程 -->
+	<select id="getCountSetCourse" useCache="false"  parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT COUNT(0) AS counts,t.`electiveId` FROM ${db_name_elective}.T_SE_OfferCourses  t  WHERE t.`SchoolId`=#{schoolId}  and CONCAT(t.`SchoolYear`,t.`term`)=#{termInfo} GROUP BY t.`ElectiveId`;
+	</select>
+	<!--课程数量 -->
+	<select id="getCountSetCourseNum" useCache="false"  parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT COUNT(0) AS counts,t.`electiveId` FROM ${db_name_elective}.T_SE_RequireOfClass  t   WHERE t.`SchoolId`=#{schoolId}  and CONCAT(t.`SchoolYear`,t.`term`)=#{termInfo} GROUP BY t.`ElectiveId`;
+	</select>
+	<!--课程类型 -->
+	<select id="getCountSetCourseType" useCache="false"  parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT COUNT(0) AS counts,t.`electiveId` FROM ${db_name_elective}.T_SE_RequireOfCourseSort  t   WHERE t.`SchoolId`=#{schoolId}  and CONCAT(t.`SchoolYear`,t.`term`)=#{termInfo} GROUP BY t.`ElectiveId`;
+	</select>
+	<!-- 创建选课 -->
+	<update id="createElective" parameterType="hashmap" >
+		insert into ${db_name_elective}.T_SE_ElectiveInfo (schoolYear,term,electiveId,schoolId,electiveName,createTime) 
+		values (#{schoolYear},#{term},#{electiveId},#{schoolId},#{electiveName},#{createTime});
+	</update>
+	<!-- 修改选课名称 -->
+	<update id="updateElective" parameterType="hashmap">
+		update	${db_name_elective}.T_SE_ElectiveInfo set electiveName=#{electiveName}	where  schoolId=#{schoolId} AND electiveId=#{electiveId};
+	</update>
+	<!-- 编辑选课时间 -->
+	<update id="updateElectiveTime" parameterType="hashmap">
+		update	${db_name_elective}.T_SE_ElectiveInfo set startTime=#{startTime},endTime=#{endTime}	where schoolId=#{schoolId} AND electiveId=#{electiveId};
+	</update>
+	<!-- 删除选课 -->	
+	<update id="deleteElective" parameterType="hashmap" statementType="CALLABLE">
+		call ${db_name_elective}.proc_del_allElectiveSet(#{schoolId},#{electiveId});
+	</update>
+	<select id="getCourseByName" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	    SELECT o.`CourseName` as courseName,o.`CourseId` as courseId   FROM ${db_name_elective}.`t_se_offercourses` o
+	     WHERE  o.`CourseId`!=#{courseId} AND o.`SchoolId`=#{schoolId} AND o.`ElectiveId`=#{electiveId}
+	</select>
+<!-- 课程设置 -->
+    <!-- 冻结某个课程 -->	
+    <update id="freezeElectiveCourse" parameterType="hashmap">
+		UPDATE ${db_name_elective}.`t_se_offercourses` SET `IsFreezed`=#{isFreezed} WHERE CONCAT(`SchoolYear`,`term`)=#{termInfo} AND `SchoolId`=#{schoolId} AND `ElectiveId`=#{electiveId}
+			AND `CourseId`=#{courseId} 
+	</update>
+    <!-- 获取选修课程 -->
+    <select id="getElectiveCourse" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	     SELECT IFNULL(a.`AttachmentId`,"") AS attachmentId ,IFNULL(tc.`CourseDesc`,"") AS courseDesc,tc.`courseId`,tc.`courseName`,tc.`MaxNum` AS upperLimit,tc.`offerGrade`,IFNULL(tc.`classMaxNum`,'不限')AS  classMaxNum,tc.`adaptSex`,tc.`teachers`,tc.`classroom` 
+	     FROM ${db_name_elective}.T_SE_OfferCourses tc 
+	       LEFT JOIN ${db_name_elective}.`t_se_attachment` a ON tc.`SchoolId`=a.`SchoolId`
+	     AND tc.`ElectiveId`=a.`ElectiveId` AND tc.`CourseId`=a.`CourseId`
+	     AND tc.`SchoolYear`= a.`SchoolYear` AND tc.`term`=a.`term`
+	     WHERE tc.`SchoolId`=#{schoolId} AND tc.`ElectiveId`=#{electiveId}
+	     <if test="courseId!=null and courseId!=''">
+			and tc.courseId=#{courseId}
+		 </if>
+		 <if test="teachers!=null and teachers!=''">
+			and tc.teachers like '%${teachers}%'
+		 </if>
+	     ORDER BY tc.`SeqNum` DESC;  
+    </select>
+    <!-- 获取选修课程上课时间 -->
+    <select id="getElectiveCourseSchoolTime" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+         SELECT tt.`courseId`,tt.`weekType`,tt.`dayOfWeek`,tt.`lessonOfDay` FROM ${db_name_elective}.T_SE_SchoolTime tt WHERE  tt.`SchoolId`=#{schoolId} AND tt.`ElectiveId`=#{electiveId}
+         <if test="courseId!=null and courseId!=''">
+			and tt.courseId=#{courseId}
+		 </if>
+		  <if test="courseIdList!=null and courseIdList!=''">
+				and tt.`courseId` in
+				<foreach collection="courseIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		   </if> 
+    </select>
+    <!-- 得到某个课程的教师ids -->
+    <select id="getElectiveCourseTeacher" parameterType="hashmap" resultType="String">
+    SELECT GROUP_CONCAT(t.`TeacherId` SEPARATOR ',') AS teacherIds FROM ${db_name_elective}.T_SE_CoursesTeacher t WHERE schoolId=#{schoolId} AND t.`ElectiveId`=#{electiveId}  AND t.`CourseId`=#{courseId} GROUP BY t.`CourseId`;
+    </select>
+    <!-- 得到某个课程的班级ids -->
+    <select id="getElectiveCourseClass" parameterType="hashmap" resultType="String">
+    SELECT GROUP_CONCAT(t.`ClassId` SEPARATOR ',') AS classIds FROM ${db_name_elective}.T_SE_OfferCoursesForClass t WHERE schoolId=#{schoolId} AND t.`ElectiveId`=#{electiveId}  AND t.`CourseId`=#{courseId}  GROUP BY t.`CourseId`;
+    </select>
+   <!-- 新增选修课程 -->
+    <update id="createElectiveCourse" parameterType="hashmap">
+       	insert into ${db_name_elective}.T_SE_OfferCourses(SchoolYear,term,ElectiveId,SchoolId,CourseId,CourseName,MaxNum,ClassMaxNum,AdaptSex,Teachers,Classroom,OfferGrade,CreateTime,CourseDesc) 
+		values (#{schoolYear},#{term},#{electiveId},#{schoolId},#{courseId},#{courseName},#{maxNum},#{classMaxNum},#{adaptSex},#{teachers},#{classroom},#{offerGrade},#{createTime},#{courseDesc});
+    </update>
+    <update id="batchInsertElectiveCourse" parameterType="java.util.List">
+       	insert into ${db_name_elective}.T_SE_OfferCourses(SchoolYear,term,ElectiveId,SchoolId,CourseId,CourseName,MaxNum,ClassMaxNum,AdaptSex,Teachers,Classroom,OfferGrade,CreateTime,CourseDesc) 
+		values
+		<foreach collection="list"   item="item" index="index" separator=",">
+		 (#{item.schoolYear},#{item.term},#{item.electiveId},#{item.schoolId},#{item.courseId},#{item.courseName},#{item.maxNum},#{item.classMaxNum},#{item.adaptSex},#{item.teachers},#{item.classroom},#{item.offerGrade},#{item.createTime},#{item.courseDesc})
+        </foreach>
+           on DUPLICATE KEY UPDATE 
+           CourseName=values(courseName),
+           CourseDesc=values(courseDesc),
+           MaxNum=values(maxNum),
+           ClassMaxNum=values(classMaxNum),
+           AdaptSex=values(adaptSex),
+           Teachers=values(teachers),
+           Classroom=values(classroom),
+           OfferGrade=values(offerGrade);	    
+    </update>
+    <!-- 新增选修课程   开设课程面向班级 -->
+	<update id="insertElectiveCourseClass" parameterType="java.util.List" >
+		insert into  ${db_name_elective}.T_SE_OfferCoursesForClass values 
+		<foreach collection="list"   item="item" index="index"
+			separator=",">
+			(#{item.schoolYear},#{item.term},#{item.electiveId},#{item.schoolId},#{item.courseId},#{item.classId},#{item.useGrade})
+		</foreach>
+		on DUPLICATE KEY UPDATE 
+           UseGrade=values(useGrade);	
+	</update>
+	<!-- 新增选修课程   授课教师 -->
+	<update id="insertCoursesTeacher" parameterType="java.util.List" >
+		insert ignore into  ${db_name_elective}.T_SE_CoursesTeacher values 
+		<foreach collection="list"   item="item" index="index"
+			separator=",">
+			(#{item.schoolYear},#{item.term},#{item.electiveId},#{item.schoolId},#{item.courseId},#{item.teacherId})
+		</foreach>
+	</update>
+	<!-- 新增选修课程  上课时间 -->
+	<update id="insertSchoolTime" parameterType="java.util.List" >
+		insert ignore into  ${db_name_elective}.T_SE_SchoolTime values 
+		<foreach collection="list"   item="item" index="index"
+			separator=",">
+			(#{item.schoolYear},#{item.term},#{item.electiveId},#{item.schoolId},#{item.courseId},#{item.dayOfWeek},#{item.lessonOfDay},#{item.weekType})
+		</foreach>
+	</update>
+  <!-- 修改选修课程 -->
+	<!-- 清空开设课程面向班级 -->
+    <delete id="deleteElectiveCourseClass" parameterType="hashmap">
+    	DELETE FROM ${db_name_elective}.T_SE_OfferCoursesForClass WHERE schoolId=#{schoolId} AND electiveId = #{electiveId} AND courseId=#{courseId};
+    </delete>
+    <!-- 清空课程授课教师 -->
+    <delete id="deleteCoursesTeacher" parameterType="hashmap">
+       	DELETE FROM ${db_name_elective}.T_SE_CoursesTeacher WHERE schoolId=#{schoolId} AND electiveId = #{electiveId} AND courseId=#{courseId};
+    </delete>
+    <!-- 清空课程上课时间 -->
+    <delete id="deleteSchoolTime" parameterType="hashmap">
+       	DELETE FROM ${db_name_elective}.T_SE_SchoolTime WHERE schoolId=#{schoolId} AND electiveId = #{electiveId} AND courseId=#{courseId};
+    </delete>
+    <update id="updateElectiveCourse" parameterType="hashmap">
+       	update ${db_name_elective}.T_SE_OfferCourses set courseDesc=#{courseDesc},courseName=#{courseName},maxNum=#{maxNum},classMaxNum=#{classMaxNum},adaptSex=#{adaptSex},teachers=#{teachers},classroom=#{classroom},offerGrade=#{offerGrade}
+       	where schoolId=#{schoolId} AND electiveId = #{electiveId} AND courseId=#{courseId};
+    </update>
+    <!-- 删除选修课程 -->
+    <update id="deleteElectiveCourse" parameterType="hashmap" statementType="CALLABLE">
+		call ${db_name_elective}.proc_del_allElectiveCourseSet(#{schoolId},#{electiveId},#{courseId});
+	</update>
+	<!-- ### -->
+ 	<update id="deleteElectiveCourseSingle" parameterType="hashmap" >
+			DELETE FROM ${db_name_elective}.`t_se_offercourses` WHERE schoolId=#{schoolId} AND electiveId = #{electiveId}
+			 <if test="courseIds!=null and courseIds!='' and  courseIds.size() > 0">
+			 AND courseId in 
+			 <foreach collection="courseIds" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+			 </if>
+	</update>
+<!-- 选课数量要求设置 -->	
+    <!-- 获取选课数量 -->
+    <select id="getElectiveCourseRequire" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+    SELECT  tr.`classId`,ifnull(tr.`coursesUpperLimit`,'') as courseUpperLimit,ifnull(tr.`coursesLowerLimit`,'') as courseLowerLimit,ifnull(tr.`classhourUpperLimit`,'') as classhourUpperLimit,ifnull(tr.`classhourLowerLimit`,'') as  classhourLowerLimit
+    FROM ${db_name_elective}.T_SE_RequireOfClass tr WHERE tr.`SchoolId`=#{schoolId} AND tr.`ElectiveId`=#{electiveId} 
+    <!-- <if test="useGrade!=null and useGrade!=''">
+			 AND tr.`UseGrade`=#{useGrade}
+	 </if> -->
+	 <if test="useGradeList!=null and useGradeList!='' and useGradeList.size() > 0">
+				AND tr.`UseGrade` in
+				<foreach collection="useGradeList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		   </if>
+     <if test="classId!=null and classId!=''">
+			 AND tr.`classId`=#{classId}
+	 </if>
+    </select>
+    <!-- 修改班级选课数量 -->
+    <update id="updateElectiveCourseRequire" parameterType="hashmap">
+       	update ${db_name_elective}.T_SE_RequireOfClass tr set  tr.`coursesUpperLimit`=#{coursesUpperLimit},tr.`coursesLowerLimit`=#{coursesLowerLimit},tr.`classhourUpperLimit`=#{classhourUpperLimit},tr.`classhourLowerLimit`=#{classhourLowerLimit}
+       	where schoolId=#{schoolId} AND electiveId = #{electiveId} AND classId=#{classId};
+    </update>
+    <!-- 删除选课数量要求 -->
+    <delete id="deleteElectiveCourseRequire" parameterType="hashmap">
+       	DELETE FROM ${db_name_elective}.T_SE_RequireOfClass WHERE schoolId=#{schoolId} AND electiveId = #{electiveId} AND classId=#{classId};
+    </delete>
+    <!-- 批量设置选课数量 -->
+    
+    <update id='batchUpdateElectiveCourseRequire' parameterType='java.util.List' > 
+	    insert into ${db_name_elective}.T_SE_RequireOfClass(SchoolYear,term,ElectiveId,SchoolId,ClassId,CoursesUpperLimit,CoursesLowerLimit,ClasshourUpperLimit,ClasshourLowerLimit,UseGrade) values  
+	    <foreach collection="list" item="item" index="index" separator=",">
+	    (#{item.schoolYear},#{item.term},#{item.electiveId},#{item.schoolId},#{item.classId},#{item.coursesUpperLimit},#{item.coursesLowerLimit},#{item.classhourUpperLimit},#{item.classhourLowerLimit},#{item.useGrade}) 
+	    </foreach>
+	    on DUPLICATE KEY UPDATE CoursesUpperLimit=values(coursesUpperLimit),CoursesLowerLimit=values(coursesLowerLimit),ClasshourUpperLimit=values(classhourUpperLimit),ClasshourLowerLimit=values(classhourLowerLimit),UseGrade=values(useGrade);	    
+    </update> 
+	<!-- 清空选课数量 -->
+    <delete id="batchDeleteElectiveCourseRequire" parameterType="hashmap">
+       	DELETE FROM ${db_name_elective}.T_SE_RequireOfClass WHERE schoolId=#{schoolId} AND electiveId = #{electiveId} 
+       	<if test="useGradeList!=null and useGradeList!='' and useGradeList.size() > 0" >
+				AND UseGrade in
+				<foreach collection="useGradeList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		   </if>
+       	
+    </delete>
+   
+<!-- 选课课程类别设置 -->
+    <!-- 获取课程类别下面 课程名称-->
+<!--     <select id="getCourseNameByCourseSortId" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+    SELECT  t.`courseSortId`,GROUP_CONCAT(t.`courseName` SEPARATOR ',') AS electiveCourseName FROM ${db_name_elective}.T_SE_OfferCourses t WHERE t.`SchoolId`=#{schoolId} and t.`ElectiveId`=#{electiveId} GROUP BY t.`courseSortId`;    
+    </select> -->
+     <!-- 获取课程类别 -->
+    <select id="getCourseSort" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+      SELECT t.`courseSortId` AS courseTypeId,t.`courseSortName` AS courseTypeName,IFNULL(GROUP_CONCAT(ts.`courseName`),'') AS electiveCourseName,IFNULL(GROUP_CONCAT(ts.`CourseId`),'') AS courseIds
+      FROM ${db_name_elective}.T_SE_CourseSort t LEFT JOIN ${db_name_elective}.T_SE_OfferCourses ts ON t.`ElectiveId`=ts.`ElectiveId` AND t.`CourseSortId`=ts.`CourseSortId`      
+      WHERE t.`SchoolId`=#{schoolId} AND t.`ElectiveId`=#{electiveId} GROUP BY t.`CourseSortId`;
+    </select>  
+    <!-- 批量设置课程类别 -->
+    <update id="updateElectiveCourseType" parameterType="hashmap">
+       update ${db_name_elective}.T_SE_OfferCourses t set t.courseSortId=#{courseSortId} 
+       where t.`SchoolId`=#{schoolId} and ElectiveId=#{electiveId}
+       		<if test="courseIdList!=null and courseIdList!=''">
+				and CourseId in
+				<foreach collection="courseIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		   </if>
+	</update>
+	<!-- 新增课程类别 -->  
+	<update id="insertElectiveCourseType" parameterType="hashmap">
+       	insert into ${db_name_elective}.T_SE_CourseSort(SchoolYear,term,ElectiveId,SchoolId,CourseSortId,CourseSortName,CreateTime) 
+		values (#{schoolYear},#{term},#{electiveId},#{schoolId},#{courseSortId},#{courseSortName},#{createTime})
+		on duplicate key UPDATE courseSortName=values(courseSortName);
+    </update>
+     <!-- 获取选修课程 是否已设置类别-->
+    <select id="getElectiveCourseList" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	     SELECT tc.`courseId`,tc.`courseName`,tc.courseSortId,case when (tc.courseSortId is null or tc.courseSortId='')  THEN 0  else 1 end  as isSet  FROM ${db_name_elective}.T_SE_OfferCourses tc WHERE tc.`SchoolId`=#{schoolId} and  tc.`ElectiveId`=#{electiveId}
+	     AND  (tc.courseSortId IS NULL OR tc.courseSortId='')
+	     <if test="courseSortId!=null and courseSortId!=''">
+			or tc.courseSortId=#{courseSortId}			
+		 </if>
+	     ORDER BY tc.`CreateTime` DESC;  
+    </select>
+    <!-- 清空之前这个类别的课程类别id -->
+    <update id="clearElectiveCourseType" parameterType="hashmap">
+       	 update ${db_name_elective}.T_SE_OfferCourses t set t.courseSortId='' where schoolId=#{schoolId} AND t.courseSortId=#{courseSortId} and `ElectiveId`=#{electiveId} AND `SchoolId`=#{schoolId}; 
+    </update>
+    <!-- 删除选课类别 -->
+    <delete id="deleteElectiveCourseType" parameterType="hashmap">
+       DELETE FROM ${db_name_elective}.T_SE_CourseSort WHERE schoolId=#{schoolId} AND electiveId = #{electiveId} AND CourseSortId=#{courseSortId};      
+    </delete>
+    <!-- 删除选课类别 对应的选课要求-->
+    <delete id="deleteCourseTypeRequire" parameterType="hashmap">
+       DELETE FROM ${db_name_elective}.T_SE_RequireOfCourseSort WHERE schoolId=#{schoolId} AND electiveId = #{electiveId} AND CourseSortId=#{courseSortId};      
+    </delete>
+    
+<!-- 选课课程类别要求设置 --> 
+    <select id="getCourseTypeNumList" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">      
+		SELECT 0 as selectedNum, t.`CourseSortId` AS courseTypeId,ts.`CourseSortName` AS courseTypeName, t.`classId`,ifnull(t.`coursesUpperLimit`,'') as courseUpperLimit,ifnull(t.`coursesLowerLimit`,'') as courseLowerLimit
+		FROM ${db_name_elective}.T_SE_RequireOfCourseSort	t
+		LEFT JOIN ${db_name_elective}.T_SE_CourseSort ts ON t.`CourseSortId`=ts.`CourseSortId` AND t.`ElectiveId`=ts.`ElectiveId`
+		 WHERE t.schoolId=#{schoolId} AND t.`ElectiveId`=#{electiveId}
+		 <if test="useGrade!=null and useGrade!=''">
+                AND t.`UseGrade`=#{useGrade}
+		 </if>
+		<if test="classId!=null and classId!=''">
+               AND t.`ClassId`=#{classId}
+		 </if> 
+		<if test="courseSortIdList!=null and courseSortIdList!=''">
+				and t.CourseSortId in
+				<foreach collection="courseSortIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		  </if>
+    </select>
+    <!-- 批量设置类别选课数量 -->  
+     <update id="batchCreateCourseTypeNum" parameterType="java.util.List" >
+		insert into  ${db_name_elective}.T_SE_RequireOfCourseSort values 
+		<foreach collection="list"   item="item" index="index"
+			separator=",">
+			(#{item.schoolYear},#{item.term},#{item.electiveId},#{item.schoolId},#{item.courseSortId},#{item.classId},#{item.coursesUpperLimit},#{item.coursesLowerLimit},#{item.useGrade})
+		</foreach>
+		on duplicate key UPDATE coursesUpperLimit=values(coursesUpperLimit),coursesLowerLimit=values(coursesLowerLimit)
+	</update>
+	<!-- 单个修改类别选课数量 -->
+    <update id="updateSingeCourseTypeNum" parameterType="hashmap">
+       	update ${db_name_elective}.T_SE_RequireOfCourseSort tr set  tr.`coursesUpperLimit`=#{coursesUpperLimit},tr.`coursesLowerLimit`=#{coursesLowerLimit}
+       	where schoolId=#{schoolId} AND electiveId = #{electiveId} and courseSortId=#{courseSortId} AND classId=#{classId};
+    </update>
+    <!-- 删除选课数量要求 -->
+    <delete id="deleteCourseTypeNum" parameterType="hashmap">
+       	DELETE FROM ${db_name_elective}.T_SE_RequireOfCourseSort WHERE schoolId=#{schoolId} AND electiveId = #{electiveId} and courseSortId=#{courseSortId} AND classId=#{classId};
+    </delete>
+    
+ <!-- 调整学生选课 --> 
+    <!--获取调整学生选课列表 --> 
+     <select id="getAjustElectiveList" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject"> 
+          SELECT t.`classId`,t.`studentId`,t.`courseId`,t.electiveTime FROM ${db_name_elective}.T_SE_StudentElective t WHERE
+         schoolId=#{schoolId} AND t.`ElectiveId`=#{electiveId}           
+           <if test="courseId!=null and courseId!=''">
+				AND t.`CourseId`=#{courseId}
+		  </if>
+          <if test="courseIdList!=null and courseIdList!=''">
+				AND t.`CourseId` IN
+				<foreach collection="courseIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		  </if>          
+         <if test="classIdList!=null and classIdList!=''">
+				AND t.`ClassId` IN
+				<foreach collection="classIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		  </if>
+		  order by t.`CourseId`, t.`classId`;
+     </select>
+     <!-- 获取班级下未选此课程的学生 -->
+      <select id="getNoSelectedCourseStudentList" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject"> 
+          SELECT t.`classId`,t.`studentId`,COUNT(t.`CourseId`) AS selectedNum FROM ${db_name_elective}.T_SE_StudentElective t WHERE
+         schoolId=#{schoolId} AND t.`ElectiveId`=#{electiveId} AND t.`CourseId`!=#{courseId}          
+         <if test="classIdList!=null and classIdList!=''">
+				AND t.`ClassId` IN
+				<foreach collection="classIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		  </if>
+		  GROUP BY t.`StudentId`
+     </select>
+     <!-- 添加选课学生-->  
+     <update id="insertElectiveStudent" parameterType="java.util.List" >
+		insert into  ${db_name_elective}.T_SE_StudentElective values 
+		<foreach collection="list"   item="item" index="index"
+			separator=",">
+			(#{item.schoolYear},#{item.term},#{item.electiveId},#{item.schoolId},#{item.courseId},#{item.classId},#{item.studentId},#{item.electiveWay},#{item.electiveTime})
+		</foreach>
+	</update>
+	<!-- 删除选课学生 -->
+	 <delete id="deleteElectiveStudent" parameterType="hashmap">
+       	DELETE FROM ${db_name_elective}.T_SE_StudentElective WHERE schoolId=#{schoolId} AND electiveId = #{electiveId} and courseId=#{courseId} 
+       	 <if test="studentIdList!=null and studentIdList!=''">
+				AND StudentId IN
+				<foreach collection="studentIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		  </if>
+    </delete>
+<!-- 选课查看 -->
+    <!-- 按选课人数查看 得到各个课程的选课人数-->
+       <select id="getSelectedCourseNum" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject"> 
+          SELECT t.`courseId`,COUNT(t.`studentId`) AS selectedNum,IFNULL(GROUP_CONCAT(DISTINCT t.`studentId`),"") AS studentIds FROM ${db_name_elective}.T_SE_StudentElective t WHERE
+          schoolId=#{schoolId} AND t.`ElectiveId`=#{electiveId} 
+           <if test="courseIdList!=null and courseIdList!=''">
+				AND t.`CourseId` IN
+				<foreach collection="courseIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		  </if>
+           GROUP BY t.`courseId`;
+      </select>
+      <!-- 得到已提交学生数 --> 
+      <select id="getTotalSubmittedNum" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject"> 
+                SELECT DISTINCT studentId FROM  ${db_name_elective}.T_SE_StudentElective t 
+   WHERE schoolId=#{schoolId} AND electiveId =#{electiveId} ;
+      </select> 
+      <!-- 应选课人数  班级ids--> 
+      <select id="getShouldSelectedCourseNum" parameterType="hashmap" resultType="Long"> 
+           SELECT DISTINCT classId FROM ${db_name_elective}.T_SE_OfferCoursesForClass t WHERE schoolId=#{schoolId} AND electiveId = #{electiveId}
+           <if test="classIds!=null and classIds!=''">
+				AND classId IN
+				<foreach collection="classIds" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		  </if>
+      </select>
+   <!-- 获取未提交学生 --> 
+      <!-- 得到已提交学生ids--> 
+      <select id="getSubmittedStudentIds" parameterType="hashmap" resultType="Long"> 
+           SELECT DISTINCT t.studentId FROM ${db_name_elective}.T_SE_StudentElective t WHERE schoolId=#{schoolId} AND electiveId = #{electiveId}
+           <if test="courseIdList!=null and courseIdList!=''">
+				AND t.`CourseId` IN
+				<foreach collection="courseIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		  </if>           
+      </select>
+    <!--按课程查看  -->  
+      <!-- 查询已提交的不同班级ids -->
+          <select id="getSubmittedClassIds" parameterType="hashmap" resultType="Long"> 
+           SELECT DISTINCT t.classId FROM ${db_name_elective}.T_SE_StudentElective t WHERE schoolId=#{schoolId} AND electiveId = #{electiveId}
+           <if test="courseIdList!=null and courseIdList!=''">
+				AND t.`CourseId` IN
+				<foreach collection="courseIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		  </if>           
+      </select>
+      <!--获取各个课程详细名称地点 任课教师  -->
+      <select id="getDetailCourseText" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+       	 SELECT tc.`courseId`,tc.`courseName`,tc.`teachers`,tc.`classroom`,COUNT(distinct t.`StudentId`) AS selectedNum,IFNULL(GROUP_CONCAT(distinct t.`StudentId`),"") AS studentIds
+	     FROM ${db_name_elective}.T_SE_OfferCourses tc 
+         LEFT JOIN 	${db_name_elective}.T_SE_StudentElective t ON tc.schoolid=t.schoolid and  tc.`ElectiveId`=t.`ElectiveId` AND tc.`CourseId`=t.`CourseId`     
+	     WHERE tc.`SchoolId`=#{schoolId} and  tc.`ElectiveId`=#{electiveId}
+	     <if test="courseIdList!=null and courseIdList!=''">
+				AND tc.`CourseId` IN
+				<foreach collection="courseIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		  </if>   
+	     GROUP BY tc.`CourseId` ORDER BY tc.`CreateTime` DESC;
+      </select>
+          <!-- 按课程查看 得到各个课程各个班级的统计人数-->
+<!--        <select id="getCourseClassNum" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject"> 
+          SELECT t.`courseId`,t.`classId`,COUNT(t.`studentId`) AS selectedNum FROM ${db_name_elective}.T_SE_StudentElective t,${db_name_elective}.T_SE_OfferCoursesForClass tc  WHERE
+          t.`ElectiveId`=tc.`ElectiveId` AND t.`CourseId`=tc.`CourseId` AND t.`ClassId`=tc.`ClassId` and t.`SchoolId`=#{schoolId} AND t.`ElectiveId`=#{electiveId} 
+           <if test="courseIdList!=null and courseIdList!=''">
+				AND t.`CourseId` IN
+				<foreach collection="courseIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		  </if>
+		   <if test="gradeList!=null and gradeList!=''">
+				AND tc.`UseGrade` IN
+				<foreach collection="gradeList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		  </if>
+		  <if test="classId!=null and classId!=''">
+				AND t.`classId` =#{classId}
+		  </if>
+           GROUP BY t.`courseId`,t.`classId`;
+      </select> -->
+         <select id="getCourseClassNum" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject"> 
+          SELECT t.`courseId`,t.`classId`,IFNULL(GROUP_CONCAT(distinct t.`studentId`),"") AS studentIds,
+          IFNULL(COUNT(distinct t.`studentId`),0) AS selectedNum FROM ${db_name_elective}.T_SE_StudentElective t WHERE
+           t.`SchoolId`=#{schoolId} AND t.`ElectiveId`=#{electiveId} 
+           <if test="courseIdList!=null and courseIdList!=''">
+				AND t.`CourseId` IN
+				<foreach collection="courseIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		  </if>		  
+		  <if test="classId!=null and classId!=''">
+				AND t.`classId` =#{classId}
+		  </if>
+		  <if test="courseId!=null and courseId!=''">
+				AND t.`courseId` =#{courseId}
+		  </if>
+           GROUP BY t.`courseId`,t.`classId`;
+      </select>
+      <!-- 按班级查看  得到每个学生的选课ids -->
+      <select id="getStudentCourseIds" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+        SELECT t.`classId`,t.`studentId`,GROUP_CONCAT(t.`CourseId` SEPARATOR ',') AS courseIds FROM ${db_name_elective}.T_SE_StudentElective t 
+          where t.`SchoolId`=#{schoolId} AND t.`ElectiveId`=#{electiveId} 
+           <if test="classIdList!=null and classIdList!=''">
+				AND classId IN
+				<foreach collection="classIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		  </if> 
+		  <if test="studentId!=null and studentId!=''">
+				AND studentId=#{studentId}
+		  </if>       
+         GROUP BY t.`StudentId`;
+      </select>
+      <!-- 按班级查看 得到已选的课程的具体内容  -->
+      <select id="getStudentCourseText" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+            SELECT DISTINCT ts.`courseId`,tc.`courseName`,tc.`teachers`,tc.`classroom` FROM ${db_name_elective}.T_SE_StudentElective ts
+            LEFT JOIN ${db_name_elective}.T_SE_OfferCourses tc ON ts.`SchoolId`=tc.`SchoolId` AND ts.`ElectiveId`=tc.`ElectiveId`  AND ts.`CourseId`=tc.`CourseId`         
+            WHERE ts.`SchoolId`=#{schoolId} AND ts.`ElectiveId`=#{electiveId}            
+            <if test="classIdList!=null and classIdList!=''">
+				AND ts.classId IN
+				<foreach collection="classIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		   </if>          
+      </select>
+      <!-- 按班级查看 得到已选的课程的具体上课时间  -->
+       <select id="getStudentCourseSchoolTime" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+            SELECT DISTINCT ts.`courseId`,tc.`weekType`,tc.`dayOfWeek`,tc.`lessonOfDay` FROM ${db_name_elective}.T_SE_StudentElective ts
+            LEFT JOIN ${db_name_elective}.T_SE_SchoolTime tc ON ts.`SchoolId`=tc.`SchoolId` AND ts.`ElectiveId`=tc.`ElectiveId`  AND ts.`CourseId`=tc.`CourseId`         
+            WHERE ts.`SchoolId`=#{schoolId} AND ts.`ElectiveId`=#{electiveId} 
+            <if test="classIdList!=null and classIdList!=''">
+				AND ts.classId IN
+				<foreach collection="classIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+		   </if>
+      </select>
+      
+<!-- 学生选课 -->	
+	<select id="getCourseSelectedNum" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	 SELECT t.`courseId`,IFNULL(COUNT(distinct t.`studentId`),0) AS selectedNum,IFNULL(GROUP_CONCAT(distinct t.`studentId`),"") AS studentIds FROM ${db_name_elective}.T_SE_StudentElective t 
+	   WHERE  t.`SchoolId`=#{schoolId} AND t.`ElectiveId`=#{electiveId} 
+	   <if test="courseId!=null and courseId!=''">
+	   AND t.`courseId`=#{courseId}
+	   </if>
+	     GROUP BY t.`courseId`;
+	</select>
+ 	<select id="getSelectedCourseList"  parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+     SELECT CourseId as courseId FROM ${db_name_elective}.`t_se_studentelective` WHERE `SchoolId`=#{schoolId}
+     AND `ElectiveId`=#{electiveId} AND `StudentId`=#{studentId} 
+     AND `ClassId`=#{classId}
+    </select>
+	 <select id="getCourseNumForInit"  parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT oc.`CourseId` as courseId,ocs.`ClassId`as classId ,IFNULL(oc.`MaxNum`,0) AS upperLimit,IFNULL(oc.`classMaxNum`,'不限')AS classMaxNum 
+		FROM ${db_name_elective}.`t_se_offercourses` oc 
+	 	INNER JOIN ${db_name_elective}.`t_se_offercoursesforclass` ocs ON ocs.`ElectiveId`=oc.`ElectiveId` AND
+	 	ocs.`CourseId`=oc.`CourseId` AND ocs.`SchoolId`=oc.`SchoolId`
+	 	WHERE oc.`SchoolId`=#{schoolId} AND oc.`ElectiveId`=#{electiveId}
+	 	  <if test="courseId!=null and courseId!=''">
+	   		AND oc.`CourseId`=#{courseId}
+	   	  </if>
+	   	   <if test="courseIds!=null and courseIds!=''">
+	   		AND oc.`CourseId`in
+	   		<foreach collection="courseIds" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+			</foreach>
+	   	  </if>
+	   	   <if test="classId!=null and classId!=''">
+	   		AND ocs.`ClassId`=#{classId}
+	   	  </if>
+    </select>
+   <!-- 获取课程对应的课程名称 -->
+    <select id="getCourseNameById"  parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+    SELECT CourseName as courseName,CourseId as courseId FROM ${db_name_elective}.`t_se_offercourses` WHERE 
+    SchoolId=#{schoolId}  AND ElectiveId=#{electiveId}
+     <if test="courseIdList!=null and courseIdList!=''">
+				AND CourseId IN
+				<foreach collection="courseIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+	</if>
+    </select>
+   <!-- 获取当前选课 -->
+   <select id="getCurrentElective" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+   SELECT t.`schoolYear`,t.`term`,t.`electiveId`,t.`electiveName`,t.`startTime`,t.`endTime` FROM ${db_name_elective}.T_SE_ElectiveInfo t 
+   WHERE t.`SchoolId`=#{schoolId} and NOW() BETWEEN t.`StartTime` AND t.`EndTime` ORDER BY t.`CreateTime` DESC;
+   </select>
+   <!-- 获取学生所在班级可以选的课程 -->
+   <select id="getCurrentCourse" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	SELECT IFNULL(a.`AttachmentId`,"") AS attachmentId ,IFNULL(tc.`CourseDesc`,"") AS courseDesc,tc.`schoolYear`,tc.`term`, t.`ClassId`,tc.`courseId`,tc.`courseName`,tc.`MaxNum` AS upperLimit,tc.`offerGrade`, IFNULL(tc.`classMaxNum`,'不限')AS  classMaxNum,tc.`adaptSex`,tc.`teachers`,tc.`classroom`, 
+	COUNT(ts.`CourseId`) AS selectedNum,IFNULL(GROUP_CONCAT(distinct ts.`studentId`),"") AS studentIds, IFNULL(tcs.`courseSortId`,'') AS courseTypeId,IFNULL(tcs.`courseSortName`,'') AS courseTypeName
+	FROM ${db_name_elective}.T_SE_OfferCourses tc
+	INNER JOIN ${db_name_elective}.T_SE_OfferCoursesForClass t ON tc.`SchoolId`=t.`SchoolId` AND tc.`ElectiveId`=t.`ElectiveId` and tc.`ElectiveId`=#{electiveId} AND tc.`CourseId`=t.`CourseId` 
+	<!--  AND t.`ClassId`=#{classId} -->
+	<if test="classId!=null and classId!=''">
+		 AND t.`ClassId`=#{classId}
+	</if>
+	LEFT JOIN ${db_name_elective}.`t_se_attachment` a ON tc.`SchoolId`=a.`SchoolId`
+	     AND tc.`ElectiveId`=a.`ElectiveId` AND tc.`CourseId`=a.`CourseId`
+	     AND tc.`SchoolYear`= a.`SchoolYear` AND tc.`term`=a.`term`
+	left JOIN ${db_name_elective}.T_SE_CourseSort tcs ON tc.`CourseSortId`=tcs.`CourseSortId`
+	LEFT JOIN ${db_name_elective}.T_SE_StudentElective ts ON tc.`SchoolId`=ts.`SchoolId` AND tc.`ElectiveId`=ts.`ElectiveId` AND tc.`CourseId`=ts.`CourseId`
+	WHERE tc.`SchoolId`=#{schoolId} AND tc.`ElectiveId`=#{electiveId}
+	<if test="courseIdList!=null and courseIdList!=''">
+				AND tc.`CourseId` IN
+				<foreach collection="courseIdList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+	</if>
+	<if test="adaptSex!=null and adaptSex!=''">
+				AND tc.`adaptSex` =#{adaptSex} or tc.`adaptSex` =0
+	</if> 
+	GROUP BY tc.`CourseId` ORDER BY tc.`CourseSortId`,tc.`CreateTime` DESC;
+   </select>
+    
+    <delete id="batchDeleteElectiveCourse" parameterType="hashmap">
+       	DELETE FROM ${db_name_elective}.T_SE_OfferCoursesForClass WHERE schoolId=#{schoolId} AND electiveId = #{electiveId} 
+				AND courseId in
+				<if test="courseIds!=null and courseIds!='' and courseIds.size()>0">
+				<foreach collection="courseIds" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+				</if>
+    </delete>
+     <delete id="batchDeleteSchoolTime" parameterType="hashmap">
+       	DELETE FROM ${db_name_elective}.T_SE_SchoolTime WHERE schoolId=#{schoolId} AND electiveId = #{electiveId} 
+				AND courseId in
+				<if test="courseIds!=null and courseIds!='' and courseIds.size()>0">
+				<foreach collection="courseIds" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+				</if>
+    </delete>
+     <delete id="batchDeleteCoursesTeacher" parameterType="hashmap">
+       	DELETE FROM ${db_name_elective}.T_SE_CoursesTeacher WHERE schoolId=#{schoolId} AND electiveId = #{electiveId} 
+				AND courseId in
+				<if test="courseIds!=null and courseIds!='' and courseIds.size()>0">
+				<foreach collection="courseIds" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+				</if>
+    </delete>
+   <!--学生每个类别已选课程数、上下限  -->
+   <select id="getSelectedCoureRequire" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	    SELECT GROUP_CONCAT(t.`CourseId`) AS courseIds, COUNT(t.StudentId) AS  selectedNum,tc.courseSortId as courseTypeId,IFNULL(tcs.`CoursesUpperLimit`,'') AS courseUpperLimit,IFNULL(tcs.`CoursesLowerLimit`,'')AS courseLowerLimit
+		FROM ${db_name_elective}.T_SE_StudentElective t 
+		INNER JOIN ${db_name_elective}.T_SE_OfferCourses tc ON t.`ElectiveId`=tc.`ElectiveId` AND t.`CourseId`=tc.`CourseId`
+		LEFT JOIN ${db_name_elective}.t_se_requireofcoursesort tcs ON tc.`ElectiveId`=tcs.`ElectiveId` AND tc.`CourseSortId`=tcs.`CourseSortId` AND t.`ClassId`=tcs.`ClassId`
+		WHERE t.`SchoolId`=#{schoolId} AND t.`ElectiveId`=#{electiveId} AND t.`StudentId`=#{studentId}
+		GROUP BY tc.`CourseSortId`;
+	</select>
+    <!-- 统计该学生所在班级的选课数量 -->
+  <!-- <select id="getSelectedNumByClassID" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT COUNT(t.`StudentId`) AS classSelectedNum FROM ${db_name_elective}.T_SE_StudentElective t WHERE t.`SchoolId`=#{schoolId} AND t.`ElectiveId`=#{electiveId} AND t.`ClassId`=#{classId}
+		GROUP BY t.`CourseId`;
+   </select> -->
+
+   <!--获取学生选课    获取可以选修课程上课时间 -->
+    <select id="getSchoolTimeByClassID" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT te.`courseId`,tt.`weekType`,tt.`dayOfWeek`,tt.`lessonOfDay` FROM ${db_name_elective}.T_SE_SchoolTime tt
+		INNER JOIN ${db_name_elective}.t_se_offercourses te ON tt.`SchoolId`=te.`SchoolId` AND tt.`ElectiveId`=te.`ElectiveId` AND tt.`CourseId`=te.`CourseId`
+		INNER JOIN ${db_name_elective}.t_se_offercoursesforclass toc ON te.`ElectiveId`=toc.ElectiveId AND te.`CourseId`=toc.CourseId
+		WHERE  tt.`SchoolId`=#{schoolId} AND tt.`ElectiveId`=#{electiveId} and toc.`ClassId`=#{classId}
+    </select>
+    
+ <!-- 选课课程导入 -->
+     <!-- 得到选课下面所有课程 -->
+     <select id="getAllCourse" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+      SELECT t.`courseId`,t.`courseName` FROM ${db_name_elective}.T_SE_OfferCourses t WHERE t.`SchoolId`=#{schoolId} AND t.`ElectiveId`=#{electiveId} ORDER BY t.`CreateTime`;
+     </select>
+     <!-- 根据课程名称得到对应的课程id -->
+     <select id="getCourseIdsByName" parameterType="hashmap" resultType="String">
+        SELECT t.`CourseId` FROM ${db_name_elective}.T_SE_OfferCourses t WHERE  t.`SchoolId`=#{schoolId} AND t.`ElectiveId`=#{electiveId}
+        <if test="courseNameList!=null and courseNameList!=''">
+				AND t.`CourseName` IN
+				<foreach collection="courseNameList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+	     </if>   
+     </select>
+<!--      <select id="getCourseIdsByName" parameterType="hashmap" resultType="String">
+        SELECT GROUP_CONCAT(t.`CourseId`) AS courseIds FROM ${db_name_elective}.T_SE_OfferCourses t WHERE  t.`SchoolId`=#{schoolId} AND t.`ElectiveId`=#{electiveId}
+        <if test="courseNameList!=null and courseNameList!=''">
+				AND t.`CourseName` IN
+				<foreach collection="courseNameList" index="index" item="item" open="("
+					separator="," close=")">
+					#{item}
+				</foreach>
+	     </if>   
+     </select> -->
+     
+<!-- 授课教师 选课首页 -->
+   <!-- 得到选课 -->
+   <select id="getElectiveListByTermInfo" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+       SELECT CONCAT(t.`SchoolYear`,t.`term`) as termInfo,t.`electiveId`,t.`electiveName` FROM ${db_name_elective}.T_SE_ElectiveInfo t WHERE  t.`SchoolId`=#{schoolId} 
+         <if test="termInfo!=null and termInfo!=''">
+			AND CONCAT(t.`SchoolYear`,t.`term`)=#{termInfo} 			
+	     </if>
+       ORDER BY t.`CreateTime` DESC;
+   </select>
+   <!-- 获取选修课程ids -->
+    <select id="getElectiveCourseIds" parameterType="hashmap" resultType="String">
+	     SELECT GROUP_CONCAT(tc.`CourseId`) AS courseIds FROM ${db_name_elective}.T_SE_OfferCourses tc WHERE tc.`SchoolId`=#{schoolId} AND tc.`ElectiveId`=#{electiveId}
+		 <if test="teachers!=null and teachers!=''">
+			and tc.teachers like '%${teachers}%'
+		 </if>
+    </select>
+    
+<!--历史学年学期查询 -->
+	<!-- 根据选课ID查询当前的xnxq -->
+	<select id="getElectiveXnxqById" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	 	SELECT  SchoolYear as schoolYear ,term,startTime,endTime,ElectiveName as electiveName  FROM ${db_name_elective}.t_se_electiveinfo 
+	 	WHERE SchoolId=#{schoolId} AND  ElectiveId=#{electiveId};
+	 </select>
+	 <select id="getOneCourse" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	 	SELECT `Classroom` as classroom ,`ElectiveId`AS electiveId,`CourseId` AS courseId,`CourseName` AS courseName ,`IsFreezed` AS isFreezed
+	 	from ${db_name_elective}.`t_se_offercourses` WHERE SchoolId=#{schoolId} AND  ElectiveId=#{electiveId}
+	 	And CourseId=#{courseId};
+	 </select>
+	 <!-- 获取单个选课导出 -->
+	 <select id="getCourseToExport" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	 	SELECT  o.`CourseName` AS courseName ,o.`Teachers` AS teachers ,o.`Classroom` AS classroom,COUNT(DISTINCT s.`StudentId`) AS hasSelectedTotalNum FROM ${db_name_elective}.`t_se_offercourses` o 
+		LEFT JOIN ${db_name_elective}.`t_se_studentelective` s ON  o.`SchoolId`=s.`SchoolId` AND o.`ElectiveId`=s.`ElectiveId` 
+		AND o.`CourseId` = s.`CourseId`
+		WHERE o.`SchoolId`=#{schoolId} AND o.`ElectiveId`=#{electiveId} AND o.`CourseId`=#{courseId} AND o.`IsFreezed`=1
+		GROUP BY s.`CourseId`
+	 </select>
+	 <!-- 获取已选某个课程的学生 -->
+	 <select id="getStudentToExport" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+	   SELECT  CourseId AS courseId,`StudentId` AS studentId,classId AS classId
+		FROM ${db_name_elective}.`t_se_studentelective` WHERE `SchoolId`=#{schoolId} AND `ElectiveId`=#{electiveId}
+		AND `CourseId`=#{courseId}
+	 </select>
+ <!-- 附件功能 增删改查  @author zhh-->
+	 <!-- 附件功能新增 -->
+	 <update  id="insertAttachmentEL" parameterType="com.alibaba.fastjson.JSONObject" >
+	    INSERT INTO ${db_name_elective}.`t_se_attachment`(`SchoolId`,`SchoolYear`,`term`,`AttachmentId`,`CourseId`,`ElectiveId`,`AttachmentName`,`AttachmentAddr`,`CreateDate`)
+	  		 VALUES(#{schoolId},#{schoolYear},#{term},#{attachmentId},#{courseId},#{electiveId},#{attachmentName},#{attachmentAddr},#{createDate});
+	 </update>
+	  <!-- 附件功能查询-->
+	 <select id="getAttachmentEL" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	    SELECT a.`AttachmentId` as attachmentId,a.`AttachmentAddr` as attachmentAddr,a.`CourseId` as courseId,a.`ElectiveId` as electiveId,a.`AttachmentName` as attachmentName 
+	     FROM ${db_name_elective}.`t_se_attachment` a 
+	   WHERE  CONCAT(a.`SchoolYear`,a.`term`)=#{termInfo}
+		AND a.`SchoolId`=#{schoolId} 
+		<if test="isNotNull==null or isNotNull==''">
+			AND a.`CourseId`!=""
+		</if>
+		<if test="courseId!=null and courseId!=''">
+			AND a.`CourseId`=#{courseId}
+		 </if>
+		 <if test="attachmentId!=null and attachmentId!=''">
+			 AND a.`AttachmentId`=#{attachmentId}
+		 </if>
+		 <if test="electiveId!=null and electiveId!=''">
+			 AND a.`ElectiveId`=#{electiveId} 
+		 </if>
+	 </select>
+	 <!-- 附件功能删除-->
+	  <update  id="deleteAttachmentEL" parameterType="com.alibaba.fastjson.JSONObject" >
+	 	DELETE FROM  ${db_name_elective}.`t_se_attachment` WHERE  `AttachmentId`=#{attachmentId}
+	  </update>
+	   <update  id="deleteAttachmentByElectiveIdEL" parameterType="com.alibaba.fastjson.JSONObject" >
+	 	DELETE FROM  ${db_name_elective}.`t_se_attachment` WHERE  `SchoolId`=#{schoolId} And `ElectiveId` = #{electiveId}
+	  </update>
+	  <!-- 更新附件 -->
+	  <update id="updateAttachmentEL" parameterType="com.alibaba.fastjson.JSONObject" >
+	      update ${db_name_elective}.`t_se_attachment` set CourseId = #{courseId} where SchoolId=#{schoolId} and ElectiveId=#{electiveId}  and AttachmentId=#{attachmentId}
+	  </update>
+</mapper>
+

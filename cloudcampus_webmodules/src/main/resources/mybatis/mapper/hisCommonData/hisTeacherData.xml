@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.commondata.dao.HisCommonDataDao">
+  <!-- 通过机构id 机构type 查询教师accountId name -->
+   <select id="getOrgTeacherList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  	SELECT DISTINCT a.id,a.name FROM ( 
+        SELECT m.orgId ,m.userId FROM  ${db_name_hisCommonData}${termInfoId}.`t_org_member` m  
+	    	UNION
+	    SELECT h.`orgId`,h.`headerId` AS userId FROM  ${db_name_hisCommonData}${termInfoId}.`t_org_header` h 
+          )l
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_orginfo` t ON l.`orgId`=t.`id`
+	INNER JOIN  ${db_name_hisCommonData}${termInfoId}.t_school_org so ON t.id=so.`orgId`
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_user` u ON l.`userId`=u.`id`
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_account` a ON u.accountId=a.id 
+	WHERE  so.`schoolId`=#{schoolId} AND t.`status`='1'
+	<if test="orgIdList!=null   and orgIdList.size() > 0">
+	  AND l.`orgId` IN
+     	<foreach collection="orgIdList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     </if>
+     <if test="name!=null and name!=''"> 
+      AND a.`name` LIKE CONCAT('%',#{name},'%') 
+     </if>
+     <if test="type!=null and type!=''"> 
+      AND t.`orgType`=#{type}
+     </if>
+  </select>
+	 <!-- 查询年级组和教研组共有的教师交集   accountId name -->
+  <select id="getOrgIntersectionTeacherList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  	SELECT DISTINCT a.id,a.name FROM ( 
+        SELECT m.orgId ,m.userId FROM  ${db_name_hisCommonData}${termInfoId}.`t_org_member` m  
+	    	UNION
+	    SELECT h.`orgId`,h.`headerId` AS userId FROM  ${db_name_hisCommonData}${termInfoId}.`t_org_header` h 
+          )l
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_orginfo` t ON l.`orgId`=t.`id`
+	INNER JOIN  ${db_name_hisCommonData}${termInfoId}.t_school_org so ON t.id=so.`orgId`
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_user` u ON l.`userId`=u.`id`
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_account` a ON u.accountId=a.id
+	left JOIN
+	(
+	  	SELECT DISTINCT u.`accountId` FROM ( 
+        SELECT m.orgId ,m.userId FROM  ${db_name_hisCommonData}${termInfoId}.`t_org_member` m  
+	    	UNION
+	    SELECT h.`orgId`,h.`headerId` AS userId FROM  ${db_name_hisCommonData}${termInfoId}.`t_org_header` h 
+          )ll
+		INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_orginfo` t ON ll.`orgId`=t.`id`
+		INNER JOIN  ${db_name_hisCommonData}${termInfoId}.t_school_org so ON t.id=so.`orgId`
+		INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_user` u ON ll.`userId`=u.`id`
+		WHERE  so.`schoolId`=#{schoolId} AND t.`status`='1' AND t.`orgType`='1'	
+		<if test="orgResearchIdList!=null   and orgResearchIdList.size() > 0">
+	  	AND ll.`orgId` IN
+     	<foreach collection="orgResearchIdList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     	</if>	  
+	)a2 ON a.`id`=a2.accountId	 
+	WHERE  so.`schoolId`=#{schoolId} AND t.`status`='1' AND t.`orgType`='2'	
+	<if test="orgGradeIdList!=null   and orgGradeIdList.size() > 0">
+	  AND l.`orgId` IN
+     	<foreach collection="orgGradeIdList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     </if>
+     <if test="name!=null and name!=''"> 
+      AND a.`name` LIKE CONCAT('%',#{name},'%') 
+     </if>
+  </select>
+  <!-- 获取全校当前任课的老师信息accountId name userid 任课班级id 课程id-->
+  <select id="getCourseTeacherList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+    SELECT a.id as teaId,a.name as teaName,u.id AS userId,u.`role`,tc.`classId`,tc.`lessonId`,IFNULL(l.`name`,'')AS lessonName FROM ${db_name_hisCommonData}${termInfoId}.t_teacher_course tc
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_user` u ON  tc.`teacherId`=u.`id`
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_account` a ON u.accountId=a.id AND a.`status`='1'
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_lessoninfo` l ON tc.lessonId=l.id
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_class` c ON c.`id`=tc.`classId` 
+	<if test="njdmList!=null   and njdmList.size() > 0"> 
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.t_grade g ON c.`gradeId`=g.`id` AND g.`status`='1'
+	</if>
+	WHERE c.`schoolId`=#{schoolId} AND a.`status`='1' 
+	 <if test="name!=null and name!=''"> 
+      AND a.`name` LIKE CONCAT('%',#{name},'%') 
+     </if>
+     <if test="lessonIdList!=null   and lessonIdList.size() > 0"> 
+      	  AND tc.lessonId IN
+     	<foreach collection="lessonIdList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     </if>
+	 <if test="classIdList!=null   and classIdList.size() > 0"> 
+        AND tc.classId IN
+        <foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     </if>
+     <if test="njdmList!=null   and njdmList.size() > 0"> 
+      AND  g.`createLevel`+IF(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0,#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)),0) IN
+        <foreach collection="njdmList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     </if>      
+	ORDER BY a.id;
+  </select>
+    <!-- 获取班主任老师信息accountId name userid deanOfClassIds-->
+  <select id="getDeanList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+  	SELECT a.id,a.name,u.id AS userId,u.`role`,GROUP_CONCAT(c.`id`)AS deanOfClassIds FROM ${db_name_hisCommonData}${termInfoId}.t_class c
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_user` u ON c.`headTeacherId`=u.`id` AND u.`role`='1' 
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_account` a ON u.accountId=a.id
+	<if test="njdmList!=null   and njdmList.size() > 0"> 
+	INNER JOIN ${db_name_hisCommonData}${termInfoId}.t_grade g ON c.`gradeId`=g.`id` AND g.`status`='1'
+	</if>
+	WHERE c.`status`='1' AND c.`schoolId`=#{schoolId} AND a.`status`='1'  
+     <if test="name!=null and name!=''"> 
+      AND a.`name` LIKE CONCAT('%',#{name},'%') 
+     </if>
+	 <if test="classIdList!=null   and classIdList.size() > 0"> 
+        AND c.id IN
+        <foreach collection="classIdList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     </if>
+     <if test="njdmList!=null   and njdmList.size() > 0"> 
+     AND g.`createLevel`+IF(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0,#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)),0) IN
+        <foreach collection="njdmList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+     </if>      
+	GROUP BY a.id ORDER BY a.id;
+  </select>
+  
+  <!-- 获取全校所有教职工accountId name userid-->
+  <select id="getAllSchoolEmployees" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT  DISTINCT a.id,a.name,u.id AS userId,u.`role` FROM 
+		(SELECT t.teacherId FROM  ${db_name_hisCommonData}${termInfoId}.t_teacher t WHERE t.`schoolId`=#{schoolId}
+		UNION SELECT t.managerId AS teacherId FROM  ${db_name_hisCommonData}${termInfoId}.`t_schoolmanager` t WHERE t.`schoolId`=#{schoolId}
+		UNION SELECT t.staffId AS teacherId FROM  ${db_name_hisCommonData}${termInfoId}.`t_sstaff` t WHERE t.`schoolId`=#{schoolId}
+		)t
+		INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_user` u ON  t.`teacherId`=u.`id` 
+		INNER JOIN ${db_name_hisCommonData}${termInfoId}.`t_account` a ON u.accountId=a.id 
+		WHERE a.`status`='1'
+		<if test="name!=null and name!=''"> 
+      	AND a.`name` LIKE CONCAT('%',#{name},'%') 
+     	</if>
+		ORDER BY a.id;
+  </select>
+  
+</mapper>

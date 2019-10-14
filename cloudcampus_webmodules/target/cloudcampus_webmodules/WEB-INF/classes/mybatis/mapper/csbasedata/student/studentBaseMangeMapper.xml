@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.csbasedata.dao.StudentBaseManageDao">
+	<select id="getStudentRepeatListSTUDENT" parameterType="JSONObject"  resultType="JSONObject">
+	SELECT s.`accountId`,s.`stdId` AS studentId,s.`schoolId`,a.`name`,s.`schoolNumber`,s.`stdNumber`
+	 FROM ${dbname_student}.t_student s 
+	 INNER JOIN ${dbname_student}.t_user u ON  u.id =s.`stdId`
+	 INNER JOIN ${dbname_student}.t_account a ON a.id=s.accountId
+	WHERE  s.`schoolId`=#{schoolId} 
+		<if test="stdNumber!=null and stdNumber!=''">
+			AND s.`stdNumber`=#{stdNumber}
+		</if>
+		<if test="schoolNumber!=null and schoolNumber!=''">
+			AND s.`schoolNumber`=#{schoolNumber}
+		</if>
+		<if test="noAccountId!=null and noAccountId!=''">
+			AND s.accountId!=#{noAccountId} 
+		</if>
+		AND s.status=1 AND a.status=1 AND u.status=1
+	</select>
+	<select id="getStudentAccountObjSTUDENT" parameterType="JSONObject" resultType="JSONObject">
+		SELECT  IFNULL(a.mobilePhone,"") AS mobilePhone,a.id,IFNULL(a.accountName,"") AS accountName
+		 FROM ${dbname_student}.t_account a 
+		INNER JOIN ${dbname_student}.t_user u   ON a.id=u.accountId AND u.status=1 AND a.status=1
+		INNER JOIN ${dbname_student}.t_student s ON s.accountId = a.id AND s.status=1 
+		WHERE s.schoolId=#{schoolId}
+			<if test="classId!=null and classId!=''">
+		 		AND s.classId=#{classId} 
+		 	</if>
+		    <if test="accountId!=null and accountId!=''">
+				AND a.id=#{accountId} 
+			</if>
+			<if test="noAccountId!=null and noAccountId!=''">
+				AND a.id!=#{noAccountId} 
+			</if>
+			<if test="accountName!=null and accountName!=''">
+				AND a.accountName=#{accountName} 
+			</if>
+			<if test="name!=null and name!=''">
+				AND a.name=#{name} 
+			</if>
+	</select>
+	<select id="getAccountObjSTUDENT" parameterType="JSONObject" resultType="JSONObject">
+		SELECT IFNULL(mobilePhone,"") AS mobilePhone,id,IFNULL(accountName,"") AS accountName 
+		FROM ${dbname_student}.t_account a  
+			WHERE 
+			<if test="accountId!=null and accountId!=''">
+				 a.id=#{accountId} 
+			</if>
+			<if test="accountName!=null and accountName!=''">
+				 a.accountName=#{accountName} 
+			</if>
+			 <if test="ids!=null and ids!='' and ids.size()>0">
+		 	  a.accountName IN 
+			 <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		AND a.status=1 
+	</select>
+	<!-- <select id="getAccountObjByAccountNameSTUDENT" parameterType="JSONObject" resultType="JSONObject">
+		SELECT IFNULL(mobilePhone,"") AS mobilePhone,id,IFNULL(accountName,"") AS accountName 
+		FROM ${dbname_student}.t_account a  
+			WHERE  EXISTS(
+			select * from ${dbname_student}.t_account b
+				where  b.accountName=#{accountName}  and
+				 b.status=1
+				 ) 
+	</select> -->
+	<select id="getAccountSTUDENT" parameterType="JSONObject" resultType="JSONObject">
+		SELECT a.`uuid`,a.`name`,a.id AS accountId,a.accountName 
+		FROM ${dbname_student}.t_account a
+		WHERE 
+		 <if test="ids!=null and ids!='' and ids.size()>0">
+		 	 a.`uuid`IN 
+			 <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		AND a.status=1 
+	</select>
+	<select id="getUserListSTUDENT"  parameterType="JSONObject" resultType="JSONObject">
+		SELECT u.id AS userId,u.uuid  
+		FROM ${dbname_student}.t_user u WHERE 
+ 		<if test="ids!=null and ids!='' and ids.size()>0">
+		 	 u.uuid IN 
+			 <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		AND u.status=1 
+	</select>
+	<select id="getAccountListSTUDENT"  parameterType="JSONObject" resultType="JSONObject">
+		SELECT a.id AS accountId,a.uuid  ,a.accountName
+		FROM ${dbname_student}.t_account a WHERE 
+ 		<if test="ids!=null and ids!='' and ids.size()>0">
+		 	 a.uuid IN 
+			 <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		AND a.status=1 
+	</select>
+	<update id="resetAdminPasswordSTUDENT" parameterType="JSONObject">
+		UPDATE ${dbname_student}.t_account SET pwd=#{pwd} ,autoUpdateTime=NOW()
+			WHERE id=#{accountId} AND `status` =1;
+	</update>
+	<update id="deleteAccountSTUDENT"  parameterType="JSONObject">
+		DELETE FROM ${dbname_student}.t_account 
+		WHERE 
+		<if test="accountId!=null and accountId!=''">
+			 id=#{accountId}
+		</if>
+		 <if test="ids!=null and ids!='' and ids.size()>0">
+             id IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+	</update>
+	<update id="deleteUserSTUDENT" parameterType="JSONObject">
+		DELETE FROM ${dbname_student}.t_user 
+		WHERE 
+		<if test="userId!=null and userId!=''">
+			 id=#{userId} 
+		</if>
+		 <if test="ids!=null and ids!='' and ids.size()>0">
+             id IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+	</update>
+	<update id="deleteParentSTUDENT" parameterType="JSONObject">
+		DELETE FROM ${dbname_student}.t_parent 
+		<where> 
+		<if test="parentUserId!=null and parentUserId!=''">
+				parentId=#{parentUserId} 
+		</if>
+		 <if test="ids!=null and ids!='' and ids.size()>0">
+             parentId IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+       </where>
+	</update>
+	<update id="deleteStudentSTUDENT" parameterType="JSONObject">
+		DELETE FROM ${dbname_student}.t_student 
+		WHERE 
+		<if test="userId!=null and userId!='' ">
+			 stdId=#{userId} 
+		</if>
+		 <if test="ids!=null and ids!='' and ids.size()>0">
+             stdId IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+	</update>
+	<update id="deleteUserExtendSTUDENT" parameterType="JSONObject" >
+		DELETE FROM ${dbname_student}.t_user_extend 
+		WHERE  schoolId=#{schoolId} 
+		<if test="userId!=null and userId!='' ">
+			AND userId =#{userId}
+		</if>
+		 <if test="ids!=null and ids!='' and ids.size()>0">
+          AND   userId IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+	</update>
+	<select id="getUserExtendSTUDENT" parameterType="JSONObject" resultType="JSONObject">
+	  SELECT * FROM ${dbname_student}.t_user_extend
+	   WHERE schoolId=#{schoolId}
+		<if test="userId!=null and userId!=''">
+		  AND userId!=#{userId}
+		</if>
+		<if test="electronicCardNumber!=null and electronicCardNumber!=''">
+		 AND cardNumber=#{electronicCardNumber}  
+		</if>
+	</select>
+	<select id="getUserExtendNameSTUDENT" parameterType="JSONObject" resultType="JSONObject">
+	  SELECT * FROM ${dbname_student}.`t_user_extend` ue 
+		INNER JOIN ${dbname_student}.t_account a ON  a.`id`=ue.`accountId` AND a.`status`=1 
+		WHERE ue.`schoolId`=#{schoolId}  
+		<if test="userId!=null and userId!=''">
+		  AND ue.userId!=#{userId}
+		</if>
+		<if test="electronicCardNumber!=null and electronicCardNumber!=''">
+		  AND ue.cardNumber=#{electronicCardNumber}  
+		</if>
+	</select>
+	<select id="getStudentInfoSTUDENT" parameterType="JSONObject" resultType="JSONObject">
+		SELECT IFNULL(s.stdNumber,"") AS studentNumber,IFNULL(s.sindex,"") AS seatNumber,IFNULL(s.schoolNumber,"") AS studentCard ,
+		IFNULL(a.name,"") AS studentName,IFNULL(IF(a.gender=1,"男",IF(a.`gender`=2,"女","")),"") AS gender, SUBSTR(FROM_UNIXTIME(a.`createTime`),1,10) AS createTime, IFNULL(ue.cardNumber,"") AS electronicCardNumber
+		FROM ${dbname_student}.t_student s
+		INNER JOIN ${dbname_student}.t_account a ON  a.id=s.accountId AND s.status=1 AND a.status=1 
+		LEFT JOIN ${dbname_student}.t_user_extend ue ON  ue.accountId=a.id AND ue.userId=s.stdId AND ue.status=1 
+		WHERE s.stdId=#{userId} AND s.status=1 ;  
+	</select>
+	<select  id="getStudentGradeAndClassSTUDENT" parameterType="JSONObject" resultType="JSONObject">
+		SELECT s.classId,s.gradeId,IFNULL(c.className,"") AS className,IF(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)) ,g.createLevel ) AS currentLevel   
+		FROM ${dbname_student}.t_student s 
+		INNER JOIN ${dbname_student}.t_grade g ON s.gradeId=g.id AND s.status=1 AND g.status=1
+		INNER JOIN ${dbname_student}.t_class c ON s.classId = c.id AND c.status=1 AND  s.status=1 AND g.status=1
+		WHERE s.schoolId=#{schoolId} AND s.stdId=#{userId} ;
+	</select>
+	<select id="getStudentTotalSTUDENT" parameterType="JSONObject" resultType="Integer">
+	<!-- SELECT COUNT(*) FROM ${dbname_student}.t_student s 
+		WHERE s.schoolId=#{schoolId} AND s.status=1 
+		AND s.classId IS NOT NULL AND s.gradeId IS NOT NULL; -->
+		 SELECT  COUNT(*) FROM ${dbname_student}.t_student s 
+		INNER JOIN ${dbname_student}.t_account a ON a.id=s.accountId AND a.status=1 AND s.status=1
+		INNER JOIN ${dbname_student}.t_class c ON c.id=s.classId AND c.status=1 AND s.status=1
+		INNER JOIN ${dbname_student}.t_grade g ON g.id= s.gradeId AND g.status=1 AND s.status=1
+		WHERE s.schoolId=#{schoolId} 
+	</select>
+	<select id="getStudentListSTUDENT" parameterType="JSONObject" resultType="JSONObject">
+	  SELECT IFNULL(a.name,"") AS studentName,s.stdId AS studentId, a.id AS accountId, IFNULL(IF(a.gender=1,"男",IF(a.`gender`=2,"女","")),"") AS gender,IFNULL(a.accountName,"") AS studentAccountName,
+		IFNULL(c.className,"") AS className,IF(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)) ,g.createLevel ) AS currentLevel 
+		 FROM ${dbname_student}.t_student s 
+		INNER JOIN ${dbname_student}.t_account a ON a.id=s.accountId AND a.status=1 AND s.status=1
+		INNER JOIN ${dbname_student}.t_class c ON c.id=s.classId AND c.status=1 AND s.status=1
+		INNER JOIN ${dbname_student}.t_grade g ON g.id= s.gradeId AND g.status=1 AND s.status=1
+		WHERE s.schoolId=#{schoolId} 
+		<!-- <if test="condition!=null and condition!=''">
+		AND (  
+		a.name LIKE  '%${condition}%'
+		OR 
+		a.mobilePhone LIKE  '%${condition}%'
+		OR 
+		a.accountName LIKE  '%${condition}%'  
+		)
+		</if> -->
+		<if test="gradeId!=null and gradeId!=''">
+		 AND g.id=#{gradeId}
+		</if>
+		<if test="classId!=null and classId!=''">
+		AND c.id=#{classId}
+		</if>
+		ORDER BY  IF(
+		    #{xn} - YEAR(FROM_UNIXTIME(g.`createTime`)) > 0,
+		    #{xn} - YEAR(FROM_UNIXTIME(g.`createTime`)),
+	   		 g.createLevel
+  		) ,a.id;		
+	</select>
+	<select id="getParentStudentListSTUDENT" parameterType="JSONObject" resultType="JSONObject">
+		SELECT p.parentId ,p.studentId
+		<!-- ,IFNULL(a.accountName,"") AS  parentAccountName,a.accountStatus AS parentAccountStatus,a.id AS parentAccountId -->
+		FROM ${dbname_student}.t_parent p 
+		<!-- INNER JOIN ${dbname_student}.t_user u ON u.id=p.parentId AND u.status=1
+		INNER JOIN ${dbname_student}.t_account a ON a.id=u.accountId AND u.status=1 AND a.status=1 -->
+	 <where>
+		 <if test="ids!=null and ids!='' and ids.size()>0">
+           p.studentId IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+	 </where>  
+	</select>
+	<select id="getParentListSTUDENT" parameterType="JSONObject" resultType="JSONObject">
+		SELECT 
+		  u.`id` AS parentUserId,
+		  IFNULL(a.accountName, "") AS parentAccountName,
+		  a.accountStatus AS parentAccountStatus,
+		  a.id AS parentAccountId ,a.mobilePhone as parentMobilePhone
+		FROM
+		    ${dbname_student}.t_account a  
+		    INNER JOIN ${dbname_student}.t_user u ON u.accountId=a.id 
+		    AND u.`status` =1 AND a.`status`=1
+		 <where>
+			 <if test="ids!=null and ids!='' and ids.size()>0">
+	           u.id IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+	       </if>
+		 </where>  
+	</select>
+	<select id="getStudentIdsSTUDENT"  parameterType="JSONObject" resultType="String">
+		SELECT s.stdId 
+		FROM ${dbname_student}.t_student s 
+		INNER JOIN ${dbname_student}.t_account a ON a.id=s.accountId AND a.status=1 AND s.status=1
+		INNER JOIN ${dbname_student}.t_class c ON c.id=s.classId AND c.status=1 AND s.status=1
+		INNER JOIN ${dbname_student}.t_grade g ON g.id= s.gradeId AND g.status=1 AND s.status=1
+		WHERE s.schoolId=#{schoolId} AND s.status=1
+		<!-- <if test="condition!=null and condition!=''">
+		AND (  
+		a.name LIKE  '%${condition}%'
+		OR 
+		a.mobilePhone LIKE  '%${condition}%' 
+		OR 
+		a.accountName LIKE  '%${condition}%' 
+		)
+		</if> -->
+		<if test="gradeId!=null and gradeId!=''">
+		 AND g.id=#{gradeId}
+		</if>
+		<if test="classId!=null and classId!=''">
+		AND c.id=#{classId}
+		</if>
+	</select>
+	<update id="insertUserExtendSTUDENT"  parameterType="JSONObject"  >
+		INSERT INTO ${dbname_student}.t_user_extend(cardNumber,accountId,userId,schoolId)
+		VALUES (#{electronicCardNumber},#{accountId},#{userId},#{schoolId})
+	</update>
+	<update id="deleteUserExtendBatchSTUDENT"  parameterType="JSONObject"  >
+		DELETE FROM ${dbname_student}.`t_user_extend`  
+		WHERE `schoolId`=#{schoolId} 
+		<if test="ids!=null and ids!='' and ids.size() > 0">           
+		  	 AND 	`userId` in 
+		    <foreach collection="ids" index="index" item="item" open="("   separator="," close=")"> 
+		     #{item}
+		    </foreach>
+     	</if> 
+	</update>
+	<update id="insertUserExtendBatchSTUDENT"  parameterType="java.util.List"  >
+		INSERT INTO ${dbname_student}.t_user_extend(cardNumber,accountId,userId,schoolId)
+		VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+		 (#{item.electronicCardNumber},#{item.accountId},#{item.userId},#{item.schoolId})
+		 </foreach>
+	</update>
+	<update id="insertStudentSTUDENT" parameterType="JSONObject" >
+		INSERT INTO ${dbname_student}.t_student(`name`,stdId,schoolNumber,stdNumber,sindex,gradeId,classId,schoolId,accountId)
+		VALUES (#{name},#{userId},#{studentCard},#{studentNumber},#{seatNumber},#{gradeId},#{classId},#{schoolId},#{accountId});
+	</update>
+	<update id="insertStudentBatchSTUDENT" parameterType="java.util.List" >
+		INSERT INTO ${dbname_student}.t_student(name,stdId,schoolNumber,stdNumber,sindex,gradeId,classId,schoolId,accountId)
+		VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+		 (#{item.name},#{item.userId},#{item.studentCard},#{item.studentNumber},#{item.seatNumber},#{item.gradeId},#{item.classId},#{item.schoolId},#{item.accountId})
+		</foreach>
+	</update>
+	<update id="insertParentSTUDENT" parameterType="JSONObject" >
+		INSERT INTO ${dbname_student}.t_parent(parentId,studentId,classId) 
+		VALUES(#{parentUserId},#{userId},#{classId})
+	</update>
+	<update id="insertParentBatchSTUDENT" parameterType="java.util.List" >
+		INSERT INTO ${dbname_student}.t_parent(parentId,studentId,classId) 
+		VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+		(#{item.parentUserId},#{item.userId},#{item.classId})
+		</foreach>
+	</update>
+	<update id="updateParentBatchSTUDENT" parameterType="java.util.List" >
+		INSERT INTO ${dbname_student}.t_parent(parentId,classId) 
+		VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+		(#{item.parentUserId},#{item.classId})
+		</foreach>
+		 on DUPLICATE KEY UPDATE
+		 classId=values(classId),autoUpdateTime=NOW()
+	</update>
+	<update id="insertAccountSTUDENT" parameterType="JSONObject" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO ${dbname_student}.t_account(`uuid`,accountName,pwd,accountStatus,`name`,gender,mobilePhone,createTime) 
+		VALUES (#{uuid},#{accountName},#{pwd},#{accountStatus},#{name},#{gender},#{mobilePhone},UNIX_TIMESTAMP())
+	</update>
+	<update id="insertAccountBatchSTUDENT" parameterType="java.util.List" >
+		INSERT INTO ${dbname_student}.t_account(`uuid`,accountName,pwd,accountStatus,`name`,gender,mobilePhone,createTime) 
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.uuid},#{item.accountName},#{item.pwd},#{item.accountStatus},#{item.name},#{item.gender},#{item.mobilePhone},#{item.createTime})
+		</foreach>
+	</update>
+	<update id="updateAccountBatchSTUDENT" parameterType="java.util.List" >
+		INSERT INTO ${dbname_student}.t_account(id,name,gender) 
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.id},#{item.name},#{item.gender})
+		</foreach>
+		  on DUPLICATE KEY UPDATE   
+		  autoUpdateTime=NOW(),name=values(name),gender=values(gender)
+	</update>
+	<update id="updateAccountPWDBatchSTUDENT" parameterType="java.util.List" >
+		INSERT INTO ${dbname_student}.t_account(id,pwd) 
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.id},#{item.pwd})
+		</foreach>
+		  on DUPLICATE KEY UPDATE   
+		  pwd=values(pwd),autoUpdateTime=NOW()
+	</update>
+	<update id="updateParentAccountPhoneBatchSTUDENT" parameterType="java.util.List" >
+		INSERT INTO ${dbname_student}.t_account(id,mobilePhone) 
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.id},#{item.mobilePhone})
+		</foreach>
+		  on DUPLICATE KEY UPDATE   
+		  mobilePhone=values(mobilePhone),autoUpdateTime=NOW()
+	</update>
+	<update id="insertUserSTUDENT" parameterType="JSONObject" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO ${dbname_student}.t_user(`uuid`,role,createTime,avatar,accountId) 
+		VALUES (#{uuid},#{role},UNIX_TIMESTAMP(),#{avatar},#{accountId})
+	</update>
+	<update id="insertUserBatchSTUDENT" parameterType="java.util.List" >
+		INSERT INTO ${dbname_student}.t_user(`uuid`,role,createTime,avatar,accountId) 
+		VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+			 (#{item.uuid},#{item.role},UNIX_TIMESTAMP(),#{item.avatar},#{item.accountId})
+		</foreach>
+	</update>
+	<update id="updateStudentBatchSTUDENT" parameterType="java.util.List" >
+		INSERT INTO ${dbname_student}.t_student(stdId,schoolId,accountId,sindex,gradeId,classId,stdNumber,schoolNumber) 
+		VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+			 (#{item.stdId},#{item.schoolId},#{item.accountId},#{item.sindex},#{item.gradeId},#{item.classId},#{item.stdNumber},#{item.schoolNumber})
+		</foreach>
+		 on DUPLICATE KEY UPDATE
+		 sindex=values(sindex), autoUpdateTime=now(),gradeId=values(gradeId),classId=values(classId),stdNumber=values(stdNumber),schoolNumber=values(schoolNumber)
+	</update>
+	<update id="updateAccountPwdSTUDENT" parameterType="JSONObject" >
+		UPDATE  ${dbname_student}.t_account  
+		SET pwd=#{pwd} WHERE id=#{accountId} AND `status`=1
+	</update>
+	<!-- <update id="updateAccountPwdBatchSTUDENT" parameterType="JSONObject" >
+		UPDATE  ${dbname_student}.t_account  
+		set pwd = #{pwd}
+		 WHERE id = #{accountId} AND `status`=1
+	</update> -->
+	<update  id="updateParentAccountSTUDENT" parameterType="JSONObject" >
+	update  ${dbname_student}.t_account  
+	SET mobilePhone=#{mobilePhone},autoUpdateTime=NOW()
+	 where id=#{accountId} and `status`=1
+	</update>
+	<!-- <update  id="updateParentAccountBatchSTUDENT" parameterType="JSONObject" >
+	update  ${dbname_student}.t_account  
+	SET mobilePhone=#{mobilePhone},autoUpdateTime=NOW()
+	 WHERE id=#{accountId} and `status`=1
+	</update> -->
+	<update id="updateStudentAccountSTUDENT" parameterType="JSONObject" >
+	UPDATE  ${dbname_student}.t_account 
+	SET `name`=#{name},gender=#{gender},autoUpdateTime=NOW()
+	WHERE id=#{accountId} AND `status`=1
+	</update>
+	<!-- <update id="updateStudentAccountBatchSTUDENT" parameterType="JSONObject" >
+		UPDATE  ${dbname_student}.t_account 
+		SET `name`=#{name},gender=#{gender},autoUpdateTime=NOW()
+		WHERE id=#{accountId} AND `status`=1
+	</update> -->
+	<update id="updateStudentSTUDENT" parameterType="JSONObject" >
+	UPDATE ${dbname_student}.t_student
+	SET `name`=#{name},sindex=#{seatNumber},autoUpdateTime=NOW(),gradeId=#{gradeId},classId=#{classId},stdNumber=#{studentNumber},schoolNumber=#{studentCard}
+	WHERE stdId=#{userId} AND STATUS=1
+	</update>
+	<!-- <update id="updateStudentBatchSTUDENT" parameterType="JSONObject" >
+		UPDATE ${dbname_student}.t_student
+		SET sindex=#{seatNumber},autoUpdateTime=NOW(),gradeId=#{gradeId},classId=#{classId},stdNumber=#{studentNumber},schoolNumber=#{studentCard}
+		WHERE stdId=#{userId} AND STATUS=1
+	</update> -->
+	<update id="updateParentClassIdSTUDENT" parameterType="JSONObject" >
+	UPDATE ${dbname_student}.t_parent 
+	SET classId=#{classId} , autoUpdateTime=NOW()
+	WHERE parentId=#{parentId};
+	</update>
+	<update id="updateParentClassIdBatchSTUDENT" parameterType="JSONObject" >
+		UPDATE ${dbname_student}.t_parent 
+		SET classId=#{classId} , autoUpdateTime=NOW() 
+		WHERE parentId=#{parentId}
+	</update>
+	<select id="getGradeListBySchoolIdSTUDENT" parameterType="JSONObject" resultType="JSONObject">
+	   SELECT g.id AS gradeId,g.createLevel,IF(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)) ,g.createLevel ) AS currentLevel 
+	   FROM ${dbname_student}.t_grade g 
+	   WHERE g.schoolId=#{schoolId} AND g.status=1 
+	</select>
+	<select id="getClassListBySchoolIdSTUDENT" parameterType="JSONObject" resultType="JSONObject">
+	   SELECT IF(#{xn}-YEAR(FROM_UNIXTIME(g.`createTime`))>0, #{xn}-YEAR(FROM_UNIXTIME(g.`createTime`)) ,g.createLevel ) AS currentLevel   
+		,c.id AS classId,c.gradeId,c.className 
+		FROM ${dbname_student}.t_class c 
+		INNER JOIN ${dbname_student}.t_grade g ON  c.`gradeId`=g.`id` AND g.`status`=1 AND c.`status`=1 
+   		WHERE c.schoolId=#{schoolId} 
+	</select>
+	<select id="getStudentListBySchoolIdSTUDENT" parameterType="JSONObject" resultType="JSONObject">
+	SELECT a.name,u.id AS studentId,a.id AS accountId,p.parentId ,c.className
+		FROM ${dbname_student}.t_account  a 
+		INNER JOIN ${dbname_student}.t_user u ON   a.id=u.accountId AND role=#{role} AND a.status=1 AND u.status=1 
+		INNER JOIN ${dbname_student}.t_parent p ON p.studentId=u.id 
+		INNER JOIN ${dbname_student}.t_class c ON c.id = p.classId AND c.status=1 WHERE c.schoolId=#{schoolId}
+	</select>
+	<select id="getAccountByUserIdSTUDENT"  parameterType="JSONObject" resultType="JSONObject">
+	SELECT a.id AS accountId,a.mobilePhone,u.id as userId FROM ${dbname_student}.t_account a 
+		INNER JOIN ${dbname_student}.t_user u 
+		ON   a.id=u.accountId AND role=#{role} AND a.status=1 AND u.status=1 
+	 <where>
+		 <if test="ids!=null and ids!='' and ids.size()>0">
+           u.id IN
+          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+              #{item}
+          </foreach>  
+       </if>
+	 </where>  
+	</select>
+	<!-- <update id="updateStudentUserListSTUDENT"  parameterType="JSONObject" >
+		UPDATE ${dbname_student}.t_user SET accountId=#{accountId},autoUpdateTime=NOW()
+		WHERE `uuid`=#{studentUUID} AND `status`=1
+	</update> -->
+	<!-- <update id="updateParentUserListSTUDENT"  parameterType="JSONObject" >
+		UPDATE ${dbname_student}.t_user SET accountId=#{parentAccountId},autoUpdateTime=NOW()
+		WHERE `uuid`=#{parentUUID} AND `status`=1
+	</update> -->
+	<!-- <update id="updateUserExtendListSTUDENT"  parameterType="JSONObject" >
+	UPDATE  ${dbname_student}.t_user_extend 
+	SET accountId=#{accountId},userId=#{studentId},auto_updatetime=NOW()
+	 WHERE cardNumber=#{cardNumber} AND `status`=1
+	</update> -->
+	<!-- <update id="updateStudentListSTUDENT"  parameterType="JSONObject" >
+	UPDATE  ${dbname_student}.t_student SET accountId=#{accountId},autoUpdateTime=NOW() 
+	WHERE stdId=#{studentUUID} AND `status`=1
+	</update> -->
+	<!-- <update id="updateParentListSTUDENT"  parameterType="JSONObject" >
+	UPDATE ${dbname_student}.t_parent SET studentId=#{studentId},autoUpdateTime=NOW() 
+	WHERE parentId=#{parentUUID}
+	</update> -->
+</mapper>

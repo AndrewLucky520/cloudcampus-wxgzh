@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.discipline.dao.DisciplineDao">
+
+	<insert id="addDiscipline" parameterType="com.alibaba.fastjson.JSONObject">
+		insert into ${db_name_classdiscipline}.t_cd_degree (disciplineId
+		,schoolId, xnxq ,periodNum ,disciplineName , isImported ,
+		isPublished , createDate , period , publishFlag , publishTeacherFlag ) VALUES (
+		#{disciplineId} , #{schoolId} , #{xnxq} , #{periodNum} ,
+		#{disciplineName} ,
+		#{isImported} , #{isPublished} , #{createDate} , #{period} , #{publishFlag} ,
+		#{publishTeacherFlag}
+		)
+	</insert>
+
+	<select id="getDiscipline" parameterType="com.alibaba.fastjson.JSONObject"
+		resultType="com.alibaba.fastjson.JSONObject">
+		select disciplineId ,schoolId, xnxq ,periodNum ,disciplineName , isImported
+		,
+		isPublished , createDate , period , publishFlag , publishTeacherFlag
+		from ${db_name_classdiscipline}.t_cd_degree
+		where disciplineId = #{disciplineId}
+	</select>
+
+	<update id="updateDiscipline" parameterType="com.alibaba.fastjson.JSONObject">
+		UPDATE ${db_name_classdiscipline}.t_cd_degree SET disciplineName =
+		#{disciplineName}
+		<if test='xnxq!=null and xnxq!=""'>
+			, xnxq = #{xnxq}
+		</if>
+		<if test='periodNum !=null and periodNum != ""'>
+			, periodNum = #{periodNum}
+		</if>
+		WHERE disciplineId = #{disciplineId}
+	</update>
+	<delete id="deleteDiscipline" parameterType="com.alibaba.fastjson.JSONObject">
+		DELETE FROM ${db_name_classdiscipline}.t_cd_degree
+		WHERE disciplineId = #{disciplineId}
+	</delete>
+
+	<update id="updateDisciplinePublished" parameterType="com.alibaba.fastjson.JSONObject">
+		UPDATE ${db_name_classdiscipline}.t_cd_degree
+		SET isPublished = #{isPublished}
+		<if test="publishFlag!=null">
+			, publishFlag = #{publishFlag}
+		</if>
+		<if test="publishTeacherFlag!=null">
+			, publishTeacherFlag = #{publishTeacherFlag}
+		</if>
+		WHERE disciplineId = #{disciplineId}
+	</update>
+
+	<select id="getDisciplineList" parameterType="com.alibaba.fastjson.JSONObject"
+		resultType="com.alibaba.fastjson.JSONObject">
+		SELECT disciplineId ,schoolId, xnxq ,periodNum ,disciplineName ,
+		isImported ,
+		isPublished , createDate , period , publishFlag , publishTeacherFlag FROM
+		${db_name_classdiscipline}.t_cd_degree
+		WHERE period = #{period} AND schoolId = #{schoolId} AND xnxq= #{xnxq}
+		<if test='periodNum!=null and  periodNum!=""'>
+			AND periodNum = #{periodNum}
+		</if>
+		<if test='publishTeacherFlag!=null and  publishTeacherFlag!=""'>
+			AND publishTeacherFlag = #{publishTeacherFlag}
+		</if>
+		<if test='publishFlag!=null and  publishFlag!=""'>
+			AND publishFlag = #{publishFlag}
+		</if>
+		order by createDate desc
+	</select>
+
+	<insert id="insertDisciExcel" parameterType="java.util.List">
+		insert into ${db_name_classdiscipline}.t_cd_itemname (disciplineId
+		,schoolId, disciComponentId, disciComponentName, psalComponentId ,
+		rowspan ,colspan , rowNum , colNum ,headRowNum ) VALUES
+		<foreach collection="list" index="index" item="item"
+			separator=",">
+			(#{item.disciplineId},#{item.schoolId},#{item.en_disci},#{item.zh_disci},#{item.pen_disci},#{item.rowspan},#{item.colspan},#{item.in_rowNum},#{item.in_colNum},#{item.head_rowNum})
+		</foreach>
+	</insert>
+
+	<insert id="insertDisciDetail" parameterType="java.util.List">
+		insert into ${db_name_classdiscipline}.t_cd_list (disciplineId
+		,schoolId, classId, disciComponentId, score , rowNum) VALUES
+		<foreach collection="list" index="index" item="item"
+			separator=",">
+			(#{item.disciplineId},#{item.schoolId},#{item.classId},#{item.disciComponentId},#{item.score}
+			, #{item.rowNum} )
+		</foreach>
+	</insert>
+
+
+
+	<select id="getAllDisciplineExcel" parameterType="com.alibaba.fastjson.JSONObject"
+		resultType="com.alibaba.fastjson.JSONObject">
+		select disciplineId ,schoolId, disciComponentId, disciComponentName,
+		psalComponentId ,
+		rowspan ,colspan , rowNum , colNum ,headRowNum FROM
+		${db_name_classdiscipline}.t_cd_itemname a
+		where disciplineId = #{disciplineId}
+		ORDER BY rowNum, colNum
+	</select>
+
+	<select id="getAllDisciplineDetail" parameterType="com.alibaba.fastjson.JSONObject"
+		resultType="com.alibaba.fastjson.JSONObject">
+		select disciplineId ,schoolId, classId, disciComponentId, score ,
+		rowNum FROM ${db_name_classdiscipline}.t_cd_list a
+		where disciplineId = #{disciplineId}
+		<choose>
+			<when test="classIds != null">
+				AND classId IN
+				<foreach collection="classIds" item="item" index="index"
+					open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</when>
+		</choose>
+		order by a.rowNum
+	</select>
+
+	<update id="updateDisciplineImported" parameterType="com.alibaba.fastjson.JSONObject">
+		UPDATE ${db_name_classdiscipline}.t_cd_degree
+		SET isImported = 1
+		WHERE disciplineId = #{disciplineId}
+	</update>
+
+
+	<delete id="deleteDisciplineDetail" parameterType="com.alibaba.fastjson.JSONObject">
+		DELETE FROM ${db_name_classdiscipline}.t_cd_list
+		WHERE disciplineId = #{disciplineId}
+	</delete>
+	<delete id="deleteDisciplineExcel" parameterType="com.alibaba.fastjson.JSONObject">
+		DELETE FROM ${db_name_classdiscipline}.t_cd_itemname
+		WHERE disciplineId = #{disciplineId}
+	</delete>
+
+	<select id="getAPPClassList" parameterType="com.alibaba.fastjson.JSONObject"
+		resultType="com.alibaba.fastjson.JSONObject">
+		select a.classId, c.className  
+		FROM ${db_name_classdiscipline}.t_cd_list a 
+		inner join ${db_name_csCurCommonData}${termInfo}.t_class c on a.classId = c.id 
+		where a.disciplineId = #{disciplineId}
+		group by a.classId
+	</select>
+	
+	<select id="queryParentInfos" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		select a.extId as extId, s.stdId as stdId, s.name as stdName, c.className as className, a.name as name, c.id as classId 
+		from ${dbname_student}.t_account a
+		left join ${dbname_student}.t_user u on u.accountId = a.id
+		left join ${dbname_student}.t_parent p on p.parentId = u.id
+		left join ${dbname_student}.t_student s on s.stdId = p.studentId 
+		inner join ${dbname_student}.t_class c on s.classId = c.id 
+		where s.classId in
+		<foreach collection="classList" item="item" index="index"
+			open="(" separator="," close=")">
+			#{item}
+		</foreach>
+		and s.status = 1
+		and u.status = 1
+		and a.status = 1
+		group by a.extId
+	</select>
+	
+	<select id="queryTeacherInfos" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		select a.extId as extId, c.className as className, a.name as name, c.id as classId 
+		from ${dbname_teacher}.t_account a
+		left join ${dbname_teacher}.t_user u on u.accountId = a.id
+		left join ${dbname_teacher}.t_teacher_course s on s.teacherId = u.id 
+		inner join ${dbname_teacher}.t_class c on s.classId = c.id 
+		where s.classId in
+		<foreach collection="classList" item="item" index="index"
+			open="(" separator="," close=")">
+			#{item}
+		</foreach>
+		and u.status = 1
+		and a.status = 1
+		group by a.extId 
+		union 
+		select a.extId as extId, c.className as className, a.name as name, c.id as classId 
+		from ${dbname_teacher}.t_account a
+		left join ${dbname_teacher}.t_user u on u.accountId = a.id
+		inner join ${dbname_teacher}.t_class c on c.headTeacherId = u.id 
+		where c.id in
+		<foreach collection="classList" item="item" index="index"
+			open="(" separator="," close=")">
+			#{item}
+		</foreach>
+		and u.status = 1
+		and a.status = 1
+		group by a.extId 
+	</select>
+
+	<select id="getClassList" parameterType="com.alibaba.fastjson.JSONObject"
+		resultType="com.alibaba.fastjson.JSONObject">
+		select a.classId, c.className  
+		FROM ${db_name_classdiscipline}.t_cd_list a 
+		inner join ${dbname_teacher}.t_class c on a.classId = c.id 
+		where a.disciplineId = #{disciplineId}
+		group by a.classId
+	</select>
+	
+	<select id="getRecordInfo" parameterType="com.alibaba.fastjson.JSONObject"
+		resultType="com.alibaba.fastjson.JSONObject">
+		select a.disciplineId, a.tchRecord, a.parRecord
+		FROM ${db_name_classdiscipline}.t_cd_template_record a 
+		where a.disciplineId = #{disciplineId}
+	</select>
+	
+	<insert id="addRecordInfo" parameterType="com.alibaba.fastjson.JSONObject">
+		insert into ${db_name_classdiscipline}.t_cd_template_record (disciplineId
+		,tchRecord, parRecord ) VALUES (
+		#{disciplineId} , 0, 0
+		)
+	</insert>
+	
+	<update id="updateRecordInfo" parameterType="com.alibaba.fastjson.JSONObject">
+		UPDATE ${db_name_classdiscipline}.t_cd_template_record
+		<set>
+			<if test="tchRecord!=null">
+				tchRecord = #{tchRecord},
+			</if>
+			<if test="parRecord!=null">
+				parRecord = #{parRecord},
+			</if>
+		</set>
+		WHERE disciplineId = #{disciplineId}
+	</update>
+</mapper>

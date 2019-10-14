@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.csbasedata.dao.SchoolOMSManageDao">
+   <select id="getSelectAreaCodeListOMS"  parameterType="JSONObject" resultType="JSONObject">
+		SELECT * FROM ${dbname_schooloms}.t_dic_areacode	   
+   </select>
+   <select id="getSchoolInfoOMS"  parameterType="JSONObject" resultType="JSONObject">
+   SELECT s.uuid,IFNULL(group_concat(st.stage order by st.stage  asc),"") as teachingStage
+   ,s.areaCode,s.phone,SUBSTR(FROM_UNIXTIME(s.`createTime`),1,10) as createTime,s.schoolType,s.address AS schoolAddress
+   ,s.name AS schoolName,s.id AS schoolId 
+	FROM ${dbname_schooloms}.t_school s
+	LEFT JOIN  ${dbname_schooloms}.t_school_stage st ON st.schoolId=s.id
+	WHERE s.status=1 
+	<if test="schoolId!=null and schoolId!='' ">
+		AND s.id=#{schoolId} 
+	 </if>
+	 <if test="uuid!=null and uuid!='' ">
+	 	AND s.uuid=#{uuid} 
+	 </if>
+	GROUP BY s.id
+   </select>
+   <update id="insertSchoolStageBatchOMS" parameterType="java.util.List" >
+   INSERT INTO ${dbname_schooloms}.t_school_stage(schoolId,stage) 
+   VALUES 
+   	<foreach collection="list" item="item" index="index" separator=",">
+		 (#{item.schoolId},#{item.stage})
+    </foreach>
+   </update>
+    <update id="insertSchoolOMS" parameterType="JSONObject" >
+    INSERT INTO ${dbname_schooloms}.t_school(`uuid`,`name`,address,areaCode,phone,schoolType,createTime)
+    VALUES(#{uuid},#{name},#{address},#{areaCode},#{phone},#{schoolType},UNIX_TIMESTAMP())
+    </update>
+    <update id="deleteSchoolStageOMS" parameterType="JSONObject" >
+    DELETE FROM ${dbname_schooloms}.t_school_stage 
+    WHERE schoolId=#{schoolId}
+    </update>
+    <update id="updateSchoolOMS" parameterType="JSONObject" >
+    UPDATE ${dbname_schooloms}.t_school 
+    SET `address`=#{address},`name`=#{name},areaCode=#{areaCode},phone=#{phone},autoUpdateTime=NOW(),schoolType=#{schoolType} 
+    WHERE id=#{schoolId}
+    </update>
+    <select id="getSchoolManagerAccountObjOMS" parameterType="JSONObject" resultType="JSONObject">
+    SELECT IFNULL(a.mobilePhone,"") AS mobilePhone,a.id,IFNULL(a.accountName,"") AS accountName  
+		FROM ${dbname_schooloms}.t_account a  
+		INNER JOIN ${dbname_schooloms}.t_user u ON a.status=1 AND u.status=1 AND a.id=u.accountId 
+		INNER JOIN ${dbname_schooloms}.t_schoolmanager sm ON sm.schoolId = #{schoolId} AND sm.managerId=u.id 
+			WHERE a.status=1  
+			<if test="accountId!=null and accountId!=''">
+				AND a.id=#{accountId} 
+			</if>
+			<if test="noAccountId!=null and noAccountId!=''">
+				AND a.id!=#{noAccountId} 
+			</if>
+			<if test="accountName!=null and accountName!=''">
+				AND a.accountName=#{accountName} 
+			</if>
+			<if test="name!=null and name!=''">
+				AND a.name=#{name} 
+			</if>
+    </select>
+    <select id="getAccountObjOMS" parameterType="JSONObject" resultType="JSONObject">
+		SELECT IFNULL(a.mobilePhone,"") AS mobilePhone,a.id,IFNULL(a.accountName,"") AS accountName  
+		FROM ${dbname_schooloms}.t_account a  
+			WHERE a.status=1  
+			<if test="accountId!=null and accountId!=''">
+				AND a.id=#{accountId} 
+			</if>
+			<if test="accountName!=null and accountName!=''">
+				AND a.accountName=#{accountName} 
+			</if>
+			<if test="name!=null and name!=''">
+				AND a.name=#{name} 
+			</if>
+	</select>
+	<update id="insertAccountOMS" parameterType="JSONObject" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO ${dbname_schooloms}.t_account(`uuid`,accountName,pwd,accountStatus,`name`,gender,mobilePhone,createTime) 
+		VALUES (#{uuid},#{accountName},#{pwd},#{accountStatus},#{name},#{gender},#{mobilePhone},UNIX_TIMESTAMP());
+	</update>
+	<update id="updateAccountPwdOMS" parameterType="JSONObject" >
+		UPDATE  ${dbname_schooloms}.t_account  
+		SET pwd=#{pwd} WHERE id=#{accountId} AND `status`=1
+	</update>
+	<update id="insertSchoolLessonBatchOMS" parameterType="java.util.List" >
+	 INSERT INTO ${dbname_schooloms}.t_school_lesson(schoolId,lessonId)
+	 VALUES 
+	 <foreach collection="list" item="item" index="index" separator=",">
+		 (#{item.schoolId},#{item.lessonId})
+    </foreach>
+	</update>
+	<update id="insertJobtypeBatchOMS" parameterType="java.util.List" >
+	 INSERT INTO ${dbname_schooloms}.t_school_jobtype(schoolId,jobTypeId)
+	 VALUES 
+	 <foreach collection="list" item="item" index="index" separator=",">
+		 (#{item.schoolId},#{item.jobTypeId})
+    </foreach>
+	</update>
+	<update id="insertSchoolGradeStageOMS" parameterType="JSONObject" >
+	 INSERT INTO ${dbname_schooloms}.t_school_grade_stage(schoolid,graduatePrimary,graduateJunior,graduateHigh)
+	 VALUES (#{schoolId},#{graduatePrimary},#{graduateJunior},#{graduateHigh})
+	</update>
+	<update id="deleteSchoolGradeStageOMS" parameterType="JSONObject" >
+	 DELETE FROM ${dbname_schooloms}.t_school_grade_stage 
+	 WHERE schoolid=#{schoolId};
+	</update>
+	<update id="insertTermInfoOMS" parameterType="JSONObject" >
+	 INSERT INTO ${dbname_schooloms}.t_terminfo(startTime,endTime,`uuid`,schoolId)
+	 VALUES (#{startTime},#{endTime},#{uuid},#{schoolId})
+	</update>
+	<update id="insertOrgTypeBatchOMS"  parameterType="java.util.List">
+	INSERT INTO  ${dbname_schooloms}.t_school_orgtype(schoolId,orgTypeId) 
+	VALUES
+	 <foreach collection="list" item="item" index="index" separator=",">
+		 (#{item.schoolId},#{item.orgTypeId})
+    </foreach>
+	</update>
+	<update id="insertJobTypeBatchOMS"  parameterType="java.util.List">
+	INSERT INTO ${dbname_schooloms}.t_school_jobtype(schoolId,jobTypeId)
+	VALUES
+	 <foreach collection="list" item="item" index="index" separator=",">
+		 (#{item.schoolId},#{item.jobTypeId})
+    </foreach>
+	</update>
+	<!-- <update id="insertSchoolLessonBatch" parameterType="java.util.List">
+	INSERT INTO  ${dbname_schooloms}.t_school_lesson(schoolId,lessonId) 
+	VALUES
+	 <foreach collection="list" item="item" index="index" separator=",">
+		 (#{item.schoolId},#{item.lessonId})
+    </foreach>
+	</update> -->
+	<update id="deleteTermInfoOMS" parameterType="JSONObject" >
+		DELETE FROM ${dbname_schooloms}.t_terminfo WHERE schoolId=#{schoolId}
+	</update>
+	<select id = "getSchoolByNameOMS" parameterType="JSONObject" resultType="JSONObject">
+	SELECT * FROM  ${dbname_schooloms}.t_school s 
+	WHERE s.name=#{name} AND s.status=1
+		<if test="noSchoolId!=null and noSchoolId!=''">
+			and s.id != #{noSchoolId}
+		</if>
+	</select>
+	<update id="deleteSchoolLessonOMS" parameterType="JSONObject" >
+		DELETE FROM ${dbname_schooloms}.t_school_lesson 
+		WHERE schoolId=#{schoolId} 
+	</update>
+	<select id="getUserByAccountIdOMS" parameterType="JSONObject" resultType="JSONObject">
+		SELECT u.id AS userId,a.id AS accountId FROM ${dbname_admin}.t_account a 
+		INNER JOIN ${dbname_admin}.t_user u ON a.id=u.accountId AND u.role=#{role} AND u.status=1 AND a.status=1
+		<where>
+			<if test="accountId!=null and accountId!='' ">
+				a.id=#{accountId}
+			</if>
+			<if test="ids!=null and ids!='' and ids.size()>0">
+	         	 a.id IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       		</if>
+       	</where>
+	</select>
+	<select id="getOrgListByUUIDOMS" parameterType="JSONObject" resultType="JSONObject">
+	  SELECT o.uuid,o.id AS orgId FROM ${dbname_admin}.t_orginfo o
+        WHERE o.status=1 
+        <if test="ids!=null and ids!='' and ids.size()>0">
+	         	  AND o.uuid IN
+	          <foreach collection="ids" index="index" item="item" open="("   separator="," close=")">
+	              #{item}
+	          </foreach>  
+       		</if>
+	</select>
+	<update id="insertGradeBatchOMS" parameterType="JSONObject" >
+	INSERT INTO ${dbname_admin}.t_grade(`uuid`,createTime,createLevel,schoolId)
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+		 	(#{item.uuid},#{item.createTime},#{item.createLevel},#{item.schoolId})	 
+        </foreach>
+	</update>
+	<update id="insertSchoolPlateOMS"  parameterType="JSONObject" >
+	INSERT INTO ${dbname_auth}.`t_school_plate`(`schoolId`,`plateType`) VALUES(#{schoolId},1);
+	</update>
+</mapper>

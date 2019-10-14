@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.talkweb.community.dao.CommunityDao">
+	<select id="getCommunities" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		<if test="isAll == 1" >
+			select t_c_c.id communityId,t_c_c.name communityName,t_c_c.description ,(case when t_c_c_m.communityId is null then 0 else 1 end) isManager 
+			from ${db_name_community}${termInfoId}.t_cm_community  t_c_c 
+				left join (select communityId from ${db_name_community}${termInfoId}.t_cm_community_member where memberId =#{memberId} and position = 1 ) t_c_c_m 
+				on (t_c_c.id = t_c_c_m.communityId)
+			where t_c_c.schoolId = #{schoolId} and t_c_c.type = #{communityType}
+			<if test="communityName != null and communityName != ''">
+					and t_c_c.name like '%${communityName}%'
+				</if>
+		</if>
+		<if test="isAll != 1">
+			select t_c_c.id communityId,t_c_c.name communityName,t_c_c.description,(case when t_c_c_m.position = 1 then 1 else 0 end) isManager 
+			from ${db_name_community}${termInfoId}.t_cm_community t_c_c 
+					inner join ${db_name_community}${termInfoId}.t_cm_community_member t_c_c_m	
+			on( t_c_c.schoolId = #{schoolId} 
+				and t_c_c.type = #{communityType}
+				and t_c_c_m.memberId = #{memberId}
+				and t_c_c.id = t_c_c_m.communityId
+				<if test="communityName != null and communityName != ''">
+					and t_c_c.name like '%${communityName}%'
+				</if>
+			)
+			group by t_c_c.id
+		</if>
+	</select>
+	<select id="selectCommunityMembers"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		select memberId userId,memberName userName, position,communityId
+		from ${db_name_community}${termInfoId}.t_cm_community_member 
+		where communityId in (
+			<foreach collection="communities" item="item" separator=",">
+              #{item.communityId}
+        	</foreach>
+		)
+		order by communityId,position desc
+	</select>
+	<select id="selectCommunityNameExist" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" >
+		select count(1) isExist from ${db_name_community}${termInfoId}.t_cm_community
+		where name = #{communityName}
+		and type = #{communityType}
+		and schoolId = #{schoolId}
+		<if test="communityId != null and communityId != ''">
+			<![CDATA[ 
+			and id <> #{communityId}
+			]]> 
+		</if>
+	</select>
+	<insert id="insertCommunity" parameterType="com.alibaba.fastjson.JSONObject" >
+		insert into ${db_name_community}${termInfoId}.t_cm_community(id,name,description,type,schoolId)
+		values(#{communityId},#{communityName},#{description},#{communityType},#{schoolId})
+	</insert>
+	<insert id="insertCommunityMember" parameterType="com.alibaba.fastjson.JSONObject" >
+		insert into  ${db_name_community}${termInfoId}.t_cm_community_member(memberId,memberName,communityId,position)
+		values
+		<foreach collection="members" item="item" separator=",">
+              (#{item.userId},#{item.userName},#{communityId},#{item.position})
+        </foreach>
+	</insert>
+	<delete id="deleteCommunityMember" parameterType="com.alibaba.fastjson.JSONObject">
+		delete from ${db_name_community}${termInfoId}.t_cm_community_member
+		where communityId = #{communityId}
+	</delete>
+	<update id="updateCommunity"  parameterType="com.alibaba.fastjson.JSONObject" >
+			UPDATE ${db_name_community}${termInfoId}.t_cm_community
+			SET name = #{communityName},description =#{description}
+			WHERE id = #{communityId}
+	</update>
+	<delete id ="deleteCommunity"  parameterType="com.alibaba.fastjson.JSONObject" >
+			delete from  ${db_name_community}${termInfoId}.t_cm_community
+			where  id = #{communityId}
+	</delete>
+	<select id="getActions" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		select communityId,actionId,actionStartTime,actionEndTime,actionName,actionPlace,actionContent,actionType
+		from ${db_name_community}${termInfoId}.t_cm_action
+		where communityId = #{communityId}
+		order by autoCreateTime desc
+	</select> 
+	<insert id="insertAction" parameterType="com.alibaba.fastjson.JSONObject" >
+		insert into ${db_name_community}${termInfoId}.t_cm_action(actionId,communityId,actionStartTime,actionEndTime,actionName,actionPlace,actionContent,actionType)
+		values(#{actionId},#{communityId},#{actionStartTime},#{actionEndTime},#{actionName},#{actionPlace},#{actionContent},#{actionType})
+	</insert>
+	<update id="updateAction"  parameterType="com.alibaba.fastjson.JSONObject" >
+			UPDATE ${db_name_community}${termInfoId}.t_cm_action
+			SET actionStartTime = #{actionStartTime},
+				actionEndTime = #{actionEndTime},
+				actionName = #{actionName},
+				actionPlace = #{actionPlace},
+				actionContent = #{actionContent},
+				actionType = #{actionType}
+			WHERE actionId = #{actionId}
+	</update>
+	<delete id = "deleteAction"  parameterType="com.alibaba.fastjson.JSONObject" >
+			delete from  ${db_name_community}${termInfoId}.t_cm_action
+			where  actionId = #{actionId}
+	</delete>
+	<select id="selectStudents" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+			select stdId studentId,name studentName
+			from ${db_name_csCurCommonData}${termInfoId}.t_student
+			where schoolId = #{schoolId}
+				and name like '${studentName}%'
+	</select>
+</mapper>

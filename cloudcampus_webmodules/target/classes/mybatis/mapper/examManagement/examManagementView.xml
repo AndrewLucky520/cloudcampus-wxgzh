@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.exammanagement.dao.ExamManagementViewDao">
+	<select id="getExamPlaceInfo" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.examPlaceCode,a.examPlaceName,concat(a.buildingName,a.floor,a.roomName) as place,a.numOfExaminee,b.examSubjectGroupId,
+		IF(COUNT(*) = 1,d.examSubjName, GROUP_CONCAT(d.examSubjSimpleName ORDER BY d.subjectId,d.subjectLevel SEPARATOR '+')) AS subjectNames,
+		GROUP_CONCAT(
+		CONCAT(d.subjectId,'_',d.subjectLevel)  ORDER BY d.subjectId,d.subjectLevel SEPARATOR ','
+		) as subjectSort
+		from ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplaceinfo} a
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamplaceinfo} b on
+		a.schoolId=b.schoolId
+		and a.examPlaceId=b.examPlaceId
+		and a.examManagementId=b.examManagementId 
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamsubjectinfo} c on
+		a.schoolId=c.schoolId
+		and a.examManagementId=c.examManagementId
+		and b.examSubjectGroupId=c.examSubjectGroupId 
+		left join  ${dbRule.db_name_exammanagement}.${tableRule.t_em_examsubject} d on  a.schoolId=d.schoolId
+		and a.examManagementId=d.examManagementId
+		and c.examSubjectId=d.examSubjectId
+		where a.schoolId= #{data.schoolId} 
+		and a.examManagementId=#{data.examManagementId}
+			<if test="data.examSubjectGroupId!=null and data.examSubjectGroupId!=''">
+		    	and c.examSubjectGroupId in
+				<foreach collection="data.examSubjectGroupId" item="item" open="(" close=")"
+						separator=",">
+					 #{item}
+				</foreach>
+			</if>
+			GROUP BY a.examPlaceCode,c.examSubjectGroupId
+			order by subjectSort,a.examPlaceCode+0
+	</select>
+	
+	<select id="getTableCornerList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.examPlaceId,a.examPlaceName,b.seatNumber,b.tClassId,b.accountId,b.testNumber,d.examSubjectId,d.examSubjName,d.examSubjSimpleName,'' as tClassName,
+		d.startTime,d.endTime,b.examSubjectGroupId,d.subjectId,d.subjectLevel
+		from ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplaceinfo} a
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamresult} b on a.examManagementId=b.examManagementId
+		and a.examPlaceId=b.examPlaceId
+		and a.schoolId=b.schoolId
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamsubjectinfo} c on a.examManagementId=c.examManagementId
+		and a.schoolId=c.schoolId
+		and b.examSubjectGroupId=c.examSubjectGroupId
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_examsubject} d on a.examManagementId=d.examManagementId
+		and a.schoolId=d.schoolId
+		and c.examSubjectId=d.examSubjectId
+		where a.schoolId=#{data.schoolId}
+		and a.examManagementId=#{data.examManagementId}
+		and b.examPlanId=#{data.examPlanId}
+		<!-- 
+		<if test="data.examPlaceCode!=null and data.examPlaceCode!=''">
+		    and a.examPlaceCode =#{data.examPlaceCode}
+		 </if>
+		 -->
+		
+		 <if test="data.examPlaceId!=null and data.examPlaceId!=''">
+		    and a.examPlaceId =#{data.examPlaceId}
+		 </if>   
+		  <if test="data.minSeat!=null and data.minSeat!=''">
+		    and b.seatNumber BETWEEN #{data.minSeat}
+			AND #{data.maxSeat}
+		 </if> 
+		order by a.examPlaceCode+0,b.seatNumber,d.startTime
+		<!-- 
+		<if test="data.pageEnd!=null and data.pageEnd!=''">
+		   limit #{data.pageStart},#{data.curPageCount} 
+		</if>
+		 -->
+	</select>
+	
+	<select id="getTableCornerListcount" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+		SELECT count(*)
+		from ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplaceinfo} a
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamresult} b on a.examManagementId=b.examManagementId
+		and a.examPlaceId=b.examPlaceId
+		and a.schoolId=b.schoolId
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamsubjectinfo} c on a.examManagementId=c.examManagementId
+		and a.schoolId=c.schoolId
+		and b.examSubjectGroupId=c.examSubjectGroupId
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_examsubject} d on a.examManagementId=d.examManagementId
+		and a.schoolId=d.schoolId
+		and c.examSubjectId=d.examSubjectId
+		where a.schoolId=#{data.schoolId}
+		and a.examManagementId=#{data.examManagementId}
+		and b.examPlanId=#{data.examPlanId}
+		and a.examPlaceCode BETWEEN #{data.startExamPlaceCode} and #{data.endExamPlaceCode}
+		order by a.examPlaceCode+0,b.seatNumber,d.startTime
+	</select>
+	
+	<select id="getTableCornerSeatList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+	    
+	   		SELECT a.examPlaceId,b.seatNumber,a.examPlaceCode,a.examPlaceName from ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplaceinfo} a
+			LEFT  JOIN ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamresult} b
+			on a.examManagementId=b.examManagementId
+			and a.schoolId=b.schoolId
+			and a.examPlaceId=b.examPlaceId
+			where a.schoolId=#{data.schoolId}
+			and a.examManagementId=#{data.examManagementId}
+			and b.examPlanId=#{data.examPlanId}
+			and a.examPlaceCode BETWEEN #{data.startExamPlaceCode} and #{data.endExamPlaceCode}
+			GROUP BY a.examPlaceId,b.seatNumber
+			ORDER BY a.examPlaceCode+0,b.seatNumber
+			<if test="data.pageEnd!=null and data.pageEnd!=''">
+		   limit #{data.pageStart},#{data.curPageCount} 
+			</if>
+	</select>
+	
+	<select id="getTableCornerSeatListCount" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+	    
+	   		 SELECT count(*) from (select count(a.examPlaceId) from ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplaceinfo} a
+			LEFT  JOIN ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamresult} b
+			on a.examManagementId=b.examManagementId
+			and a.schoolId=b.schoolId
+			and a.examPlaceId=b.examPlaceId
+			where a.schoolId=#{data.schoolId}
+			and a.examManagementId=#{data.examManagementId}
+			and b.examPlanId=#{data.examPlanId}
+			and a.examPlaceCode BETWEEN #{data.startExamPlaceCode} and #{data.endExamPlaceCode}
+			GROUP BY a.examPlaceId,b.seatNumber
+			ORDER BY a.examPlaceCode+0,b.seatNumber) t
+	</select>
+	<select id="getExamSubjectDist" parameterType="splitDbAndTableRule" resultType="JSONObject">
+	    select a.examSubjectGroupId,a.createDateTime,
+	    IF(COUNT(*) = 1,c.examSubjName, GROUP_CONCAT(c.examSubjSimpleName ORDER BY c.subjectId,c.subjectLevel SEPARATOR '+')) AS examSubjectNames,
+		GROUP_CONCAT(
+		CONCAT(c.subjectId,'_',c.subjectLevel)  ORDER BY c.subjectId,c.subjectLevel SEPARATOR ','
+		) as subjectSort
+	     from ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamrule} a
+	    left join  ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamsubjectinfo} b
+	     on a.schoolId=b.schoolId and a.examManagementId=b.examManagementId
+		and a.examSubjectGroupId=b.examSubjectGroupId
+	    left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_examsubject} c
+	    on a.schoolId=b.schoolId and a.examManagementId=b.examManagementId
+		and b.examSubjectId=c.examSubjectId
+		where
+		 a.schoolId=#{data.schoolId}
+		and a.examManagementId=#{data.examManagementId}
+		and a.examPlanId=#{data.examPlanId}
+	    group by  a.examSubjectGroupId
+	    order by a.createDateTime
+	    
+	</select>
+	<select id="getTClassAndExamPlace" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.examPlaceName,b.seatNumber,b.testNumber,b.tClassId,b.accountId,b.examSubjectGroupId,e.createDateTime,
+		
+		IF(COUNT(*) = 1,d.examSubjName, GROUP_CONCAT(d.examSubjSimpleName ORDER BY d.subjectId,d.subjectLevel SEPARATOR '+')) AS examSubjectNames,
+		concat(a.buildingName,a.floor,a.roomName) as place,
+		GROUP_CONCAT(
+		CONCAT(d.subjectId,d.subjectLevel)  ORDER BY d.subjectId,d.subjectLevel SEPARATOR ''
+		) as subjectSort,
+		GROUP_CONCAT(
+		CONCAT(d.subjectId,d.subjectLevel)  ORDER BY d.subjectId,d.subjectLevel SEPARATOR ','
+		) as subjectKey
+		from ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplaceinfo} a
+		inner join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamresult} b on a.examManagementId=b.examManagementId
+		and a.examPlaceId=b.examPlaceId
+		and a.schoolId=b.schoolId
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamrule} e on a.examManagementId=e.examManagementId
+		and a.schoolId=e.schoolId
+		and b.examSubjectGroupId=e.examSubjectGroupId
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamsubjectinfo} c on a.examManagementId=c.examManagementId
+		and a.schoolId=c.schoolId
+		and e.examSubjectGroupId=c.examSubjectGroupId
+		left join  ${dbRule.db_name_exammanagement}.${tableRule.t_em_examsubject} d on  a.schoolId=d.schoolId
+		and a.examManagementId=d.examManagementId
+		and c.examSubjectId=d.examSubjectId
+		and b.examPlanId=d.examPlanId
+		where a.schoolId=#{data.schoolId}
+		and a.examManagementId=#{data.examManagementId}
+		and b.examPlanId=#{data.examPlanId}
+			  <if test="data.tClassId!=null and data.tClassId!=''">
+	    	      and b.tclassId in
+	    	      	<foreach collection="data.tClassId" item="item" open="(" close=")"
+						separator=",">
+						#{item}
+					</foreach>
+				</if>
+			  <if test="data.accountIds!=null and data.accountIds!=''">
+			      and b.accountId in 
+			       <foreach collection="data.accountIds" item="item" open="(" close=")"
+						separator=",">
+						#{item}
+					</foreach>
+			  </if>
+			   <if test="data.examSubjectGroupId!=null and data.examSubjectGroupId!=''">
+			        and b.examSubjectGroupId in 
+			         <foreach collection="data.examSubjectGroupId" item="item" open="(" close=")"
+							separator=",">
+							#{item}
+					</foreach>
+			   </if>
+		group by  a.examPlaceId,b.examSubjectGroupId,b.accountId
+		order by subjectSort,b.tClassId,b.seatNumber
+		
+		<if test="data.pageEnd!=null and data.pageEnd!=''">
+		   limit #{data.pageStart},#{data.curPageCount} 
+		</if>
+		
+	</select>
+	
+	<select id="getTClassAndExamPlaceCount" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+	SELECT count(*) from(
+	SELECT count(b.accountId)
+		from ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplaceinfo} a
+		inner join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamresult} b on a.examManagementId=b.examManagementId
+		and a.examPlaceId=b.examPlaceId
+		and a.schoolId=b.schoolId
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamsubjectinfo} c on a.examManagementId=c.examManagementId
+		and a.schoolId=c.schoolId
+		and b.examSubjectGroupId=c.examSubjectGroupId
+		left join  ${dbRule.db_name_exammanagement}.${tableRule.t_em_examsubject} d on  a.schoolId=d.schoolId
+		and a.examManagementId=d.examManagementId
+		and c.examSubjectId=d.examSubjectId
+		and b.examPlanId=d.examPlanId
+		where a.schoolId=#{data.schoolId}
+		and a.examManagementId=#{data.examManagementId}
+		and b.examPlanId=#{data.examPlanId}
+		  <if test="data.tClassId!=null and data.tClassId!=''">
+    	      and b.tclassId in
+    	      	<foreach collection="data.tClassId" item="item" open="(" close=")"
+					separator=",">
+					#{item}
+				</foreach>
+			</if>
+			  <if test="data.accountIds!=null and data.accountIds!=''">
+			      and b.accountId in 
+			       <foreach collection="data.accountIds" item="item" open="(" close=")"
+					separator=",">
+					#{item}
+					</foreach>
+			  </if>
+			   <if test="data.examSubjectGroupId!=null and data.examSubjectGroupId!=''">
+			        and b.examSubjectGroupId in 
+			         <foreach collection="data.examSubjectGroupId" item="item" open="(" close=")"
+						separator=",">
+						#{item}
+					</foreach>
+			   </if>
+		GROUP BY  a.examPlaceId,b.examSubjectGroupId,b.accountId) t
+	</select>
+	
+	<select id="getStudsAndExamPlace" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.examPlaceName,b.seatNumber,b.testNumber,b.tClassId,b.accountId,b.examSubjectGroupId,
+		IF(COUNT(*) = 1,d.examSubjName, GROUP_CONCAT(d.examSubjSimpleName ORDER BY d.subjectId,d.subjectLevel SEPARATOR '+')) AS examSubjectNames,
+		concat(a.buildingName,a.floor,a.roomName) as place,
+		e.usedGrade,
+		GROUP_CONCAT(
+		CONCAT(d.subjectId,'_',d.subjectLevel)  ORDER BY d.subjectId,d.subjectLevel SEPARATOR ','
+		) as subjectSort
+		from ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplaceinfo} a
+		inner join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamresult} b on a.examManagementId=b.examManagementId
+		and a.examPlaceId=b.examPlaceId
+		and a.schoolId=b.schoolId
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamrule} c on a.examManagementId=c.examManagementId
+		and a.schoolId=c.schoolId
+		and b.examSubjectGroupId=c.examSubjectGroupId
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamsubjectinfo} f on a.examManagementId=f.examManagementId
+		and a.schoolId=f.schoolId
+		and c.examSubjectGroupId=f.examSubjectGroupId
+		left join  ${dbRule.db_name_exammanagement}.${tableRule.t_em_examsubject} d on  a.schoolId=d.schoolId
+		and a.examManagementId=d.examManagementId
+		and d.examSubjectId=f.examSubjectId
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_examPlan} e on a.schoolId=e.schoolId
+		and a.examManagementId=e.examManagementId
+		and b.examPlanId=e.examPlanId
+		where a.schoolId=#{data.schoolId}
+		and a.examManagementId=#{data.examManagementId}
+		and b.examPlanId=#{data.examPlanId}
+		  <if test="data.examPlaceId!=null and data.examPlaceId!=''">
+    	      and a.examPlaceId in
+    	      <foreach collection="data.examPlaceId" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach>
+			</if>
+			  <if test="data.accountId!=null and data.accountId!=''">
+			      and b.accountId in
+			      
+			        <foreach collection="data.accountId" item="item" open="(" close=")"
+					separator=",">
+					#{item}
+					</foreach>
+					
+			  </if>
+			  
+			   <if test="data.examSubjectGroupId!=null and data.examSubjectGroupId!=''">
+			        and b.examSubjectGroupId in 
+			         <foreach collection="data.examSubjectGroupId" item="item" open="(" close=")"
+					separator=",">
+				#{item}
+			</foreach>
+			</if>
+		group by  a.examPlaceId,b.examSubjectGroupId,b.accountId
+		order by subjectSort,a.examPlaceName,b.seatNumber
+		<if test="data.pageEnd!=null and data.pageEnd!=''">
+		   limit #{data.pageStart},#{data.curPageCount} 
+		</if>
+	</select>
+	
+	
+	<select id="getStudsAndExamPlaceCount" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+		SELECT count(*) from (
+		select count(b.accountId)
+		from ${dbRule.db_name_exammanagement}.${tableRule.t_em_examplaceinfo} a
+		inner join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamresult} b on a.examManagementId=b.examManagementId
+		and a.examPlaceId=b.examPlaceId
+		and a.schoolId=b.schoolId
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamrule} c on a.examManagementId=c.examManagementId
+		and a.schoolId=c.schoolId
+		and b.examSubjectGroupId=c.examSubjectGroupId
+		left join ${dbRule.db_name_exammanagement}.${tableRule.t_em_arrangeexamsubjectinfo} f on a.examManagementId=f.examManagementId
+		and a.schoolId=f.schoolId
+		and c.examSubjectGroupId=f.examSubjectGroupId
+		left join  ${dbRule.db_name_exammanagement}.${tableRule.t_em_examsubject} d on  a.schoolId=d.schoolId
+		and a.examManagementId=d.examManagementId
+		and d.examSubjectId=f.examSubjectId
+		where a.schoolId=#{data.schoolId}
+		and a.examManagementId=#{data.examManagementId}
+		and b.examPlanId=#{data.examPlanId}
+		  <if test="data.examPlaceId!=null and data.examPlaceId!=''">
+    	      and a.examPlaceId in
+    	      <foreach collection="data.examPlaceId" item="item" open="(" close=")"
+				separator=",">
+				#{item}
+			</foreach>
+			</if>
+			  <if test="data.accountId!=null and data.accountId!=''">
+			      and b.accountId in
+			        <foreach collection="data.accountId" item="item" open="(" close=")"
+					separator=",">
+					#{item}
+					</foreach>
+			  </if>
+			   <if test="data.examSubjectGroupId!=null and data.examSubjectGroupId!=''">
+			        and b.examSubjectGroupId in 
+			         <foreach collection="data.examSubjectGroupId" item="item" open="(" close=")"
+					separator=",">
+				#{item}
+			</foreach>
+			</if>
+		GROUP BY  a.examPlaceId,b.examSubjectGroupId,b.accountId) t
+	</select>
+	
+</mapper>

@@ -1,0 +1,2038 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="scoretrend" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="8584e763-99ac-4ea6-91bc-bb21aea4cf98">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="152"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="TableDataset" uuid="d9a870f6-5334-4d5a-9829-1c7b2b722569">
+		<field name="examFirstName" class="java.lang.String"/>
+		<field name="examFirstRanking" class="java.lang.String"/>
+		<field name="examSecondName" class="java.lang.String"/>
+		<field name="examSecondRanking" class="java.lang.String"/>
+		<field name="examThirdName" class="java.lang.String"/>
+		<field name="examThirdRanking" class="java.lang.String"/>
+		<field name="examFourthName" class="java.lang.String"/>
+		<field name="examFourthRanking" class="java.lang.String"/>
+		<field name="examFifthName" class="java.lang.String"/>
+		<field name="examFifthRanking" class="java.lang.String"/>
+		<field name="examSixthName" class="java.lang.String"/>
+		<field name="examSixthRanking" class="java.lang.String"/>
+		<field name="examSeventhName" class="java.lang.String"/>
+		<field name="examSeventhRanking" class="java.lang.String"/>
+		<field name="examEighthName" class="java.lang.String"/>
+		<field name="examEighthRanking" class="java.lang.String"/>
+		<field name="examNinthName" class="java.lang.String"/>
+		<field name="examNinthRanking" class="java.lang.String"/>
+		<field name="examTenthName" class="java.lang.String"/>
+		<field name="examTenthRanking" class="java.lang.String"/>
+		<field name="examEleventhName" class="java.lang.String"/>
+		<field name="examEleventhRanking" class="java.lang.String"/>
+		<field name="examTwelfthName" class="java.lang.String"/>
+		<field name="examTwelfthRanking" class="java.lang.String"/>
+		<field name="examRowName" class="java.lang.String"/>
+	</subDataset>
+	<subDataset name="lineDataset" uuid="d1c9fb27-7c18-492c-8f27-a2186a9691c6">
+		<field name="x1" class="java.lang.String"/>
+		<field name="y1" class="java.lang.Integer"/>
+		<field name="x2" class="java.lang.String"/>
+		<field name="y2" class="java.lang.Float"/>
+		<field name="key" class="java.lang.String"/>
+	</subDataset>
+	<field name="title" class="java.lang.String"/>
+	<field name="classNameOne" class="java.lang.String"/>
+	<field name="classNameTwo" class="java.lang.String"/>
+	<field name="classNameThree" class="java.lang.String"/>
+	<field name="classNameFour" class="java.lang.String"/>
+	<field name="classNameFive" class="java.lang.String"/>
+	<field name="classNameSix" class="java.lang.String"/>
+	<field name="trendDataOne" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="trendDataTwo" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="trendDataThree" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="trendDataFour" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="trendDataFive" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="trendDataSix" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="lineListOne" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="lineListTwo" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="lineListThree" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="lineListFour" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="lineListFive" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="lineListSix" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="classTypeName" class="java.lang.String"/>
+	<field name="minRangeAxis" class="java.lang.Double"/>
+	<field name="maxRangeAxis" class="java.lang.Double"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement x="113" y="0" width="600" height="20" uuid="ba51a321-a493-43e6-a1e1-0fb80b8fe984"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="16" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{title}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="532" splitType="Stretch">
+			<textField>
+				<reportElement x="34" y="0" width="180" height="25" uuid="e50fd99b-0a37-4aaf-8d8c-a4440ecf09aa"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="宋体" size="12" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{classNameOne}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="310" y="0" width="180" height="25" uuid="0c6dfc52-26fd-4816-81f8-bc731eecc5d8"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="宋体" size="12" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{classNameTwo}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="588" y="0" width="180" height="25" uuid="fac0a2cd-19f7-4194-94af-3e3937001e49"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="宋体" size="12" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{classNameThree}]]></textFieldExpression>
+			</textField>
+			<lineChart>
+				<chart isShowLegend="false" customizerClass="com.talkweb.jasperReport.util.JFreeChartTrend">
+					<reportElement x="0" y="52" width="248" height="125" uuid="df6cfec0-2ea3-47e6-8463-02f46d6ab254">
+						<printWhenExpression><![CDATA[!$F{classNameOne}.equals("")]]></printWhenExpression>
+					</reportElement>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<categoryDataset>
+					<dataset>
+						<datasetRun subDataset="lineDataset" uuid="ac484855-e3e7-4bfe-9fd9-883bf9f29517">
+							<dataSourceExpression><![CDATA[$F{lineListOne}]]></dataSourceExpression>
+						</datasetRun>
+					</dataset>
+					<categorySeries>
+						<seriesExpression><![CDATA["brokenLine"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{key}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{y1}]]></valueExpression>
+						<labelExpression><![CDATA["折线趋势图"]]></labelExpression>
+					</categorySeries>
+					<categorySeries>
+						<seriesExpression><![CDATA["straightLine"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{key}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{y2}]]></valueExpression>
+						<labelExpression><![CDATA["直线趋势图"]]></labelExpression>
+					</categorySeries>
+				</categoryDataset>
+				<linePlot>
+					<plot/>
+					<categoryAxisFormat>
+						<axisFormat axisLineColor="#FFFFFF"/>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat axisLineColor="#FFFFFF"/>
+					</valueAxisFormat>
+					<rangeAxisMinValueExpression><![CDATA[$F{minRangeAxis}]]></rangeAxisMinValueExpression>
+					<rangeAxisMaxValueExpression><![CDATA[$F{maxRangeAxis}]]></rangeAxisMaxValueExpression>
+				</linePlot>
+			</lineChart>
+			<componentElement>
+				<reportElement mode="Opaque" x="0" y="192" width="248" height="73" uuid="617f4e7f-40bc-41ca-a976-c7c97bb360e6">
+					<printWhenExpression><![CDATA[!$F{classNameOne}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="TableDataset" uuid="0c222de8-bc4e-4252-9cb2-0ea821de395a">
+						<dataSourceExpression><![CDATA[$F{trendDataOne}]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="32" uuid="530c687b-4688-465a-8703-712cec85a763">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1"/>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="32" height="21" uuid="0d0fde71-b7bd-45e6-947b-3c1de70a4037"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examRowName}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="1658b636-f14e-454c-9e0d-011d81d333ce">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="0114a7b3-7e0b-4291-99ad-92f17156606f"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFirstName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="eb02cc0b-4c6f-4caf-8b47-417761c5ab20"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFirstRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="1fc93868-413d-41c8-8f27-8154744bc491">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="aafde8dc-5ac0-4227-b80f-c35e3ccb4181"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSecondName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="f26686df-8125-4a58-9ca1-e7e3e4f4b2a4"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSecondRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="92e14a76-fd7b-4410-8423-08f883e6446f">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="a17f971b-b377-4093-bfdf-ec1733e42bc2"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examThirdName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="8a0ed172-aba7-4e98-9717-29dc267ce0da"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examThirdRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="be2131a7-c7f2-4517-9e87-d385ffb662e3">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="445d867f-ad76-4e57-9912-c1644122333d"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFourthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="bd65c160-6b1f-46cf-99a2-4cf47e6475d2"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFourthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="8efe113a-87a6-4126-9f69-b748a2e3249b">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="24382511-c2ff-494e-b661-2d882722c557"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFifthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="9cc91d4e-3a9e-4091-be02-a58361555cfc"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFifthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="f0b31edd-5c41-4750-94a3-d84c3fbe5590">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="95718de2-bef4-4f6b-b619-0a2c650645c5"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSixthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="d7668bbc-88e1-4dd7-8ed4-91c501048b96"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSixthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="a9fc4da9-5d3a-401a-9a85-44aa72120e81">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="c756b72d-fcff-4e7e-9c20-159d22848509"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSeventhName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="cd07fe38-0bf9-4e49-9f64-441e77b99c45"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSeventhRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="b3737506-04a7-49e0-b313-8aa1517fa1d7">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="3df757b9-ca27-49e0-99f1-d6fbcb5067db"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEighthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="93b8451f-20d5-480e-82f7-186dc98acec6"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEighthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="8e551137-286f-4102-b2ff-b83f26bc7fad">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="a31d95cc-033f-4b4f-b850-2b2b29a30510"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examNinthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="6cfa366d-523d-4474-a9ae-aa86310918e7"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examNinthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="00675095-7426-4c2f-82fa-24f797e49669">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="28e31ea4-101d-4aeb-8509-0bf4c7b566ba"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTenthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="58a0d6d3-28d7-4c87-ac81-850e304526b7"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTenthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="fcaa28a0-adba-41bf-970e-d61c040da3e7">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="4dfdb4d1-12f9-4a1e-a2f8-16c27714d802"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEleventhName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="3b1f8d71-d214-4ae2-bf17-9ce32ccdd68c"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEleventhRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="3d0a7560-d50f-40bb-ba02-6eb4ec37de7d">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="a82e10ba-3ec6-4929-a262-d2ab9970740e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTwelfthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="108ac9c4-37fe-4c54-8973-bdf6cdf21d8a"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTwelfthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<lineChart>
+				<chart isShowLegend="false" customizerClass="com.talkweb.jasperReport.util.JFreeChartTrend">
+					<reportElement x="276" y="52" width="248" height="125" uuid="ac830578-2a09-4c87-8aae-ab187d6f1321">
+						<printWhenExpression><![CDATA[!$F{classNameTwo}.equals("")]]></printWhenExpression>
+					</reportElement>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<categoryDataset>
+					<dataset>
+						<datasetRun subDataset="lineDataset" uuid="6abbac80-78d3-4b8e-8aed-97c773791ddc">
+							<dataSourceExpression><![CDATA[$F{lineListTwo}]]></dataSourceExpression>
+						</datasetRun>
+					</dataset>
+					<categorySeries>
+						<seriesExpression><![CDATA["brokenLine"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{key}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{y1}]]></valueExpression>
+						<labelExpression><![CDATA["折线趋势图"]]></labelExpression>
+					</categorySeries>
+					<categorySeries>
+						<seriesExpression><![CDATA["straightLine"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{key}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{y2}]]></valueExpression>
+						<labelExpression><![CDATA["直线趋势图"]]></labelExpression>
+					</categorySeries>
+				</categoryDataset>
+				<linePlot>
+					<plot/>
+					<categoryAxisFormat>
+						<axisFormat axisLineColor="#FFFFFF"/>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat axisLineColor="#FFFFFF"/>
+					</valueAxisFormat>
+					<rangeAxisMinValueExpression><![CDATA[$F{minRangeAxis}]]></rangeAxisMinValueExpression>
+					<rangeAxisMaxValueExpression><![CDATA[$F{maxRangeAxis}]]></rangeAxisMaxValueExpression>
+				</linePlot>
+			</lineChart>
+			<componentElement>
+				<reportElement x="275" y="192" width="248" height="73" uuid="31987a8d-26d3-46a3-8879-6d676073dbcd">
+					<printWhenExpression><![CDATA[!$F{classNameTwo}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="TableDataset" uuid="135deb72-477e-434b-9a85-fc982c41f2ef">
+						<dataSourceExpression><![CDATA[$F{trendDataTwo}]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="32" uuid="6dda0481-7900-4e3b-8b38-24612bd815c2">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1"/>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="32" height="21" uuid="b605edd1-e85e-4614-b4ec-45ae8f244789"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examRowName}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="01305e3f-09da-48b7-9d81-4b4b83930e25">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="43ffe256-5025-4ee4-8f24-d63e1e3a20cd"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFirstName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="163319b7-73f4-4f17-b820-19094e19f695"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFirstRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="0fc0b8db-a18c-4377-bca7-c30d307535f7">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="bdffd1a0-1e97-4745-b413-60f900cc8650"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSecondName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="ab273daf-9534-4210-abe1-6e03f4e25155"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSecondRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="5ffff28e-2d4c-40d9-94f7-31a1147fb345">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="9960f4fb-6465-462b-b170-b01ea8ea8b62"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examThirdName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="7a04b5be-2a91-41ab-8387-a17a384a43cf"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examThirdRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="56461419-f538-4c58-a562-b1ff668f770d">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="97b02b87-8427-4da9-a113-b40551896829"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFourthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="f3395a9a-ceaa-4526-99a8-4ee67e9babd1"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFourthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="145dd49d-6999-459e-92a3-51119814357f">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="09e7e163-ebcf-4af1-8724-f8cbdd47c138"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFifthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="f15fc123-3f86-4f76-b798-1df042a5cd01"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFifthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="3a8cc7d5-43ec-4f09-9c96-82a1a13483f1">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="0cc1ba94-018c-45b5-bd65-c51662543d79"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSixthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="20468114-5545-4c6b-b3f2-1304c0372ad8"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSixthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="b5996e75-fc00-40d9-87e3-3393d60a6e72">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="aa4b6a3d-4f30-4274-880a-d46c0688112b"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSeventhName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="540b1f80-b27e-427d-97a3-c120922166f4"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSeventhRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="6e60426c-8d4f-45b5-b171-bfcba8a5aa00">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="6f2270f5-818c-4864-abe9-36d21f7207c4"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEighthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="afce9d0f-c985-45e6-8da1-17df0d0da053"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEighthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="8fdd84d4-38d9-44e6-94de-177a9e072fbe">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="7e9be8ba-85aa-48a3-a48e-fa483258f826"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examNinthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="17549bcd-0b6e-4a98-86f7-da1f52636154"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examNinthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="11255699-4fb8-448e-a95c-abed8ff6c8f1">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="ddef5d74-5fff-4d41-9603-fa220d2cc34c"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTenthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="505f1ce0-55b8-4d16-98b3-615954c51e49"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTenthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="be8d762d-f7cc-45a3-b8f9-5174c18d1b0a">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="4edb5771-bff0-4e73-9e37-0fe4e5874a98"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEleventhName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="31950f86-79c8-46be-8798-00d9e47d3ae4"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEleventhRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="e8a3f1a0-8877-411d-b0e3-b18b56a54efd">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="f8e337fa-5399-4806-919d-4428c2a4aae1"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTwelfthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="948e6b23-1f5d-4918-8e06-2938a44467d9"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTwelfthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<lineChart>
+				<chart isShowLegend="false" customizerClass="com.talkweb.jasperReport.util.JFreeChartTrend">
+					<reportElement x="553" y="52" width="248" height="125" uuid="6bb01aae-273c-4ee8-a0a3-0f150f9cc85e">
+						<printWhenExpression><![CDATA[!$F{classNameThree}.equals("")]]></printWhenExpression>
+					</reportElement>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<categoryDataset>
+					<dataset>
+						<datasetRun subDataset="lineDataset" uuid="f61b6213-9362-4b5b-8859-7aa8f8e637ff">
+							<dataSourceExpression><![CDATA[$F{lineListThree}]]></dataSourceExpression>
+						</datasetRun>
+					</dataset>
+					<categorySeries>
+						<seriesExpression><![CDATA["brokenLine"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{key}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{y1}]]></valueExpression>
+						<labelExpression><![CDATA["折线趋势图"]]></labelExpression>
+					</categorySeries>
+					<categorySeries>
+						<seriesExpression><![CDATA["straightLine"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{key}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{y2}]]></valueExpression>
+						<labelExpression><![CDATA["直线趋势图"]]></labelExpression>
+					</categorySeries>
+				</categoryDataset>
+				<linePlot>
+					<plot/>
+					<categoryAxisFormat>
+						<axisFormat axisLineColor="#FFFFFF"/>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat axisLineColor="#FFFFFF"/>
+					</valueAxisFormat>
+					<rangeAxisMinValueExpression><![CDATA[$F{minRangeAxis}]]></rangeAxisMinValueExpression>
+					<rangeAxisMaxValueExpression><![CDATA[$F{maxRangeAxis}]]></rangeAxisMaxValueExpression>
+				</linePlot>
+			</lineChart>
+			<componentElement>
+				<reportElement isPrintRepeatedValues="false" x="553" y="192" width="248" height="73" uuid="a48fcbbf-3e9e-4ebe-9b67-831e2aa06e17">
+					<printWhenExpression><![CDATA[!$F{classNameThree}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="TableDataset" uuid="10190e35-9625-4503-a0d6-15bdbc886940">
+						<dataSourceExpression><![CDATA[$F{trendDataThree}]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="32" uuid="8e1eb0f1-7e6e-41d5-9c9b-a3bd1c2e4d55">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1"/>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="32" height="21" uuid="68b43441-11c4-4cc1-9c8b-4eb7ef6f0c93"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examRowName}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="04babcd4-fa0b-4add-84a2-cfa193ceac21">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="3e8def25-7fad-497e-b675-e32d4a6a06d7"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFirstName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="b449e06b-fdeb-40d0-bd76-9769c3ed9e73"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFirstRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="d2aeb827-bb2f-480e-af0c-95e35b90c436">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="31388ca2-4563-4eac-b8e5-2b29e14e4d7c"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSecondName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="a6fd8402-bc85-4007-b308-9258908d597d"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSecondRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="e7577e04-79ec-4f1a-adae-d8d980f11ade">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="15f48c8e-7e75-4792-bd64-7f1caeed8329"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examThirdName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="4a1e3614-5539-4ae3-a887-a5bd28901cc6"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examThirdRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="38975d6e-c738-4946-813a-3144196af347">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="743420e0-938a-4e53-8b15-e74bb125b258"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFourthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="68f1df98-076a-44eb-a450-ee4f13f961c6"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFourthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="9aed4863-3d5e-44ed-808c-c14576a08065">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="c112f47d-f719-4384-b7f8-9e327e5d8e7e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFifthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="1586a94b-42c8-4ee6-a5a1-117f5f93047b"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFifthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="6561ee6b-2aac-4c88-b82c-1dce9ffe2d87">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="0bf471d8-c939-400f-83f2-7ff2bc0780f0"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSixthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="4b48ac9b-68b0-4098-b2c9-9788ff08b68a"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSixthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="75ff3024-d3ad-46da-8499-5152dd2e89dd">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="87b448d4-a896-47d8-b600-a89b102ccd9e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSeventhName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="cf1c7cb9-23f3-4d26-a5ba-645b6016bbd6"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSeventhRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="7567180d-7b7f-4b38-ae16-61c1018df09f">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="e7f8aa53-4a4a-42f5-910b-00a2c939b7c6"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEighthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="9b8a03a2-df39-4811-a3d2-f0d5dcbe1a76"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEighthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="34cf190f-21cc-462f-ad13-7a4d7233b55a">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="f8d30fc3-de5d-4533-b464-c6a093716f64"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examNinthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="769cb8e1-e67f-4c83-9e3c-5a0761210357"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examNinthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="5c2a576b-823d-4eeb-949e-9bb1209352ab">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="fa7c9e48-1f66-41d7-af26-5b589c2a3f11"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTenthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="232a2614-5228-4bd6-8ccf-0118a886611c"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTenthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="bd630d63-c5ee-47b9-aeb4-07968ec8fe56">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="dafedced-d6ca-42c8-b21c-61e5adc2c825"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEleventhName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="1df42391-50b6-4ac3-bc2b-df4d372f854f"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEleventhRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="b69e73b9-5d5e-4b37-9ff8-a8552187edc7">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="4e42c256-bb45-45d2-b631-d86939d5d470"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTwelfthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="39f44c4c-0bfe-4d68-ac9c-931a73d56e13"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTwelfthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<textField>
+				<reportElement x="34" y="265" width="180" height="25" uuid="ece08d37-1730-4bc9-9b26-0f2b9d52cf7e"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="宋体" size="12" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{classNameFour}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="310" y="265" width="180" height="25" uuid="b35c85ac-7df2-41eb-a017-ee4ee4e95ff5"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="宋体" size="12" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{classNameFive}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="588" y="265" width="180" height="25" uuid="2b542a09-97dd-499a-9150-86a0aa51f2a5"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="宋体" size="12" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{classNameSix}]]></textFieldExpression>
+			</textField>
+			<lineChart>
+				<chart isShowLegend="false" customizerClass="com.talkweb.jasperReport.util.JFreeChartTrend">
+					<reportElement x="0" y="317" width="248" height="125" uuid="372b0b5c-08e9-4c49-8d19-73a68f9c8d63">
+						<printWhenExpression><![CDATA[!$F{classNameFour}.equals("")]]></printWhenExpression>
+					</reportElement>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<categoryDataset>
+					<dataset>
+						<datasetRun subDataset="lineDataset" uuid="44dc0efb-fde3-4abc-a537-e28b35a33d9d">
+							<dataSourceExpression><![CDATA[$F{lineListFour}]]></dataSourceExpression>
+						</datasetRun>
+					</dataset>
+					<categorySeries>
+						<seriesExpression><![CDATA["brokenLine"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{key}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{y1}]]></valueExpression>
+						<labelExpression><![CDATA["折线趋势图"]]></labelExpression>
+					</categorySeries>
+					<categorySeries>
+						<seriesExpression><![CDATA["straightLine"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{key}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{y2}]]></valueExpression>
+						<labelExpression><![CDATA["直线趋势图"]]></labelExpression>
+					</categorySeries>
+				</categoryDataset>
+				<linePlot>
+					<plot/>
+					<categoryAxisFormat>
+						<axisFormat axisLineColor="#FFFFFF"/>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat axisLineColor="#FFFFFF"/>
+					</valueAxisFormat>
+					<rangeAxisMinValueExpression><![CDATA[$F{minRangeAxis}]]></rangeAxisMinValueExpression>
+					<rangeAxisMaxValueExpression><![CDATA[$F{maxRangeAxis}]]></rangeAxisMaxValueExpression>
+				</linePlot>
+			</lineChart>
+			<componentElement>
+				<reportElement x="0" y="457" width="248" height="73" uuid="ba6f3a90-58bf-45f1-8c71-4848d0cfc7b3">
+					<printWhenExpression><![CDATA[!$F{classNameFour}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="TableDataset" uuid="521d3374-419b-4045-8a24-8379c6a7163f">
+						<dataSourceExpression><![CDATA[$F{trendDataFour}]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="32" uuid="bfc4cadc-d8d2-49e6-8496-9a99d68727c3">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1"/>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="32" height="21" uuid="fd84819e-a533-43a2-a40d-e0c7d24e2abe"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examRowName}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="5fe8f876-a8a5-44c2-9a51-6056c8b82bd4">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="b6d126c4-d386-4a48-9a9d-fe9b938c6352"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFirstName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="508a44f2-00cf-4072-91b2-0b3512805618"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFirstRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="f237eebf-03e0-4b07-aa5e-1de4b849173b">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="ca913602-303c-4b30-9446-43a06df5aa3a"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSecondName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="f3d2c1c9-e88e-425d-b135-eba1b03f2d16"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSecondRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="85a30a02-2558-4d8e-8e07-d353bd5fbd8e">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="d0795076-a315-42e3-a94c-1c2774b58fd0"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examThirdName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="de48dd07-60a7-44c1-a10a-3499105e4efd"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examThirdRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="d530a195-08c1-4287-b681-f79eeffdbd73">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="d136aeaf-711a-48b1-ac22-4432e75057fa"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFourthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="53db9dc3-9c9b-407c-a0b3-f3ede1bad393"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFourthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="a903f08c-f67e-410a-afc0-451c10098769">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="2a4a0c6e-4a6a-4d73-92b3-fdc1c4b09d43"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFifthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="3b42f113-5bbc-4808-a4d8-3fb215237985"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFifthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="bbdcc301-2541-42b4-b199-d49602479fcf">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="7c593120-07d4-4e37-bfd0-f81eb77ce45d"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSixthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="78a579d8-1cb5-4bd1-b88a-8d5e60c7a8bc"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSixthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="73176bc8-048b-4be4-bd55-537fc54221a3">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="a4b913f2-5b87-4825-9dee-f7eba9c050e8"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSeventhName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="62c09666-0406-4381-9bab-87a7748c7842"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSeventhRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="26553987-c9d4-4432-8be7-3d46f314e630">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="ea044de3-789c-4edb-8991-4413835a9419"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEighthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="314eaeaf-071e-4b12-aaa7-0e68b5f91d38"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEighthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="cf23fd3a-5747-4954-86cc-a24639bb56ec">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="7606c2a9-b7e2-4c97-9b9b-d450b5694c2c"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examNinthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="594f2aa7-de3c-46bb-8fe3-d96da9f605eb"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examNinthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="74a0905e-1974-4314-9505-5e59dbf0bef6">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="6ea364a5-25f6-4a37-adc4-005e93ff43c1"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTenthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="ce9b8d45-372a-4c9d-8c0d-ae114d9a6d5e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTenthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="92c5d398-271f-483e-a750-678939ab68f0">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="a2dd8a88-5a1a-4bc9-90d3-3ea02675d965"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEleventhName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="1a40a8eb-59ff-430b-b2f5-65c6b5ae2cd0"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEleventhRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="4afab4ae-cb0f-4f3f-aa86-96989d59d3ba">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="62608cf6-6bfc-4808-a6b9-5fdc6e04bff9"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTwelfthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="66423c27-a178-4158-b3c1-b200ec3228aa"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTwelfthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<lineChart>
+				<chart isShowLegend="false" customizerClass="com.talkweb.jasperReport.util.JFreeChartTrend">
+					<reportElement x="276" y="317" width="248" height="125" uuid="a1c3e5f1-6968-48fc-a280-9b1273b969c1">
+						<printWhenExpression><![CDATA[!$F{classNameFive}.equals("")]]></printWhenExpression>
+					</reportElement>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<categoryDataset>
+					<dataset>
+						<datasetRun subDataset="lineDataset" uuid="c3a2235f-7722-49cd-a197-f6ca6063d3a4">
+							<dataSourceExpression><![CDATA[$F{lineListFive}]]></dataSourceExpression>
+						</datasetRun>
+					</dataset>
+					<categorySeries>
+						<seriesExpression><![CDATA["brokenLine"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{key}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{y1}]]></valueExpression>
+						<labelExpression><![CDATA["折线趋势图"]]></labelExpression>
+					</categorySeries>
+					<categorySeries>
+						<seriesExpression><![CDATA["straightLine"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{key}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{y2}]]></valueExpression>
+						<labelExpression><![CDATA["直线趋势图"]]></labelExpression>
+					</categorySeries>
+				</categoryDataset>
+				<linePlot>
+					<plot/>
+					<categoryAxisFormat>
+						<axisFormat axisLineColor="#FFFFFF"/>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat axisLineColor="#FFFFFF"/>
+					</valueAxisFormat>
+					<rangeAxisMinValueExpression><![CDATA[$F{minRangeAxis}]]></rangeAxisMinValueExpression>
+					<rangeAxisMaxValueExpression><![CDATA[$F{maxRangeAxis}]]></rangeAxisMaxValueExpression>
+				</linePlot>
+			</lineChart>
+			<componentElement>
+				<reportElement x="275" y="457" width="248" height="73" uuid="1fd64d3a-5135-482d-b2b5-b9e345b116e9">
+					<printWhenExpression><![CDATA[!$F{classNameFive}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="TableDataset" uuid="34087375-d324-4ca2-be47-78ab8eda9884">
+						<dataSourceExpression><![CDATA[$F{trendDataFive}]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="32" uuid="de8d6805-9a4d-4364-8982-0537c88d87aa">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1"/>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="32" height="21" uuid="d488a171-9a08-4aa8-b818-381e275d8e13"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examRowName}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="414e0e95-b304-4e85-8122-e9e938c7c724">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="e2aa2671-ad90-4cb6-b0e9-5fbfb0d2e541"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFirstName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="bb3ce81c-11b9-4ed4-aebd-bccfa5673097"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFirstRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="019389cf-2784-464b-83d2-4e0e9241e6b1">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="da7ce3cb-c564-4f48-8b84-463d01fd2926"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSecondName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="8c97a7f9-5f01-4498-8aa1-abb2ac386f2a"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSecondRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="46e8e476-2868-4293-b61a-77e2dc27692d">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="08ac4691-5a13-4e6e-b495-956c71d24b95"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examThirdName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="91d59c00-a2d8-4b95-a740-b0473fafe9c1"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examThirdRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="fce81bb6-9004-4973-b9f3-2b0457bb99dc">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="3217c2ba-5df0-4cb7-b84d-a2b7963584ce"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFourthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="07068b10-7ec7-4b18-8069-556181306885"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFourthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="f1da9688-66a4-49fd-96ab-d0cb9cbeaf3d">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="87ef2450-c27b-4a5a-ac75-cfbb038bed8c"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFifthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="2f0bcc0b-f400-4966-8a04-e8b6b7c4fced"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFifthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="fe9ab58a-6cf3-4864-939f-98c555d4a0f5">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="1c931f3e-69fa-475e-b5f9-d5aefca55419"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSixthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="25d54cfc-658b-4793-b2dd-e952f4ba3f0b"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSixthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="c56f1356-99c0-4f00-96d3-acef61cdbc64">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="11681c5b-a21d-459f-bdc5-0e02186fd7c0"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSeventhName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="8792a807-76b9-450a-a535-9b57d5db37ba"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSeventhRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="734e4bac-cece-4587-99e4-bad1a71c264c">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="d7dc08bb-f45b-45bb-bb5e-34b2af4abaa0"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEighthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="2abb0f7b-acff-419e-8c4b-b2aa9a8ed689"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEighthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="29eb27d3-9b49-46d5-9770-128e70ed2846">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="fe292a30-feb2-4a87-b5d7-a0747b3ca1e3"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examNinthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="15c51cac-09c0-4abf-91c3-12366fcfef26"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examNinthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="900bd892-685f-4fdb-931c-64f52cbac5b5">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="dccbcd16-0e10-4fde-86b0-7e8c74a5a9d5"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTenthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="b4f1f2c2-6479-4bab-ac54-eac1a41f0862"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTenthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="ee168056-7477-4dfd-ac44-d26f4208f0c7">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="069171f9-e614-4d83-8085-d0d1ffd68d1e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEleventhName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="9f564dc8-f72d-40af-a4c4-6d35ff557d21"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEleventhRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="ea03685e-88ce-4588-b63b-d5ce787b3b62">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="e715ca76-1da8-4eea-8dad-34bfd17029ea"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTwelfthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="37abdf8c-8e19-461b-a05e-1731d9e41f56"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTwelfthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<lineChart>
+				<chart isShowLegend="false" customizerClass="com.talkweb.jasperReport.util.JFreeChartTrend">
+					<reportElement x="554" y="317" width="248" height="125" uuid="5a007813-0190-47e8-879b-ee52e072897b">
+						<printWhenExpression><![CDATA[!$F{classNameSix}.equals("")]]></printWhenExpression>
+					</reportElement>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<categoryDataset>
+					<dataset>
+						<datasetRun subDataset="lineDataset" uuid="bbe7b7fb-fbd3-44e2-8605-619c451315bd">
+							<dataSourceExpression><![CDATA[$F{lineListSix}]]></dataSourceExpression>
+						</datasetRun>
+					</dataset>
+					<categorySeries>
+						<seriesExpression><![CDATA["brokenLine"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{key}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{y1}]]></valueExpression>
+						<labelExpression><![CDATA["折线趋势图"]]></labelExpression>
+					</categorySeries>
+					<categorySeries>
+						<seriesExpression><![CDATA["straightLine"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{key}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{y2}]]></valueExpression>
+						<labelExpression><![CDATA["直线趋势图"]]></labelExpression>
+					</categorySeries>
+				</categoryDataset>
+				<linePlot>
+					<plot/>
+					<categoryAxisFormat>
+						<axisFormat axisLineColor="#FFFFFF"/>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat axisLineColor="#FFFFFF"/>
+					</valueAxisFormat>
+					<rangeAxisMinValueExpression><![CDATA[$F{minRangeAxis}]]></rangeAxisMinValueExpression>
+					<rangeAxisMaxValueExpression><![CDATA[$F{maxRangeAxis}]]></rangeAxisMaxValueExpression>
+				</linePlot>
+			</lineChart>
+			<componentElement>
+				<reportElement x="553" y="457" width="248" height="73" uuid="b075a170-39ed-4cd8-a301-27bd7ed4456c">
+					<printWhenExpression><![CDATA[!$F{classNameSix}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="TableDataset" uuid="b438161f-42bf-4523-a28a-4b6083c13367">
+						<dataSourceExpression><![CDATA[$F{trendDataSix}]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="32" uuid="be3fff84-56df-4e53-ad3b-593d312542d1">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1"/>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="32" height="21" uuid="6a70378f-94f9-4121-8eb6-aa912b596e66"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examRowName}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="847e884d-a50f-42c0-82cd-f2c3abc6f928">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="f0133b4b-7c3f-4870-b402-23299dcfa857"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFirstName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="483f4a1c-37af-4aa6-8b37-3d19a447e7df"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFirstRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="23e5c244-70fa-4537-a070-966cb6a3030e">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="072fc919-3851-49fa-98f7-db50688713c5"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSecondName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="376dc980-e8fb-4868-bd5e-ea88d713d5cb"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSecondRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="ed8b4d09-3f8c-4023-b018-5dde8ed1a4fb">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="bcc09aef-a246-4e9e-a161-70d4d67cb767"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examThirdName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="482af66a-b885-4ac5-b336-6be9b2af7e4c"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examThirdRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="464e3111-3e67-4b1f-acfa-c84a5cfc31a3">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="2992b6c4-99d6-4622-835b-f7dc26ea49c2"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFourthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="b06d7ca2-e3a6-495a-a530-0414fadf2d02"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFourthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="527db769-562b-42b1-9388-20c5fef49718">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="d731a9ef-1648-4f7d-a437-54dbe25c73aa"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFifthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="805b1b99-8c2b-4a51-909e-694a69b743eb"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examFifthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="d5f5a619-b3f6-4973-80cd-17848ccfd974">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="c9d334f3-ed37-4910-bc6f-a9109d4c70b7"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSixthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="d243a92f-2d7a-4e6e-badd-beee70369fd7"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSixthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="d40b044c-da06-4cdb-80c8-c1f19910a252">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="df8b9ce3-b6f5-480b-83f4-10163ba0ad95"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSeventhName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="7fecff82-41d2-4476-8324-fa7a178599e4"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examSeventhRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="1b4a154c-02e2-4ddf-9f13-bd44b31bc1ef">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="50826b14-1504-4e08-8cc3-be1d7099181d"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEighthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="a347ed4f-fd6f-4ff3-8684-ba416576e71f"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEighthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="f4a24796-6eaf-4181-adcd-ae23f2988f04">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="22e6681a-bc57-48a2-86bc-8ea6bf5f3085"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examNinthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="1c1403c3-9b08-4cfe-89d2-69cfc69868ca"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examNinthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="93cb9f3c-5851-41c0-9ea5-0d46a22e2635">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="0f5da3a3-5e21-4066-80c7-8b32dc6982fe"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTenthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="57661336-f829-4b96-a224-587ab02a6b4a"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTenthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="8f2965f8-b433-4c4b-9246-5b7b0662aff0">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="e36c2086-a064-4135-8a18-49687d9f2a74"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEleventhName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="03fd5438-54c5-4853-a0c0-80c142493759"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examEleventhRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="18" uuid="6574f78a-bcc5-49c3-9ade-e4ce4cf24030">
+						<jr:tableHeader style="table_TH" height="52" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="52" uuid="512fe386-b4bd-40f9-a38d-efb9d3862196"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="8" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTwelfthName}]]></textFieldExpression>
+							</textField>
+						</jr:tableHeader>
+						<jr:detailCell style="table_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="18" height="21" uuid="28f38cf9-a33b-49d0-88cb-de6246b3ee00"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{examTwelfthRanking}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<rectangle>
+				<reportElement mode="Transparent" x="275" y="45" width="248" height="142" uuid="cfb682a5-40e4-49f7-8b81-9bf7be580c35">
+					<printWhenExpression><![CDATA[!$F{classNameTwo}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Transparent" x="0" y="45" width="248" height="142" uuid="36b247fe-d23b-451e-8197-dedf7ba9be64">
+					<printWhenExpression><![CDATA[!$F{classNameOne}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Transparent" x="553" y="45" width="248" height="142" uuid="734bbff6-7c37-4ee9-92bb-534025731ccd">
+					<printWhenExpression><![CDATA[!$F{classNameThree}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Transparent" x="0" y="310" width="248" height="142" uuid="1356d464-1efa-4645-a279-852ec979f4aa">
+					<printWhenExpression><![CDATA[!$F{classNameFour}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Transparent" x="275" y="310" width="248" height="142" uuid="6b4ee147-96f4-4004-aac0-26382a409ae9">
+					<printWhenExpression><![CDATA[!$F{classNameFive}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<rectangle>
+				<reportElement mode="Transparent" x="554" y="310" width="248" height="142" uuid="63ba5fd8-4478-46da-8d43-e00924592fd1">
+					<printWhenExpression><![CDATA[!$F{classNameSix}.equals("")]]></printWhenExpression>
+				</reportElement>
+			</rectangle>
+			<textField>
+				<reportElement x="89" y="25" width="70" height="20" uuid="b198cefb-5e7b-481c-83e6-338d4543a057">
+					<printWhenExpression><![CDATA[!$F{classNameOne}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{classTypeName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="365" y="25" width="70" height="20" uuid="055be20f-de6d-4bf1-9efe-4ada496b6961">
+					<printWhenExpression><![CDATA[!$F{classNameTwo}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{classTypeName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="643" y="25" width="70" height="20" uuid="c3949f37-b7c4-4922-b16f-3973b6ce4dc3">
+					<printWhenExpression><![CDATA[!$F{classNameThree}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{classTypeName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="89" y="290" width="70" height="20" uuid="c61a180c-a55a-4591-bcf8-d65defbcbdad">
+					<printWhenExpression><![CDATA[!$F{classNameFour}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{classTypeName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="365" y="290" width="70" height="20" uuid="b7d21b1f-edce-44a0-8953-fce890773e9b">
+					<printWhenExpression><![CDATA[!$F{classNameFive}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{classTypeName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="643" y="290" width="70" height="20" uuid="aaaa85fe-e5b6-4cbc-a7be-bee101336c53">
+					<printWhenExpression><![CDATA[!$F{classNameSix}.equals("")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="宋体" size="10" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{classTypeName}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

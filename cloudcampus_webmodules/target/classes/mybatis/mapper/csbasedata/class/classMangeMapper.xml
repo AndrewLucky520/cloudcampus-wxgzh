@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.csbasedata.dao.ClassManageDao">
+
+   <select id="getClassList" resultType="JSONObject" parameterType="JSONObject">
+		SELECT c.id AS classId,c.className,c.gradeId,c.headTeacherId FROM ${dbname_class}.t_class c
+		 INNER JOIN ${dbname_class}.t_grade g 
+   			 ON g.`id`=c.`gradeId` AND g.`status`=1 AND c.`status`=1
+		WHERE c.schoolId = #{schoolId}
+		<if test="gradeIdList != null and gradeIdList.size() > 0"> 
+	      	AND c.gradeId IN
+	     	<foreach collection="gradeIdList" item="item" open="(" separator="," close=")">
+					#{item}
+			</foreach>
+		</if>
+		<if test="classIdList != null and classIdList.size() > 0"> 
+	        AND c.id IN
+	        <foreach collection="classIdList" item="item" open="(" separator="," close=")">
+					#{item}
+			</foreach>
+		</if>
+		ORDER BY  IF(
+		    #{xn} - YEAR(FROM_UNIXTIME(g.`createTime`)) > 0,
+		    #{xn} - YEAR(FROM_UNIXTIME(g.`createTime`)),
+	   		 g.createLevel
+  		) ;			
+   </select>
+   
+   <select id="getCountByClassCondition" parameterType="JSONObject" resultType="JSONObject">
+	    SELECT count(0) AS sum,IFNULL(GROUP_CONCAT(className),"") AS names FROM ${dbname_class}.t_class 
+	    WHERE schoolId = #{schoolId}
+	    <if test="className != null and className != '' ">
+	 	    AND className = #{className} 
+	    </if> 
+	    <if test="classId != null and classId != '' ">
+	 	    AND id != #{classId} 
+	    </if> 
+   </select>
+   
+   <insert id="insertBaseDataClassList" parameterType="List">
+        INSERT INTO ${dbname_class}.t_class(uuid,status,className,createTime,
+        classType,autoCreateTime,autoUpdateTime,gradeId,schoolId) VALUES 
+        <foreach collection="list" item="item" index="index" separator=",">
+		   (#{item.uuid}, #{item.status}, #{item.className}, #{item.createTime}, 
+		   #{item.classType},#{item.autoCreateTime}, #{item.autoUpdateTime}, 
+		   #{item.gradeId}, #{item.schoolId}) 	   
+		</foreach>
+   </insert>
+   
+   <insert id="insertClass" parameterType="JSONObject">
+        INSERT INTO ${dbname_class}.t_class(uuid,status,className,createTime,classType,
+        autoCreateTime,autoUpdateTime,gradeId,headTeacherId,schoolId) VALUES (#{uuid},
+        #{status},#{className},#{createTime},#{classType},#{autoCreateTime},
+        #{autoUpdateTime},#{gradeId},#{headTeacherId},#{schoolId}) 	   
+   </insert>
+   
+   <!-- 获取老师详细信息-->
+   <resultMap type="JSONObject" id="classMap"> 		
+		<result column="className" property="className"/>	
+		<result column="headTeacherId" property="headTeacherId"/>
+		<result column="classType" property="classType"/>
+		<result column="gradeId" property="gradeId"/>
+		<result column="createTime" property="createTime"/>
+		<collection property="teachers" javaType="List" resultMap="classSet"/>
+   </resultMap> 
+   <resultMap type="JSONObject" id="classSet">
+		<result column="teacherId" property="teacherId"/>
+		<result column="lessonId" property="lessonId"/>
+		<result column="accountName" property="accountName"/>
+		<result column="gender" property="gender"/>
+		<result column="accountStatus" property="accountStatus"/>
+   </resultMap>
+   <select id="getClassInfo" parameterType="JSONObject" resultMap="classMap">
+        SELECT c.gradeId AS gradeId,c.className AS className,c.classType AS classType,
+        from_unixtime(c.createTime,'%Y-%m-%d') AS createTime,t.teacherId AS teacherId,
+        c.headTeacherId AS headTeacherId,t.lessonId AS lessonId,a.accountName AS accountName,
+        a.gender AS gender,a.accountStatus AS accountStatus FROM ${dbname_class}.t_class c
+	    LEFT JOIN ${dbname_class}.t_teacher_course t ON t.classId = c.id
+	    LEFT JOIN ${dbname_class}.t_user u ON t.teacherId = u.id
+	    LEFT JOIN ${dbname_class}.t_account a ON u.accountId = a.id AND a.status = '1'
+	    WHERE c.schoolId = #{schoolId} AND c.id = #{classId}
+   </select>
+   <select id="getClassTeacherListCLASS" parameterType="JSONObject" resultType="Long">
+      SELECT tc.`teacherId` FROM  ${dbname_class}.`t_teacher_course` tc 
+      WHERE tc.`classId`=#{classId} AND tc.`lessonId`=#{lessonId}
+   </select>
+   <update id="updateClassInfo" parameterType="JSONObject">
+		UPDATE ${dbname_class}.t_class SET className = #{className}, gradeId = #{gradeId}, 
+		classType = #{classType}, headTeacherId = #{headTeacherId} WHERE id = #{classId}
+		AND schoolId = #{schoolId}
+   </update>
+   
+   <delete id="deleteClassCourses" parameterType="List">
+        DELETE FROM ${dbname_class}.t_teacher_course WHERE classId IN 
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+			   #{item}
+		</foreach>
+   </delete>
+  <update id="deleteClassCoursesBatchByCLASS" parameterType="JSONObject" >
+   DELETE FROM ${dbname_class}.`t_teacher_course` 
+	     WHERE  `classId`=#{classId} AND `lessonId`=#{lessonId}
+	     AND `teacherId` IN
+  	    <foreach collection="teacherIdList" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+  </update>
+   <delete id="deleteBaseDataClass" parameterType="List">
+        DELETE FROM ${dbname_class}.t_class WHERE schoolId = #{schoolId}
+        AND id IN
+        <foreach collection="classIdList" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+   </delete>
+   
+   <select id="getStagesBySchoolId" parameterType="String" resultType="String">
+        SELECT stage FROM ${dbname_class}.t_school_stage WHERE schoolId = #{schoolId}
+   </select>
+   
+   <delete id="deleteExtraGrade" parameterType="JSONObject">
+        DELETE ${dbname_class}.t_grade,${dbname_class}.t_class FROM ${dbname_class}.t_grade 
+        LEFT JOIN ${dbname_class}.t_class ON ${dbname_class}.t_grade.id = ${dbname_class}.t_class.gradeId 
+        WHERE ${dbname_class}.t_grade.schoolId = #{schoolId} AND ${dbname_class}.t_class.id is null 
+        AND ${dbname_class}.t_grade.createLevel NOT IN
+        <foreach collection="levelList" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+   </delete>
+   
+   <delete id="deleteClassCourse" parameterType="JSONObject">
+        DELETE FROM ${dbname_class}.t_teacher_course WHERE teacherId = #{teacherId}
+        AND classId = #{classId} AND lessonId = #{lessonId}
+   </delete>
+   
+   <insert id="insertClassCourses" parameterType="List">
+        INSERT INTO ${dbname_class}.t_teacher_course(teacherId,classId,lessonId)VALUES 
+        <foreach collection="list" item="item" index="index" separator=",">
+		   (#{item.teacherId}, #{item.classId}, #{item.lessonId}) 	   
+		</foreach>
+  </insert>
+	<select id="selectStudentByClassIdCLASS"  parameterType="JSONObject" resultType="JSONObject">
+	SELECT * FROM ${dbname_class}.t_student s 
+	WHERE s.`schoolId`=#{schoolId}  AND s.`status`=1
+	AND s.`classId`IN 
+	    <foreach collection="classIdList" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+	</select>
+	<update id="deleteStudentByClassIdCLASS" parameterType="JSONObject">
+		DELETE FROM ${dbname_class}.t_student WHERE schoolId=#{schoolId}
+		AND classId IN 
+		 <foreach collection="classIdList" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+	</update>
+	<update id="deleteUserCLASS" parameterType="JSONObject">
+		DELETE FROM ${dbname_class}.t_user WHERE id IN
+		 <foreach collection="userIdList" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+	</update>
+	<update id="deleteUserExtendCLASS" parameterType="JSONObject">
+		DELETE FROM ${dbname_class}.t_user_extend WHERE schoolId=#{schoolId} AND userId IN
+		 <foreach collection="userIdList" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+	</update>
+	<update id="deleteAccountCLASS" parameterType="JSONObject">
+		DELETE FROM ${dbname_class}.t_account WHERE id IN
+		 <foreach collection="accountIdList" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+	</update>
+	<select id="getParentListByStudentIdCLASS" parameterType="JSONObject" resultType="JSONObject">
+		  SELECT p.`parentId`AS parentUserId,a.`id` AS parentAccountId FROM  ${dbname_class}.t_parent p
+ 			 INNER JOIN  ${dbname_class}.t_user u ON u.`id`=p.`parentId`  
+			 INNER JOIN  ${dbname_class}.t_account a ON a.`id`=u.`accountId`  
+  			WHERE p.`studentId` IN 
+ 		<foreach collection="userIdList" item="item" open="(" separator="," close=")">
+				#{item}
+		</foreach>
+	</select>
+</mapper>

@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.weekWork.dao.WeekWorkDao">
+	<select id="getFillManInfo" parameterType="hashmap" resultType="java.lang.Integer">
+		SELECT 1 FROM ${db_name_weekWork}.t_ww_reportingpersonnel
+			WHERE schoolId = #{schoolId} AND teacherId = #{teacherId}
+			LIMIT 1
+	</select>
+	
+	<select id="queryReportingPersonnel" parameterType="hashmap" resultType="com.talkweb.weekWork.pojo.ReportingPersonnel">
+		SELECT schoolId, departmentId, teacherId 
+			FROM ${db_name_weekWork}.t_ww_reportingpersonnel 
+		WHERE schoolId = #{schoolId}
+			<if test="teacherId != null">
+				AND teacherId = #{teacherId}
+			</if>
+	</select>
+	
+	<select id="queryWeeklyRecordList" parameterType="hashmap" resultType="com.talkweb.weekWork.pojo.WeeklyRecord">
+		SELECT t1.departmentId, t1.departmentName, t2.teacherId, t2.submitTime, t2.version
+			FROM ${db_name_weekWork}.t_ww_reportingdepartment t1 LEFT JOIN
+				${db_name_weekWork}.t_ww_weeklyrecord t2 
+			ON t1.schoolId = t2.schoolId AND t1.departmentId = t2.departmentId 
+				AND t2.week = #{weekNum} AND t2.schoolYear = #{schoolYear}
+				AND t2.term = #{term}
+			WHERE t1.schoolId = #{schoolId}
+			<if test="departmentIds != null">
+				AND t1.departmentId IN 
+				<foreach collection="departmentIds" item="item" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			ORDER BY t1.createDate
+	</select>
+	
+	<select id="getDepartmentInfoByDataBase" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT t0.departmentId, t0.departmentName 
+			FROM ${db_name_weekWork}.t_ww_reportingdepartment t0, ${db_name_weekWork}.t_ww_reportingpersonnel t1 
+		WHERE t0.schoolId = t1.schoolId AND t0.departmentId = t1.departmentId 
+			AND t1.schoolId = #{schoolId} AND t1.teacherId = #{teacherId} 
+	</select>
+	
+	<select id="getWeeklyRecordListByDepartment" parameterType="hashmap" resultType="com.talkweb.weekWork.pojo.WeeklyRecord">
+		SELECT schoolId, schoolYear, term, week, departmentId, teacherId, submitTime, content, version
+			FROM ${db_name_weekWork}.t_ww_weeklyrecord 
+			WHERE schoolId = #{schoolId} AND schoolYear = #{schoolYear} 
+				AND term = #{term} AND week = #{weekNum} 
+				AND departmentId = #{departmentId}
+	</select>
+	
+	<select id="getDepartmentByIdWW" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT schoolId, departmentId, departmentName, createDate, content  
+			FROM ${db_name_weekWork}.t_ww_reportingdepartment 
+		WHERE schoolId = #{schoolId} AND departmentId = #{departmentId}
+	</select>
+	
+	<select id="getTeachersBydepartmentId" parameterType="hashmap" resultType="java.lang.Long">
+		SELECT t.teacherId FROM ${db_name_weekWork}.t_ww_reportingpersonnel t 
+			WHERE t.departmentId = #{departmentId} AND t.schoolId=#{schoolId}
+	</select>
+	
+	<delete id="deleteWeeklyRecord" parameterType="com.alibaba.fastjson.JSONObject">
+		DELETE FROM ${db_name_weekWork}.t_ww_weeklyrecord 
+		WHERE schoolId = #{schoolId} AND schoolYear = #{schoolYear} AND term=#{term} AND week = #{weekNum} 
+			AND departmentId = #{departmentId}
+	</delete>
+	
+	<insert id="insertWeeklyRecord" parameterType="com.alibaba.fastjson.JSONObject">
+		INSERT INTO ${db_name_weekWork}.t_ww_weeklyrecord(schoolId, schoolYear, term, week, departmentId, teacherId, submitTime, content, version) 
+			VALUES(#{schoolId}, #{schoolYear}, #{term}, #{week}, #{departmentId}, #{teacherId}, #{submitTime} , #{content}, #{version})
+	</insert>
+	
+	
+	
+	
+	
+	
+	
+	
+	<select id="getCurrentTermWeek" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.String">
+		SELECT weekStartTime FROM ${db_name_weekWork}.t_ww_weekstarttime WHERE schoolId = #{schoolId} AND schoolYear=#{schoolYear} AND term=#{term}
+	</select>
+	<resultMap type="com.alibaba.fastjson.JSONObject" id="ListResult">
+  		<result column="sortId" property="sortId"/>
+		<result column="sortName" property="sortName"/>
+		<result column="sortNum" property="sortNum"/>
+		<collection property="sortDetails" javaType="java.util.List" resultMap="sortDetailsSet"/>
+  </resultMap> 
+  <resultMap type="com.alibaba.fastjson.JSONObject" id="sortDetailsSet">
+		<result column="tableHeadId" property="tableHeadId"/>
+		<result column="tableHeadName" property="tableHeadName"/>
+  </resultMap>
+	<select id="getDistinctRecordDetail" parameterType="com.alibaba.fastjson.JSONObject" resultMap="ListResult">
+		select distinct t.sortId,t.sortName,t.sortNum,t.tableHeadId,t.tableHeadName FROM ${db_name_weekWork}.t_ww_weeklycontent t 
+		WHERE t.schoolId=#{schoolId} AND t.schoolYear=#{schoolYear} AND t.term=#{term} AND t.week=#{weekNum} AND t.departmentId=#{departmentId} 
+		ORDER BY t.sortNum,t.tableColNum
+	</select>
+	<select id="getBaseRecordDetail" parameterType="com.alibaba.fastjson.JSONObject" resultMap="ListResult">
+		SELECT t0.sortId,t0.sortName,t0.sortNum,t1.tableHeadId,t1.tableHeadName FROM ${db_name_weekWork}.t_ww_weekworksort t0,${db_name_weekWork}.t_ww_weekworktablehead t1
+		WHERE t0.schoolId=t1.schoolId AND t0.sortId=t1.sortId AND t0.departmentId=t1.departmentId AND t0.schoolId=#{schoolId} AND t0.departmentId=#{departmentId} ORDER BY t0.sortNum,t1.tableHeadNum
+	</select>
+	<select id="getWeeklyRecordDetail" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT t.sortId,t.sortName,t.sortNum,t.tableHeadId,t.tableHeadName,t.tableRowsNum,t.tableColNum,t.content,t.departmentId FROM ${db_name_weekWork}.t_ww_weeklycontent t 
+		WHERE t.schoolId=#{schoolId} AND t.schoolYear=#{schoolYear} AND t.term=#{term} AND t.week=#{weekNum} 
+		<if test="departmentId!=null and departmentId!=''">
+			AND t.departmentId=#{departmentId}
+		</if>
+		ORDER BY t.sortNum,t.tableRowsNum,t.tableColNum
+	</select>
+	
+	<!--dlm -end  -->
+	
+	<delete id="deleteWeeklyContent" parameterType="com.alibaba.fastjson.JSONObject">
+		DELETE FROM ${db_name_weekWork}.t_ww_weeklycontent WHERE schoolId=#{schoolId} AND schoolYear=#{schoolYear} AND term=#{term} AND `week`=#{weekNum} AND departmentId=#{departmentId} AND sortId=#{sortId} AND tableRowsNum=#{tableRowsNum}
+	</delete>
+	<delete id="delWeeklyRecordDetail1" parameterType="com.alibaba.fastjson.JSONObject">
+		DELETE FROM ${db_name_weekWork}.t_ww_weeklyrecord WHERE schoolId=#{schoolId} AND schoolYear=#{schoolYear} AND term=#{term} AND `week`=#{weekNum} AND departmentId=#{departmentId}
+	</delete>
+	<delete id="delWeeklyRecordDetail2" parameterType="com.alibaba.fastjson.JSONObject">
+		DELETE FROM ${db_name_weekWork}.t_ww_weeklycontent WHERE schoolId=#{schoolId} AND schoolYear=#{schoolYear} AND term=#{term} AND `week`=#{weekNum} AND departmentId=#{departmentId}
+	</delete>
+	<update id="updateWeeklyContent" parameterType="java.util.List">
+		INSERT INTO ${db_name_weekWork}.t_ww_weeklycontent VALUES
+		<foreach collection="list" index="index" item="item" separator=",">
+		(#{item.schoolId},#{item.schoolYear},#{item.term},#{item.weekNum},#{item.departmentId},#{item.teacherId},#{item.sortId},
+		#{item.sortName},#{item.sortNum},#{item.tableHeadId},#{item.tableHeadName},#{item.tableColNum},#{item.tableRowsNum},#{item.content})
+		</foreach>
+		on DUPLICATE KEY UPDATE content=values(content);	 
+	</update>
+	
+	<select id="getWeekWorkDepartmentList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT t.departmentId,t.departmentName FROM ${db_name_weekWork}.t_ww_reportingdepartment t WHERE t.schoolId=#{schoolId} ORDER BY t.createDate
+	</select>
+	<insert id="insertTerminfoAndStartWeek" parameterType="com.alibaba.fastjson.JSONObject">
+		INSERT INTO ${db_name_weekWork}.t_ww_weekstarttime VALUES(#{schoolId},#{schoolYear},#{term},#{weekStartTime})
+	</insert>
+	<delete id="deleteTerminfoAndStartWeek" parameterType="com.alibaba.fastjson.JSONObject">
+		DELETE FROM ${db_name_weekWork}.t_ww_weekstarttime WHERE schoolId=#{schoolId} AND schoolYear=#{schoolYear} AND term=#{term}
+	</delete>
+	<select id="getTerminfoAndStartWeek" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.util.Date">
+		SELECT weekStartTime FROM ${db_name_weekWork}.t_ww_weekstarttime WHERE schoolId=#{schoolId} AND schoolYear=#{schoolYear} AND term=#{term}
+	</select>
+	<select id="getFillRecord" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM ${db_name_weekWork}.t_ww_weeklycontent WHERE schoolId=#{schoolId} AND schoolYear=#{schoolYear} AND term=#{term} AND `week`=#{weekNum} 
+		<if test="departmentId!=null and departmentId!=''">
+			AND departmentId=#{departmentId}
+		</if>
+	</select>
+	
+	<select id="getFillRecord2" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM ${db_name_weekWork}.t_ww_weeklyrecord t1, ${db_name_weekWork}.t_ww_reportingpersonnel t2 WHERE t1.schoolId=#{schoolId} AND t1.schoolYear=#{schoolYear}
+		 AND t1.term=#{term} AND t1.`week`=#{weekNum} and t1.version =#{version}  and t1.schoolId = t2.schoolId and t1.departmentId = t2.departmentId and t1.content is not null 
+		<if test="departmentId!=null and departmentId!=''">
+			AND t1.departmentId=#{departmentId}
+		</if>
+	</select>
+	
+	<select id="getReportingPersonList" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT t0.departmentId, t1.departmentName, t0.teacherId 
+			FROM ${db_name_weekWork}.t_ww_reportingpersonnel t0, ${db_name_weekWork}.t_ww_reportingdepartment t1 
+		WHERE t0.departmentId = t1.departmentId AND t0.schoolId = t1.schoolId
+			AND t0.schoolId = #{schoolId} 
+			ORDER BY t1.createDate
+	</select>
+	
+	<select id="getMaxWeekFromRecord" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	    SELECT c.schoolId ,c.schoolYear,c.term,c.week,c.departmentId,c.teacherId,c.sortId,c.sortName,c.sortNum,c.tableHeadId,c.tableHeadName,
+		c.tableColNum,c.tableRowsNum,c.content , d.departmentName,d.createDate
+		FROM ${db_name_weekWork}.t_ww_weeklycontent c 
+		INNER JOIN ${db_name_weekWork}.t_ww_reportingdepartment d ON   c.departmentId=d.departmentId 
+		WHERE c.schoolId = #{schoolId} AND c.schoolYear =#{schoolYear} AND c.term=#{term}
+		<if test="noWeekNum!=null and noWeekNum!=''">
+		      AND c.week &lt;  #{noWeekNum}
+		</if>
+		ORDER BY c.WEEK desc
+	</select>
+	
+	<select id="getMaxWeekFromRecord2" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT c.schoolId , c.schoolYear , c.term ,c.`week` , c.departmentId , c.teacherId ,  c.content FROM ${db_name_weekWork}.t_ww_weeklyrecord c 
+		INNER JOIN  ${db_name_weekWork}.t_ww_reportingdepartment t on (c.departmentId = t.departmentId )
+		WHERE c.schoolId = #{schoolId} AND c.schoolYear =#{schoolYear} AND c.term=#{term}
+		<if test="noWeekNum!=null and noWeekNum!=''">
+		      AND c.week &lt;  #{noWeekNum}
+		</if>
+		ORDER BY c.WEEK desc
+	</select>
+	
+	
+<!-- 类别及表头设置 -->
+	<!-- 批量设置周工作类别 -->
+	<update id='insertWeekWorkSortBatchWW' parameterType='java.util.List' >
+      INSERT INTO ${db_name_weekWork}.t_ww_weekworksort(schoolId,sortId,departmentId,sortName,sortNum,inputTime) 
+      VALUES   
+     <foreach collection="list" item="item" index="index" separator=",">  
+     (#{item.schoolId},#{item.sortId},#{item.departmentId},#{item.sortName},#{item.sortNum},#{item.inputTime})
+     </foreach>
+     on DUPLICATE KEY UPDATE  
+     sortName=values(sortName);	    
+    </update> 
+    <!-- 批量设置周工作表头 -->
+	<update id='insertWeekWorkTableHeadBatchWW' parameterType='java.util.List' >
+     INSERT INTO ${db_name_weekWork}.t_ww_weekworktablehead(schoolId,sortId,departmentId,tableHeadId,tableHeadName,tableHeadNum,inputTime) 
+     VALUES 
+     <foreach collection="list" item="item" index="index" separator=",">  
+     (#{item.schoolId},#{item.sortId},#{item.departmentId},#{item.tableHeadId},#{item.tableHeadName},#{item.tableHeadNum},#{item.inputTime})
+     </foreach>
+      on DUPLICATE KEY UPDATE   
+	  tableHeadName=values(tableHeadName);	    
+    </update> 
+    <!--  删除周工作类别 -->
+	<update id='deleteWeekWorkSortByIdWW' parameterType='com.alibaba.fastjson.JSONObject' >
+       DELETE FROM  ${db_name_weekWork}.t_ww_weekworksort 
+       WHERE schoolId=#{schoolId} AND sortId=#{sortId} AND departmentId = #{departmentId}
+    </update> 
+    <delete id="deleteWeekWorkSortBySchoolId" parameterType="com.alibaba.fastjson.JSONObject">
+    	DELETE FROM  ${db_name_weekWork}.t_ww_weekworksort WHERE schoolId=#{schoolId} AND departmentId=#{departmentId}
+    </delete>
+     <!--  删除周工作表头 -->
+	<update id='deleteWeekWorkTableHeadByIdWW' parameterType='com.alibaba.fastjson.JSONObject' >
+    	DELETE FROM ${db_name_weekWork}.t_ww_weekworktablehead 
+    	WHERE schoolId=#{schoolId} AND sortId=#{sortId} AND departmentId = #{departmentId}
+    </update> 
+    <delete id="deleteWeekWorkTableHeadBySchoolId" parameterType="com.alibaba.fastjson.JSONObject">
+    	DELETE FROM ${db_name_weekWork}.t_ww_weekworktablehead WHERE schoolId=#{schoolId} AND departmentId=#{departmentId}
+    </delete>
+    <!--   获取周工作类别名字   -->
+    <select id="getWeekWorkSortNamesWW" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.String">
+		SELECT IFNULL(GROUP_CONCAT(sortName),"") AS sortNames 
+		FROM ${db_name_weekWork}.t_ww_weekworksort 
+		WHERE schoolId=#{schoolId} 
+	</select>
+	 <!--   获取周工作表头名字   -->
+    <select id="getWeekWorkTableHeadNamesWW" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT IFNULL(GROUP_CONCAT(tableHeadName),"") AS tableHeadNames,sortId 
+		FROM ${db_name_weekWork}.t_ww_weekworktablehead 
+		WHERE schoolId=#{schoolId} GROUP BY sortId
+	</select>
+	
+	<!-- 部门及人员设置 @author zhh -->
+	 <!-- 获取部门   -->
+    <select id="isExsitedSameDepartmentName" parameterType="com.alibaba.fastjson.JSONObject" resultType="java.lang.Integer">
+		SELECT 1 FROM ${db_name_weekWork}.t_ww_reportingdepartment 
+		WHERE schoolId = #{schoolId} AND departmentName = #{departmentName} 
+			AND departmentId != #{departmentId}
+			LIMIT 1
+	</select>
+	
+	 <!-- 插入部门 -->
+	<update id='insertDepartmentWW' parameterType='com.alibaba.fastjson.JSONObject' >
+    	INSERT INTO ${db_name_weekWork}.t_ww_reportingdepartment(schoolId, departmentId, departmentName, createDate, content) 
+    		VALUES (#{schoolId}, #{departmentId}, #{departmentName}, #{createDate}, #{content})
+     	ON DUPLICATE KEY UPDATE   
+	 		departmentName = #{departmentName}, content = #{content}
+    </update> 
+    
+    <update id='updateDepartmentContentById' parameterType='com.alibaba.fastjson.JSONObject' >
+      UPDATE  ${db_name_weekWork}.t_ww_reportingdepartment SET content = #{content}
+      WHERE departmentId = #{departmentId};
+    </update> 
+    
+     <!-- 批量插入老师-->
+	<insert id='insertTeacherBatchWW' parameterType='com.alibaba.fastjson.JSONObject' >
+    	INSERT INTO ${db_name_weekWork}.t_ww_reportingpersonnel(schoolId, departmentId, teacherId) 
+    		VALUES
+		    <foreach collection="teacherIds" item="item" index="index" separator=",">  
+		     	(#{schoolId}, #{departmentId}, #{item})
+	     	</foreach>
+    </insert> 
+     <!-- 删除部门 -->
+	<update id='deleteDepartmentWW' parameterType='com.alibaba.fastjson.JSONObject' >
+    DELETE FROM ${db_name_weekWork}.t_ww_reportingdepartment WHERE schoolId=#{schoolId} AND departmentId=#{departmentId}
+    </update> 
+    
+     <!-- 删除老师-->
+	<delete id='deleteTeacherWW' parameterType='com.alibaba.fastjson.JSONObject' >
+     	DELETE FROM ${db_name_weekWork}.t_ww_reportingpersonnel 
+     		WHERE schoolId = #{schoolId} AND departmentId = #{departmentId}
+    </delete>
+    
+<!--按周次导出 @author zhh-->
+<resultMap type="com.alibaba.fastjson.JSONObject" id="ListResult1">
+  		<result column="departmentId" property="departmentId"/>
+  		<result column="departmentName" property="departmentName"/>
+		<collection property="weekWorkDetails" javaType="java.util.List" resultMap="weekWorkDetailsSet"/>
+  </resultMap> 
+    <resultMap type="com.alibaba.fastjson.JSONObject" id="weekWorkDetailsSet">
+  		<result column="sortId" property="sortId"/>
+		<result column="sortName" property="sortName"/>
+		<result column="sortNum" property="sortNum"/>
+		<collection property="sortDetails" javaType="java.util.List" resultMap="sortDetailsSet1"/>
+  </resultMap> 
+  <resultMap type="com.alibaba.fastjson.JSONObject" id="sortDetailsSet1">
+		<result column="tableHeadId" property="tableHeadId"/>
+		<result column="tableHeadName" property="tableHeadName"/>
+  </resultMap>
+	<select id="getDistinctRecordDetail1" parameterType="com.alibaba.fastjson.JSONObject" resultMap="ListResult1">
+		select distinct t.sortId,t.sortName,t.sortNum,t.tableHeadId,t.tableHeadName,t.departmentId,r.departmentName FROM ${db_name_weekWork}.t_ww_weeklycontent t 
+		INNER JOIN ${db_name_weekWork}.t_ww_reportingdepartment r ON r.departmentId=t.departmentId 
+		WHERE t.schoolId=#{schoolId} AND t.schoolYear=#{schoolYear} AND t.term=#{term} AND t.week=#{weekNum}  
+		ORDER BY r.createDate,t.sortNum,t.tableColNum
+	</select> 
+	
+	
+	
+	<select id="getDistinctRecordDetail2" parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject">
+	 
+        select distinct t1.schoolId , t1.schoolYear , t1.term , t1.week ,t1.departmentId ,r.departmentName  ,t1.teacherId ,t1.submitTime , t1.content, t1.version
+        from    ${db_name_weekWork}.t_ww_weeklyrecord t1  INNER JOIN   ${db_name_weekWork}.t_ww_reportingdepartment r ON (r.departmentId=t1.departmentId )
+        , ${db_name_weekWork}.t_ww_reportingpersonnel t2
+        where t1.schoolId = t2.schoolId and t1.departmentId = t2.departmentId and t1.version =#{version}
+         and  t1.schoolId=#{schoolId} AND t1.schoolYear=#{schoolYear} AND t1.term=#{term} AND t1.week=#{weekNum}
+          
+ 	</select> 
+ 	
+ 	
+ 	<select id="getFilledList"  parameterType="com.alibaba.fastjson.JSONObject" resultType="com.alibaba.fastjson.JSONObject" >
+ 	     select  t1.departmentId , t1.teacherId   
+ 	     from  ${db_name_weekWork}.t_ww_weeklyrecord  t1
+ 	     where t1.schoolId = #{schoolId}  and t1.schoolYear = #{schoolYear} and  t1.term = #{term} and t1.week=#{weekNum}
+ 	</select>
+
+</mapper>

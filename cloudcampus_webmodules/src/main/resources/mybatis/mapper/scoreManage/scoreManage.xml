@@ -1,0 +1,1474 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.scoreManage.dao.ScoreManageDao">
+	<select id="getDegreeInfoList" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.gm.DegreeInfo">
+		SELECT a.kslcdm, a.kslcmc, a.autoIncr, a.cdate, a.drflag, a.fxflag, a.fbflag, a.fbteaflag, a.xnxq , a.fbpmflag
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo} a
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq}
+		<if test="data.kslcdmList != null">
+			AND a.kslcdm IN
+			<foreach collection="data.kslcdmList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.drflag != null">
+			AND a.drflag = #{data.drflag}
+		</if>
+		<if test="data.fbflag != null">
+			AND a.fbflag = #{data.fbflag}
+		</if>
+		<if test="data.ltCdate != null">
+			AND a.cdate &lt; #{data.ltCdate}
+		</if>
+		<if test="data.fbteaflag != null">
+			AND a.fbteaflag = #{data.fbteaflag}
+		</if>
+		
+		<if test="data.usedGradeList != null or data.nj != null">
+			AND EXISTS
+			(
+				SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo_nj} b
+				WHERE a.xxdm = b.xxdm AND a.kslcdm = b.kslcdm
+				<if test="data.usedGradeList != null">
+					AND b.nj IN
+					<foreach collection="data.usedGradeList" open="(" separator="," close=")" item="item">
+						#{item}
+					</foreach>
+				</if>
+				<if test="data.nj != null">
+					AND b.nj = #{data.nj}
+				</if>
+			)
+		</if>
+			ORDER BY a.cdate DESC
+	</select>
+
+	<select id="getDegreeInfoById" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.gm.DegreeInfo">
+		SELECT xxdm, kslcdm, kslcmc, kslb, bpcsdm, mrszflag, fxflag, drflag, fbflag, lrr, fxtime, fbtime, fbpmflag, fbteaflag, 
+		fbteapmflag, cdate, external, eexamId, autoIncr, xnxq,counter
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo}
+		WHERE   kslcdm = #{data.kslcdm}
+		   <if test="data.xxdm!=null and data.xxdm!= '' ">
+		     AND   xxdm = #{data.xxdm}  
+		   </if>
+			AND xnxq = #{data.xnxq}
+			LIMIT 1
+	</select>
+
+	<select id="getDegreeInfoNjList" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.gm.DegreeInfoNj">
+		SELECT kslcdm, nj, xxdm, mrszflag 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo_nj}  
+		WHERE xxdm = #{data.xxdm} AND xnxq = #{data.xnxq}
+		<if test="data.kslcdm != null">
+			AND kslcdm = #{data.kslcdm}
+		</if>
+		<if test="data.degreeInfoList != null">
+			AND kslcdm IN 
+			<foreach collection="data.degreeInfoList" open="(" separator="," close=")" item="item">
+				#{item.kslcdm}
+			</foreach>
+		</if>
+	</select>
+	
+	<select id="hasSameNameInDegreeInfo" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo} 
+			WHERE xxdm = #{data.xxdm} AND kslcdm != #{data.kslcdm}
+				AND kslcmc = #{data.kslcmc} AND xnxq = #{data.xnxq}
+			LIMIT 1 
+	</select>
+	
+	<insert id="insertDegreeInfo" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo}
+			(xxdm, kslcdm, kslcmc, kslb, bpcsdm, mrszflag, fxflag, drflag, fbflag, lrr, fxtime, fbtime, fbpmflag, fbteaflag, fbteapmflag, cdate, external, eexamId, xnxq)
+		VALUES
+			(#{data.xxdm}, #{data.kslcdm}, #{data.kslcmc}, #{data.kslb}, #{data.bpcsdm}, #{data.mrszflag}, #{data.fxflag}, #{data.drflag}, #{data.fbflag}, #{data.lrr}, 
+				#{data.fxtime}, #{data.fbtime}, #{data.fbpmflag}, #{data.fbteaflag}, #{data.fbteapmflag}, #{data.cdate}, #{data.external}, #{data.eexamId}, #{data.xnxq})
+	</insert>
+
+	<!-- 获取考试下所有年级 -->
+	<select id="getNjFromDegreeInfoNj" parameterType="splitDbAndTableRule"  resultType="java.lang.String">
+	    SELECT DISTINCT nj FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo_nj}
+	    	WHERE xxdm = #{data.xxdm} and kslcdm = #{data.kslc}
+	    		AND xnxq = #{data.xnxq}
+	</select>
+	
+	<insert id="insertDegreeInfoNjBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo_nj}
+			(kslcdm, nj, xxdm, mrszflag, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslcdm}, #{item.nj}, #{item.xxdm}, #{item.mrszflag}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE mrszflag = VALUES(mrszflag)
+	</insert>
+	
+	<update id="updatetDegreeInfo" parameterType="splitDbAndTableRule">
+		UPDATE ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo}
+		<set>
+			<if test="data.kslcmc != null">
+				kslcmc = #{data.kslcmc},
+			</if>
+			<if test="data.drflag != null">
+				drflag = #{data.drflag},
+			</if>
+			<if test="data.fxflag != null">
+				fxflag = #{data.fxflag},
+			</if>
+			<if test="data.fbflag != null">
+				fbflag = #{data.fbflag},
+			</if>
+			<if test="data.fbteaflag != null">
+				fbteaflag = #{data.fbteaflag},
+			</if>
+			<if test="data.fbpmflag != null">
+				fbpmflag = #{data.fbpmflag},
+			</if>
+			<if test="data.fbteapmflag != null">
+				fbteapmflag = #{data.fbteapmflag},
+			</if>
+			<if test="data.fbtime != null">
+				fbtime = #{data.fbtime},
+			</if>
+			<if test="data.counter != null">
+				counter = #{data.counter},
+			</if>
+		</set>
+		WHERE xxdm = #{data.xxdm} AND kslcdm = #{data.kslcdm}
+			AND xnxq = #{data.xnxq}
+	</update>
+	
+	<delete id="deleteDegreeInfo" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo} 
+			WHERE kslcdm = #{data.kslcdm} AND xxdm = #{data.xxdm}
+				AND xnxq = #{data.xnxq}
+	</delete>
+
+	<delete id="deleteDegreeInfoNj" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo_nj} 
+			WHERE kslcdm = #{data.kslcdm} AND xxdm = #{data.xxdm}
+				AND xnxq = #{data.xnxq}
+			<if test="data.excludeNjList != null">
+				AND nj NOT IN 
+				<foreach collection="data.excludeNjList" open="(" separator="," close=")" item="item">
+					#{item}
+				</foreach>
+			</if>
+	</delete>
+	
+	<update id="updateDegreeInfoNj" parameterType="splitDbAndTableRule">
+		UPDATE ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo_nj} 
+		<set>
+			<if test="data.mrszflag != null">
+				mrszflag = #{data.mrszflag},
+			</if>
+		</set>
+		WHERE kslcdm = #{data.kslcdm} AND xxdm = #{data.xxdm}
+				AND xnxq = #{data.xnxq}
+			<if test="data.njList != null">
+				AND nj IN
+				<foreach collection="data.njList" open="(" separator="," close=")" item="item">
+					#{item}
+				</foreach>
+			</if>
+			<if test="data.nj != null">
+				AND nj = #{data.nj}
+			</if>
+	</update>
+	
+	<select id="getScoreInfo" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.gm.ScoreInfo">
+		SELECT kslc, xxdm, kmdm, xh, bh, nj, cj, mf, tsqk, bz, xnxq
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo}
+			WHERE kslc = #{data.kslc} AND xxdm = #{data.xxdm} 
+				AND xnxq = #{data.xnxq}
+			<if test="data.kmdmList != null">
+				AND kmdm IN
+				<foreach collection="data.kmdmList" open="(" separator="," close=")" item="item">
+					#{item}
+				</foreach>
+			</if>
+			<if test="data.xhList != null">
+				AND xh IN
+				<foreach collection="data.xhList" open="(" separator="," close=")" item="item">
+					#{item}
+				</foreach>
+			</if>
+			<if test="data.bhList != null">
+				AND bh IN
+				<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+					#{item}
+				</foreach>
+			</if>
+	</select>
+
+	<insert id="insertScoreInfoBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo}
+			(kslc, xxdm, kmdm, xh, bh, nj, cj, mf, tsqk, bz, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.kmdm}, #{item.xh}, #{item.bh}, #{item.nj}, #{item.cj}, #{item.mf}, #{item.tsqk}, #{item.bz}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE cj=VALUES(cj), tsqk=VALUES(tsqk)
+	</insert>
+
+	<delete id="deleteScoreInfo" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} 
+			WHERE kslc = #{data.kslc} AND xxdm = #{data.xxdm} 
+				AND xnxq = #{data.xnxq}
+	</delete>
+
+	<select id="getNjByScoreInfo" parameterType="splitDbAndTableRule" resultType="java.lang.String">
+		SELECT DISTINCT nj FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} 
+			WHERE kslc = #{data.kslc} AND xxdm = #{data.xxdm} 
+				AND xnxq = #{data.xnxq}
+	</select>
+
+	<update id="updateScoreInfo" parameterType="splitDbAndTableRule">
+		UPDATE ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} 
+		<set>
+			<if test="data.cj != null and data.cj != -1">
+				cj = #{data.cj},
+			</if>
+			<if test="data.cj == -1">
+				cj = NULL,
+			</if>
+			<if test="data.tsqk != null">
+				tsqk = #{data.tsqk},
+			</if>
+		</set>
+		WHERE kslc = #{data.kslc} AND xxdm = #{data.xxdm} AND xnxq = #{data.xnxq} 
+			AND xh = #{data.xh} AND kmdm = #{data.kmdm};
+	</update>
+	
+	 <!-- 根据分组id获取分组下的班级 -->
+	<select id="getClassIdListByGroupId"  parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT a.bh FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} a 
+			INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} b 
+				ON b.xxdm = a.xxdm AND a.kslc = b.kslc AND a.xnxq = b.xnxq AND a.bh = b.bh
+		 WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq}
+		<if test="data.bmfzList != null">
+			AND a.bmfz IN
+			<foreach collection="data.bmfzList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.bmfz != null">
+			AND a.bmfz = #{data.bmfz}
+		</if>
+		<if test="data.bhList != null">
+			AND a.bh IN
+			<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<!-- 获取未分组班级  new -->
+	<select id="getWfzList" parameterType="splitDbAndTableRule" resultType="java.lang.Long">	
+		SELECT bh AS classId 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} AND bmfz = #{data.bmfz}
+		<if test="data.noBhList != null">
+			AND bh NOT IN
+			<foreach collection="data.noBhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<!-- 文理分组考试是否已设置 -->
+	<select id="ifExistsAnalysisConfig01" useCache="false"  parameterType="splitDbAndTableRule" resultType="int">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslcdm} AND xnxq = #{data.xnxq} AND lb='01'
+		LIMIT 1
+	</select>
+	<!-- 班级分组考试是否已设置 -->
+	<select id="ifExistsAnalysisConfig02" useCache="false"  parameterType="splitDbAndTableRule" resultType="int">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslcdm} AND xnxq = #{data.xnxq} AND lb = '02'
+		LIMIT 1
+	</select>
+	<!-- 统计人数是否已设置 -->
+	<select id="ifExistsAnalysisConfig03-1" useCache="false"  parameterType="splitDbAndTableRule" resultType="int">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} AND lb = '01' AND fw > 0
+		LIMIT 1  
+	</select>
+	<select id="ifExistsAnalysisConfig03-2" useCache="false"  parameterType="splitDbAndTableRule" resultType="int">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} AND fw > 0
+		LIMIT 1 
+	</select>
+	<!-- 不参考统计学生 -->
+	<select id="ifExistsAnalysisConfig04" useCache="false"  parameterType="splitDbAndTableRule" resultType="int">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_xscjbtj}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+		LIMIT 1 
+	</select>
+	<!-- 统计科目与满分 -->
+	<select id="ifExistsAnalysisConfig05" useCache="false"  parameterType="splitDbAndTableRule" resultType="int">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoretjmk}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+		LIMIT 1
+	</select>
+	<!-- 合并科目 -->
+	<select id="ifExistsAnalysisConfig06" useCache="false"  parameterType="splitDbAndTableRule" resultType="int">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+		LIMIT 1
+	</select>
+	<!-- 统计参数 -->
+	<select id="ifExistsAnalysisConfig07" useCache="false"  parameterType="hashmap" resultType="int">
+		SELECT 1 FROM ${db_name_scoreManage_global}.t_gm_jxpgscoresection
+		WHERE xxdm = #{xxdm}
+		LIMIT 1
+	</select>
+	<!-- 排名区间 -->
+	<select id="ifExistsAnalysisConfig08" useCache="false"  parameterType="splitDbAndTableRule" resultType="int">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankdistribute}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+		LIMIT 1
+	</select>
+	<!-- 分数段 -->
+	<select id="ifExistsAnalysisConfig09" useCache="false"  parameterType="splitDbAndTableRule" resultType="int">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_zfqjsz}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslcdm} AND xnxq = #{data.xnxq}
+		LIMIT 1
+	</select>
+	<!--对比考试 -->
+	<select id="ifExistsAnalysisConfig10" useCache="false"  parameterType="splitDbAndTableRule" resultType="int">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_dbkslc}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslcdm} AND xnxq = #{data.xnxq}
+		LIMIT 1
+	</select>
+	<!--等第设置 -->
+	<select id="ifExistsAnalysisConfig11" useCache="false"  parameterType="splitDbAndTableRule" resultType="int">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreleveltemplate}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslcdm} AND xnxq = #{data.xnxq}
+		LIMIT 1
+	</select>
+	<!--竞赛组设置 -->
+	<select id="ifExistsAnalysisConfig12" useCache="false"  parameterType="splitDbAndTableRule" resultType="int">
+		SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_competitionstu}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslcdm} AND xnxq = #{data.xnxq}
+		LIMIT 1
+	</select>
+	<!--班级报告设置 -->
+	<select id="ifExistsAnalysisConfig13" useCache="false"  parameterType="hashmap" resultType="int">
+		SELECT 1 FROM ${db_name_scoreManage_global}.t_sar_setting_bj
+		WHERE xxdm = #{xxdm}
+		LIMIT 1
+	</select>
+	<!--学生报告设置 -->
+	<select id="ifExistsAnalysisConfig14" useCache="false"  parameterType="hashmap" resultType="int">
+		SELECT 1 FROM ${db_name_scoreManage_global}.t_sar_setting_stu
+		WHERE xxdm = #{xxdm}
+		LIMIT 1
+	</select>
+	
+	<delete	id="deleteTopGroupBj" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj}  
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+		<if test="data.nj != null or data.lb != null">
+			AND bmfz IN (
+					SELECT bmfz FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup}  
+					WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+					<if test="data.nj != null">
+						AND nj = #{data.nj}
+					</if>
+					<if test="data.lb != null">
+						AND lb = #{data.lb}
+					</if>
+				)
+		</if>
+		<if test="data.bmfz != null">
+			AND bmfz = #{data.bmfz}
+		</if>
+		<if test="data.bhList != null">
+			AND bh IN
+			<foreach collection="data.bhList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+	</delete>
+	
+	<delete id="deleteTopGroup" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} 
+		<if test="data.nj != null">
+			AND nj = #{data.nj}
+		</if>
+		<if test="data.lb != null">
+			AND lb = #{data.lb}
+		</if>
+		<if test="data.bmfz != null">
+			AND bmfz = #{data.bmfz}
+		</if>
+		<if test="data.bmfzList != null">
+			AND bmfz IN
+			<foreach collection="data.bmfzList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.ssfzList != null">
+			AND ssfz IN
+			<foreach collection="data.ssfzList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+	</delete>
+	
+	<update id="updateTopGroup" parameterType="splitDbAndTableRule">
+		UPDATE ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} 
+		<set>
+			<if test="data.fw == 'null'">
+				fw = null,
+			</if>
+			<if test="data.fw != null and data.fw != 'null'">
+				fw = #{data.fw},
+			</if>
+			<if test="data.fs != null">
+				fs = #{data.fs},
+			</if>
+		</set>
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} 
+		<if test="data.bmfz != null">
+			AND bmfz = #{data.bmfz}
+		</if>
+		<if test="data.lb != null">
+			AND lb = #{data.lb}
+		</if>
+		<if test="data.nj != null">
+			AND nj = #{data.nj}
+		</if>
+	</update>
+	
+	<delete id="deleteScoretjmk" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoretjmk} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} 
+		<if test="data.nj != null">
+			AND nj = #{data.nj}
+		</if>
+		<if test="data.fzdm != null">
+			AND fzdm = #{data.fzdm}
+		</if>
+		<if test="data.bmfz != null">
+			AND fzdm = #{data.bmfz}
+		</if>
+	</delete>
+	
+	<delete id="deleteScoreRankDistribute" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankdistribute} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} 
+		<if test="data.nj != null">
+			AND nj = #{data.nj}
+		</if>
+		<if test="data.fzdm != null">
+			AND fzdm = #{data.fzdm}
+		</if>
+	</delete>
+		
+	<delete id="deleteZfqjsz" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_zfqjsz} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} 
+		<if test="data.nj != null">
+			AND nj = #{data.nj}
+		</if>
+	</delete>
+	
+	<!-- 成绩分析  删除满分列表关联关系 -->
+	<delete id="deleteScoreMF" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoremf} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} 
+		<if test="data.nj != null">
+			AND nj = #{data.nj}
+		</if>
+		<if test="data.fzdm != null">
+			AND fzdm = #{data.fzdm}
+		</if>
+		<if test="data.bmfz != null">
+			AND fzdm = #{data.bmfz}
+		</if>
+	</delete>
+	
+	<delete id="deleteSynthScore" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} 
+		<if test="data.nj != null">
+			AND nj = #{data.nj}
+		</if>
+		<if test="data.fzdm != null">
+			AND fzdm = #{data.fzdm}
+		</if>
+		<if test="data.kmdm != null">
+			AND kmdm = #{data.kmdm}
+		</if>
+	</delete>
+	
+	<delete id="deleteScoreLevelTemplate" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreleveltemplate}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} 
+		<if test="data.nj != null">
+			AND nj = #{data.nj}
+		</if>
+	</delete>
+	
+	<delete id="deleteScoreStuStatisticsRankMK" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} 
+		<if test="data.nj != null">
+			AND nj = #{data.nj}
+		</if>
+	</delete>
+	
+	<!-- 不参与统计学生 -->
+	<delete id="delXSCJBTJ" parameterType="splitDbAndTableRule" >
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_xscjbtj} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+		<if test="data.studentIds != null">
+			AND xh IN
+			<foreach item="item" collection="data.studentIds" open="(" separator="," close=")">
+			    #{item}
+			</foreach>
+		</if>
+	</delete>
+	
+	<!--获取成绩分析设置  获取上次考试轮次 -->
+	<select id="getLastKslcs" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT a.kslc, a.bh, a.xnxq
+       		FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreclassstatistics} a
+        WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq}
+        	AND a.bh IN
+        	<foreach collection="data.classIds" open="(" separator="," close=")" item="item">
+        		#{item}
+        	</foreach>
+	        AND EXISTS (
+	        	SELECT 1 FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo_nj} c 
+	        	WHERE c.kslcdm = a.kslc AND c.xxdm = a.xxdm AND c.xnxq = a.xnxq AND c.nj = #{data.nj}
+	        )
+	</select>
+	
+	<!-- 批量插入对比考试轮次 -->
+	<insert id="insertDbkslcBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_dbkslc} 
+			(kslc, xxdm, dbkslc, dbxnxq, xnxq)
+		VALUES 
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.dbkslc}, #{item.dbxnxq}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE xnxq = VALUES(xnxq);
+	</insert>
+	
+	<!--获取成绩分析配置  获取以往考试极其分组 -->
+	<select id="getOldKslcAndWlfz" parameterType="splitDbAndTableRule" resultType="java.lang.String">
+		SELECT GROUP_CONCAT(a.bjlxm) as bjlxms
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} a   
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo_nj} b 
+				ON a.kslc = b.kslcdm AND a.xxdm = b.xxdm AND a.xnxq = b.xnxq 
+		WHERE a.kslc = #{data.kslc} AND a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND b.nj = #{data.nj} 
+			GROUP BY a.kslc, a.xnxq
+	</select>
+	
+	<select id="ifExistsSameTopGroup" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+		SELECT 1 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup}
+		WHERE kslc = #{data.kslc} AND xxdm = #{data.xxdm} AND fzmc = #{data.fzmc} AND ssfz = #{data.ssfz}
+			AND nj = #{data.nj} AND xnxq = #{data.xnxq} AND lb = #{data.lb} 
+		LIMIT 1
+	</select>
+	
+	<!-- 成绩分析设置  保存文理科分组 -->
+	<insert id="insertTopGroupBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup}
+			(kslc, xxdm, bmfz, fzmc, nj, bjlxm, fw, fs, ssfz, lb, xnxq) 
+		VALUES 
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.bmfz}, #{item.fzmc}, #{item.nj}, #{item.bjlxm},
+				#{item.fw}, #{item.fs}, #{item.ssfz}, #{item.lb}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE bmfz = VALUES(bmfz), fzmc = VALUES(fzmc)
+	</insert>
+	
+	<!-- 成绩分析设置  保存文理科分组 班级关联关系 -->
+	<insert id="insertTopGroupBjBatch"  parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} 
+			(kslc, xxdm, bmfz, bh, fw, xnxq)  
+		VALUES 
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.bmfz}, #{item.bh}, #{item.fw}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE fw = VALUES(fw)
+	</insert>
+	
+	<!-- 获取上次考试排名区间设置 -->
+	<select id="getRankListByPrevKslc" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.gm.ScoreRankDistribute">
+		SELECT a.kslc, a.xxdm, a.nj, a.fzdm, a.pmfbdm, a.pmfbsx, a.pmfbxx, a.xnxq, b.bjlxm AS otherData
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankdistribute} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} b 
+			ON a.kslc = b.kslc AND a.xxdm = b.xxdm AND a.fzdm = b.bmfz AND a.xnxq = b.xnxq
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} AND a.nj = #{data.nj} 
+	</select>
+	
+	<!-- 批量保存排名区间分组设置 -->
+	<insert id="insertScoreRankDistributeBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankdistribute} 
+			(kslc, xxdm, nj, fzdm, pmfbdm, pmfbsx, pmfbxx, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.nj}, #{item.fzdm}, #{item.pmfbdm}, #{item.pmfbsx}, #{item.pmfbxx}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE pmfbsx = VALUES(pmfbsx), pmfbxx = VALUES(pmfbxx);
+	</insert>
+	
+	
+<!-- 竞赛组参数  begin-->
+	<!-- 获取竞赛目列表 -->
+	<select id="getCompetitionStu" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.gm.CompetitionStu">
+		SELECT xxdm, kslc, xh, kmdm, xnxq 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_competitionstu}		
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+		<if test="data.kmdmList != null">
+			AND kmdm IN
+			<foreach collection="data.kmdmList" open="(" separator="," close=")" item="item">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<insert id="insertCompetitionStuBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_competitionstu}
+			(xxdm, kslc, xh, kmdm, xnxq) 
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.xxdm}, #{item.kslc}, #{item.xh}, #{item.kmdm}, #{item.xnxq})		
+		</foreach>
+	</insert>
+<!-- end -->
+
+	<!-- 获取合并科目列表 -->
+	<select id="getSynthScoreByPrevKslc" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.gm.SynthScore">
+		SELECT a.kslc, a.xxdm, a.nj, a.fzdm, a.kmdm, a.dykm, a.xnxq, b.bjlxm AS otherData
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} b 
+			ON a.kslc = b.kslc AND a.xxdm AND b.xxdm AND a.xnxq = b.xnxq AND a.fzdm = b.bmfz
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} AND a.nj = #{data.nj} 
+	</select>
+	
+	<!-- 等第设置中 获取所有合并科目 -->
+	<select id="getSynthScoreList" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.gm.SynthScore">
+		SELECT kslc, xxdm, nj, fzdm, kmdm, dykm, xnxq 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+		<if test="data.nj != null">
+			AND nj = #{data.nj}
+		</if>
+		<if test="data.kmdm != null">
+			AND kmdm = #{data.kmdm}
+		</if>	
+	</select>
+	
+	<!-- 批量更新合并科目设置 -->
+	<insert id="insertSynthScoreBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} 
+			(kslc, xxdm, nj, fzdm, kmdm, dykm, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.nj}, #{item.fzdm}, #{item.kmdm}, #{item.dykm}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE fzdm = VALUES(fzdm), kmdm = VALUES(kmdm), dykm = VALUES(dykm);
+	</insert>
+	
+	<!-- 获取等第考试设置 -->
+	<select id="getScoreLevelTemplate" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.gm.ScoreLevelTemplate">
+		SELECT kslc, xxdm, nj, kmdm, dm, djmc, bl, cj, rs, xnxq 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreleveltemplate} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} 
+		<if test="data.nj != null">
+			AND nj = #{data.nj} 
+		</if>
+		<if test="data.kmdm != null">
+			AND kmdm = #{data.kmdm}
+		</if>
+	</select>
+	
+	<!-- 获取年级所有成绩 -->
+	<select id="getCjListForDdSet" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT d.xh, d.kmdm, d.cj, f.bmfz 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} d 		
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} e 
+					ON d.kslc = e.kslc AND d.xxdm = e.xxdm AND d.xnxq = e.xnxq AND e.lb = '01' 
+						AND e.nj = d.nj AND e.nj = #{data.nj}
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} f 
+					ON d.kslc = f.kslc AND d.xxdm = f.xxdm AND d.xnxq = f.xnxq AND e.bmfz=f.bmfz 
+						AND d.bh = f.bh
+		WHERE d.xxdm = #{data.xxdm} AND d.kslc = #{data.kslc} AND d.xnxq = #{data.xnxq}
+		<if test="data.kmdm != null">
+		 	AND d.kmdm = #{data.kmdm}
+		</if>
+	</select>	
+	
+	<insert id="insertScoreLevelTemplateBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreleveltemplate} 
+			(kslc, xxdm, nj, kmdm, dm, djmc, bl, cj, rs, xnxq)
+		VALUES 
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.nj}, #{item.kmdm}, #{item.dm}, #{item.djmc},
+				#{item.bl}, #{item.cj}, #{item.rs}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE bl = VALUES(bl), cj = VALUES(cj), rs = VALUES(rs);
+	</insert>
+	
+	<select id="getTopGroupByPrevKslc" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT tg.bmfz, tg.fzmc, tp.bmfz AS wlfz, tp.bjlxm AS wlfzlx 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} tg 
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} tp 
+					ON tg.ssfz = tp.bmfz AND tg.xxdm = tp.xxdm AND tg.kslc = tp.kslc 
+						AND tg.xnxq = tp.xnxq
+		WHERE tg.xxdm = #{data.xxdm} AND tg.lb = #{data.lb} AND tg.kslc = #{data.kslc} 
+			AND tg.nj = #{data.nj} AND tg.xnxq = #{data.xnxq}
+	</select>
+	
+	<!--获取成绩分析配置 获取上次考试文理科分组 班级列表 -->
+	<select id="getTopGroupBj" parameterType="splitDbAndTableRule" resultMap="com.talkweb.scoreManage.resultMap.topGroupBj">
+		SELECT a.xnxq, a.kslc, a.xxdm, a.bmfz, a.bh, a.fw, b.bjlxm, b.ssfz
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} b 
+					ON a.bmfz = b.bmfz AND a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.xnxq = b.xnxq
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} 
+			<if test="data.lb != null">
+				AND b.lb = #{data.lb}
+			</if>
+			<if test="data.nj != null">
+				AND b.nj = #{data.nj}
+			</if>
+			<if test="data.ssfzList != null">
+				AND b.ssfz IN 
+				<foreach collection="data.ssfzList" open="(" separator="," close=")" item="item">
+		  			#{item}
+		 		</foreach>
+			</if>
+			<if test="data.ssfz != null">
+				AND b.ssfz = #{data.ssfz}
+			</if>
+	</select>
+	
+	<!-- 获取已组班级  new -->
+	<select id="getYfzList" parameterType="splitDbAndTableRule"  resultType="JSONObject">	
+		SELECT IFNULL(GROUP_CONCAT(c.bh), '') AS bhStr, d.fzmc AS classGroupName, d.bmfz AS classGroupId
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} c 
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} d 
+					ON c.bmfz = d.bmfz AND c.xxdm = d.xxdm AND c.kslc = d.kslc AND c.xnxq = d.xnxq
+		WHERE d.xxdm = #{data.xxdm} AND d.kslc = #{data.kslc} AND d.xnxq = #{data.xnxq}
+			AND d.ssfz = #{data.bmfz} AND d.lb = '02' AND d.nj = #{data.nj}
+		GROUP BY d.bmfz;
+	</select>
+	
+	<!-- 获取科目分组列表 -->
+	<select id="getKmfzList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT a.kmdm, MAX(a.cj) as mcj 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a	
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} AND a.nj = #{data.nj} 
+		<if test="data.bhlist != null">
+			AND a.bh IN
+			<foreach collection="data.bhlist" item="item" open="(" separator="," close=")">
+				#{item}
+		    </foreach>
+		</if>
+		GROUP BY a.kmdm
+	</select>
+	
+	<!-- 设置默认统计科目 -->
+	<insert id="insertScoreTjmkBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoretjmk}
+			(kslc, xxdm, nj, fzdm, kmdm, xnxq)
+		VALUES
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.nj}, #{item.fzdm}, #{item.kmdm}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE xnxq = VALUES(xnxq);
+	</insert>
+	
+	<!-- 获取成绩分析设置  保存满分列表关联关系 -->
+	<insert id="insertScoreMfBatch"  parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoremf} 
+			(kslc, xxdm, nj, fzdm, kmdm, mf, xnxq)
+		VALUES 
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.nj}, #{item.fzdm}, #{item.kmdm}, #{item.mf}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE mf = VALUES(mf);
+	</insert>
+	
+	<!-- 获取总分区间设置 -->
+	<select id="getZfqjsz" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.gm.Zfqjsz">
+		SELECT a.kslc, a.xxdm, a.nj, a.fzdm, a.fs, a.bl, a.zhqjbl, a.fz, a.zhqjfz, a.zdytext, a.dkbl, 
+			a.dkzhqjbl, a.xnxq, b.bjlxm AS otherData
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_zfqjsz} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} b 
+					ON a.kslc = b.kslc AND a.xxdm = b.xxdm AND a.xnxq = b.xnxq AND a.fzdm = b.bmfz
+		WHERE a.xxdm = #{data.xxdm} and a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} AND a.nj = #{data.nj}  
+	</select>
+	
+	<!-- 批量更新总分区间设置 -->
+	<insert id="insertZfqjszBatch" parameterType="splitDbAndTableRule"> 
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_zfqjsz}
+			(kslc, xxdm, nj, fzdm, fs, bl, zhqjbl, fz, zhqjfz, zdytext, dkbl, dkzhqjbl, xnxq)
+		VALUES 
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.nj}, #{item.fzdm}, #{item.fs}, #{item.bl}, #{item.zhqjbl},
+				#{item.fz}, #{item.zhqjfz}, #{item.zdytext}, #{item.dkbl}, #{item.dkzhqjbl}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE fs = VALUES(fs), bl = VALUES(bl), zhqjbl = VALUES(zhqjbl),
+			fz = VALUES(fz), zhqjfz = VALUES(zhqjfz), zdytext = VALUES(zdytext), dkbl = VALUES(dkbl),
+			dkzhqjbl = VALUES(dkzhqjbl);
+	</insert>
+	
+	<!--成绩分析-保存总分分数段设置 -->
+	<insert id="insertZfqjsz" parameterType="hashmap">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_zfqjsz}
+			(kslc, xxdm, nj, fzdm, fs, bl, zhqjbl, fz, zhqjfz, zdytext, dkbl, dkzhqjbl, xnxq)
+		VALUES
+			(#{data.kslc}, #{data.xxdm}, #{data.nj}, #{data.fzdm}, #{data.fs}, #{data.bl}, #{data.zhqjbl},
+				#{data.fz}, #{data.zhqjfz}, #{data.zdytext}, #{data.dkbl}, #{data.dkzhqjbl}, #{data.xnxq})
+		ON DUPLICATE KEY UPDATE fs = VALUES(fs), bl = VALUES(bl), zhqjbl = VALUES(zhqjbl),
+			fz = VALUES(fz), zhqjfz = VALUES(zhqjfz), zdytext = VALUES(zdytext), dkbl = VALUES(dkbl),
+			dkzhqjbl = VALUES(dkzhqjbl);
+	</insert>
+	
+	<!-- 获取考试设置的所有文理科分组的班级类型 -->
+	<select id="getTopGroup" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.gm.TopGroup">
+		SELECT kslc, xxdm, bmfz, fzmc, nj, bjlxm, fw, fs, ssfz, lb, xnxq 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+		<if test="data.lb != null">
+			AND lb = #{data.lb}
+		</if>
+		<if test="data.nj != null">
+		   AND nj = #{data.nj}
+		</if>
+		<if test="data.bmfz != null">
+		   AND bmfz = #{data.bmfz}
+		</if>
+	</select>
+	
+	<select id="getSsfzFromTopGroup" parameterType="splitDbAndTableRule" resultType="java.lang.String">
+	    SELECT DISTINCT b.ssfz
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} a
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} b 
+					ON a.bmfz = b.bmfz AND a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.xnxq = b.xnxq
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} 
+			AND b.lb = '02'
+			AND b.ssfz IN 
+			<foreach collection="data.ssfzList" open="(" separator="," close=")" item="item">
+	  			#{item}
+	 		</foreach>
+	</select>
+	
+	<!--成绩分析-获取统计科目与满分列表 -->	
+	<select id="getSubjectStatusList"  parameterType="splitDbAndTableRule"  resultType="com.alibaba.fastjson.JSONObject">
+		SELECT MAX(ts.cj) AS maxScore, ts.kmdm AS subjectId, tm.mf AS fullScore,
+				CASE WHEN tgs.kmdm IS NULL THEN 0 ELSE 1 END AS inStaticSubject
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} ts
+			LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoremf} tm 
+				ON ts.kmdm = tm.kmdm AND ts.kslc = tm.kslc AND ts.xxdm = tm.xxdm 
+					AND ts.xnxq = tm.xnxq AND tm.fzdm = #{data.bmfz}
+			LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoretjmk} tgs 
+				ON tgs.kmdm = ts.kmdm AND ts.xxdm = tgs.xxdm AND tgs.fzdm = tm.fzdm AND tm.nj = tgs.nj
+					AND tgs.xnxq = ts.xnxq AND ts.kslc = tgs.kslc
+		WHERE ts.xxdm = #{data.xxdm} AND ts.xnxq = #{data.xnxq} AND ts.kslc = #{data.kslc}
+			AND ts.bh IN 
+			(SELECT DISTINCT bh 
+				FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj}
+			WHERE bmfz = #{data.bmfz} AND kslc = #{data.kslc} AND xxdm = #{data.xxdm} AND xnxq = #{data.xnxq})
+		GROUP BY ts.kmdm
+	</select>
+	
+	<!-- 是否设置排名区间 -->
+	<select id="getFzdmFromScoreRankDistribute"  parameterType="splitDbAndTableRule" resultType="java.lang.String">
+		SELECT DISTINCT fzdm
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankdistribute} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+			AND fzdm IN 
+			<foreach item="item" collection="data.ssfzList" open="(" separator="," close=")">
+			    #{item}
+			</foreach>
+	</select>
+	
+	<!-- 是否设置分数段 -->
+	<select id="getFzdmFromZfqjsz"  parameterType="splitDbAndTableRule"  resultType="java.lang.String">
+		SELECT DISTINCT fzdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_zfqjsz} 
+		WHERE xxdm = #{data.xxdm} AND xnxq = #{data.xnxq} AND kslc = #{data.kslc}
+			AND fzdm in 
+			<foreach item="item" collection="data.ssfzList" open="(" separator="," close=")">
+			    #{item}
+			</foreach>
+	</select>
+	
+	<select id="getAsgGroupSetFlag" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+		SELECT 1
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+	   		AND nj = #{data.nj} AND fs != '' AND fs IS NOT NULL
+	   	LIMIT 1
+	</select>
+	
+	<select id="getClassGroupSetFlag" parameterType="splitDbAndTableRule" resultType="java.lang.Integer">
+		SELECT 1 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} a 
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq}
+			AND a.bmfz IN (
+				SELECT bmfz 
+					FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} b 
+				WHERE b.xxdm = #{data.xxdm} AND b.kslc = #{data.kslc} AND b.xnxq = #{data.xnxq}
+	   				AND b.nj = #{data.nj} AND b.lb = '01'
+	   		) AND a.fw != '' AND fw IS NOT NULL
+	   	LIMIT 1
+	</select>
+	
+	<!-- 获取人数设置文理分组 -->
+	<select id="getASGListForStatic" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT bmfz AS asgId, fzmc AS asgName, IFNULL(fs, '') AS way, IFNULL(fw, '') AS 'range' 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} 
+		WHERE xxdm = #{data.xxdm} AND xnxq = #{data.xnxq} AND nj = #{data.nj} AND kslc = #{data.kslc} 
+			AND lb = '01'
+	</select>
+	
+	<!-- 获取文理分组人数 -->
+	<select id="getSubjectGroupNumById" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT c.ssfz AS agsId, COUNT(DISTINCT a.xh) AS groupNum 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} a,
+				${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} b,
+				${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} c 
+		WHERE a.xxdm = b.xxdm AND a.kslc = b.kslc AND a.bh = b.bh AND a.xxdm = c.xxdm 
+			AND a.kslc = c.kslc AND b.bmfz = c.bmfz AND c.lb='02' AND c.nj = #{data.nj} 
+			AND a.xxdm = #{data.xxdm} AND (a.tsqk NOT IN ('01','02') OR a.tsqk IS NULL)
+			AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq} 
+		GROUP BY c.ssfz
+	</select>
+	
+	<!-- 更新文理分组规则范围 -批量调用 -->
+	<update id="updateASGStatRules" parameterType="splitDbAndTableRule">
+		UPDATE ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} 
+			SET fs = #{data.way}, fw = #{data.range}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} AND bmfz = #{data.asgId}
+	</update>
+	
+	<!-- 更新文理分组规则范围 -清空班级范围 -->
+	<update id="updateASGStatRules2" parameterType="splitDbAndTableRule">
+		UPDATE ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} 
+			SET fw = null 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} AND bmfz = #{data.asgId}
+	</update>
+	
+	<!--  更新统计人数班级分组-->
+	<update id="updateClassGroupStatic" parameterType="splitDbAndTableRule">
+		UPDATE ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} 
+			SET fw = #{data.range} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} AND bmfz = #{data.bmfz} 
+			AND bh = #{data.classId}
+	</update>
+	
+	<!--  更新统计人数班级分组 清空文理科设置规则-->
+	<update id="updateClassGroupStaticClearWlk" parameterType="splitDbAndTableRule">
+		UPDATE ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup}
+			SET fw = null, fs = null
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} AND bmfz = #{data.bmfz} 
+			AND lb = '01'
+	</update>
+	
+	<!-- 获取统计人数班级分组 -->
+	<select id="getClassGroupListStatic"  parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT IFNULL(fw, '') AS 'range', bh AS classId, (
+			SELECT COUNT(DISTINCT xh) 
+				FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} b 
+			WHERE b.xnxq = a.xnxq AND b.kslc = a.kslc AND b.xxdm = a.xxdm AND b.bh = a.bh 
+				AND (b.tsqk NOT IN ('01','02') OR b.tsqk IS NULL)
+			) AS classNum
+	 		FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} a 
+	 	WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.bmfz = #{data.bmfz} 
+	 		AND a.kslc = #{data.kslc}
+	</select>
+	
+	<!-- 获取不参与学号 -->
+	<select id="getBcytjXhList" parameterType="splitDbAndTableRule" resultType="Long">
+		SELECT DISTINCT a.xh 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_xscjbtj} a 
+		WHERE a.xxdm = #{data.xxdm} AND a.kslc = #{data.kslc} AND a.xnxq = #{data.xnxq}
+	</select>
+	
+	<!-- 保存不参与统计学生列表 -->
+	<update id="insertXscjbtjBatch" parameterType="splitDbAndTableRule">
+		INSERT INTO ${dbRule.db_name_scoreManage}.${tableRule.t_gm_xscjbtj}
+			(kslc, xxdm, xh, xnxq)
+		VALUES 
+		<foreach collection="data" item="item" separator=",">
+			(#{item.kslc}, #{item.xxdm}, #{item.xh}, #{item.xnxq})
+		</foreach>
+		ON DUPLICATE KEY UPDATE xnxq = VALUES(xnxq);
+	</update>
+	
+	<!-- 删除不参与统计学生列表 -->
+	<delete id="deleteXscjbtj" parameterType="splitDbAndTableRule" >
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_xscjbtj}
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+		<if test="data.xhList != null">
+			AND xh IN
+			<foreach collection="data.xhList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</delete>
+	
+	<!-- 获取本次考试所有科目不包括合并科目 -->
+	<select id="getSubjectIdsFromScoreInfo" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+	    SELECT DISTINCT t.kmdm 
+	    	FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} t 
+	    WHERE t.xxdm = #{data.xxdm} AND t.xnxq = #{data.xnxq} AND t.kslc = #{data.kslc}
+	    <if test="data.nj != null">
+	    	AND t.nj = #{data.nj}
+	    </if>
+	    <if test="data.bh != null">
+	    	AND t.bh = #{data.bh}
+	    </if>
+	</select>
+	
+	<!-- 获取所有合并科目 -->	
+	<select id="getMergerSubjectList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT ts.kmdm AS chsId, ts.dykm AS kmlist 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} ts
+			LEFT JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} tgr 
+				ON ts.kslc = tgr.kslc AND tgr.xxdm = ts.xxdm AND tgr.nj = ts.nj AND tgr.bmfz = ts.fzdm  
+					AND tgr.lb = '01' AND tgr.xnxq = ts.xnxq
+		WHERE ts.xxdm = #{data.xxdm} AND ts.fzdm = #{data.bmfz} AND ts.kslc = #{data.kslc} 
+			AND ts.xnxq = #{data.xnxq} AND ts.nj = #{data.nj} 
+	</select>
+	
+	<!--成绩分析 获取排名区间列表 -->
+	<select id="getIntervalList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT td.pmfbdm AS intervalId, td.pmfbsx AS upLimit, td.pmfbxx AS underLimit
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorerankdistribute} td 
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} tg 
+					ON td.kslc = tg.kslc AND td.xxdm = tg.xxdm AND td.nj = tg.nj AND td.fzdm = tg.bmfz
+		WHERE td.xxdm = #{data.xxdm} AND td.nj = #{data.nj} AND td.kslc = #{data.kslc} AND td.xnxq = #{data.xnxq}
+			AND td.fzdm = #{data.bmfz}
+	</select>
+	
+	<!--成绩分析-获取总分分数段设置 -->
+	<select id="getTotalScoreSection" parameterType="splitDbAndTableRule"  resultType="JSONObject">
+		SELECT td.fs AS setWay, td.bl AS percent, td.zhqjbl AS finalSecPer, td.fz AS secValue,
+			td.zhqjfz AS finalSecValue, td.zdytext AS customSecValue, td.dkbl AS ssPercent, td.dkzhqjbl AS ssFinalSecPer 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_zfqjsz} td  
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} tg 
+					ON td.kslc = tg.kslc AND td.xxdm = tg.xxdm AND td.nj = tg.nj AND td.fzdm = tg.bmfz
+		WHERE td.xxdm = #{data.xxdm} AND td.nj = #{data.nj} AND td.kslc = #{data.kslc} AND td.xnxq = #{data.xnxq} 
+			AND td.fzdm = #{data.bmfz} 
+	</select>
+	
+	<select id="getDbkslcList" parameterType="splitDbAndTableRule"  resultType="com.talkweb.scoreManage.po.gm.Dbkslc">
+		SELECT kslc, xxdm, dbkslc, dbxnxq, xnxq
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_dbkslc}
+		WHERE kslc = #{data.kslc} AND xxdm = #{data.xxdm} AND xnxq = #{data.xnxq}
+	</select>
+	
+	<!--成绩分析  删除对比考试  -->
+	<delete id="deleteContrastExam" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_dbkslc} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq};
+	</delete>
+	
+	<!-- 清空竞赛组学生列表 -->
+	<delete id="deleteCompetitionStud" parameterType="splitDbAndTableRule">
+		DELETE FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_competitionstu} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+		<if test="data.xh != null">
+			AND xh = #{data.xh}
+		</if>
+		<if test="data.kmdm != null">
+			AND kmdm = #{data.kmdm}
+		</if>
+	</delete>
+	
+	<!--  根据科目代码得到对应的等级 -->
+	<select id="getRankingsByKMDM" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT kmdm AS subjectId, dm AS levelId, djmc AS levelName, bl AS percent, cj AS convertScore, rs AS stdNum 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreleveltemplate}                   
+		WHERE xxdm = #{data.xxdm} AND xnxq = #{data.xnxq} AND kslc = #{data.kslc} 
+		<if test="data.nj">
+			AND nj = #{data.nj} 
+		</if>
+		<if test="data.kmdm != null">
+			AND kmdm = #{data.kmdm}
+		</if>
+	</select>
+	
+	<!--等地设置-->
+	<select id="getAllDJList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT dm AS levelId, mc AS levelName, '' AS percent, '' AS convertScore, '' AS stdNum 
+			FROM ${db_name_scoreManage_global}.t_gm_scoreleveltemplatename 
+		WHERE flag = 1
+	</select>
+	
+	<!--等第设置 获取所有科目代码-->
+	<select id="getSubjectIdFromScoreLevelTemplate" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		select DISTINCT kmdm 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreleveltemplate} 
+		WHERE xxdm = #{data.xxdm} AND xnxq = #{data.xnxq} AND kslc = #{data.kslc} 
+			AND nj = #{data.nj} AND kmdm IS NOT NULL AND kmdm != '' 
+		ORDER BY CAST(kmdm AS UNSIGNED) ASC
+	</select>
+	
+	<!-- 获取年级所有成绩 -->
+	<select id="selectCjListForDdSet" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT d.`xh`, d.kmdm, d.cj, d.kslc, f.bmfz 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} d 		
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup} e 
+					ON d.kslc = e.kslc AND d.xxdm = e.xxdm AND d.xnxq = e.xnxq AND e.lb = '01' 
+						AND e.nj = d.nj AND e.nj = #{data.nj}
+				INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroupbj} f 
+					ON d.kslc = f.kslc AND d.xxdm = f.xxdm AND d.xnxq = f.xnxq AND d.bh = f.bh AND e.bmfz = f.bmfz 
+		WHERE d.xxdm = #{data.xxdm} AND d.kslc = #{data.kslc} AND d.xnxq = #{data.xnxq}
+		<if test="data.kmdm != null">
+			AND d.kmdm = #{data.kmdm}
+		</if>
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- ***************************************  全局表获取数据 ************************************************** -->
+	<!-- 获取成绩设置 -->
+	<select id="getExamAnalysisConfig" parameterType="hashmap" resultType="java.lang.String">
+		SELECT DISTINCT setdm FROM ${db_name_scoreManage_global}.t_gm_scoreanalysisconfig  
+		<if test="pyccList != null">
+			WHERE pycc IN
+			<foreach collection="pyccList" item="item" open="(" separator="," close=")">
+				#{item}
+		    </foreach>
+		</if>
+	</select>
+	
+	<!-- 获取成绩分析设置  是否存在优秀合格率-->
+	<select id="ifExistsJXPGScoreSection" parameterType="hashmap" resultType="int">
+		SELECT 1 FROM ${db_name_scoreManage_global}.t_gm_jxpgscoresection 
+		WHERE xxdm = #{xxdm}
+		LIMIT 1
+	</select>
+	
+	<!-- 获取成绩分析设置 批量插入优秀合格率参数设置 -->
+	<insert id="insertJXPGScoreSectionBatch" parameterType="hashmap">
+		INSERT INTO ${db_name_scoreManage_global}.t_gm_jxpgscoresection 
+			(xxdm, dm, fs, mc, fzbfb, flag)
+		VALUES 
+		<foreach collection="list" item="item" separator=",">
+			(#{item.xxdm}, #{item.dm}, #{item.fs}, #{item.mc}, #{item.fzbfb},#{item.flag})
+		</foreach>
+	</insert>
+	
+	<!--成绩分析-获取统计参数-->
+	<select id="getJxpgScoreSection" parameterType="String" resultType="com.talkweb.scoreManage.po.gm.JXPGScoreSection">
+		SELECT xxdm, dm, fs, mc, fzbfb, flag 
+			FROM ${db_name_scoreManage_global}.t_gm_jxpgscoresection 
+		WHERE xxdm = #{xxdm}
+	</select>
+	
+	<delete id="delJXPGScoreSection" parameterType="String">
+		DELETE FROM ${db_name_scoreManage_global}.t_gm_jxpgscoresection WHERE xxdm = #{xxdm}
+	</delete>
+	
+	<select id="getScoreStatTerm"  parameterType="String"  resultType="com.talkweb.scoreManage.po.gm.ScoreStatTerm">
+		SELECT xxdm, qk, wb, lf 
+			FROM ${db_name_scoreManage_global}.t_gm_scorestatterm 
+		WHERE xxdm = #{xxdm}
+	</select>
+	
+	<!--获取成绩分析设置  更新成绩统计条件 -->
+	<insert id="initScoreStatTerm" parameterType="java.lang.String" >
+		INSERT INTO ${db_name_scoreManage_global}.t_gm_scorestatterm 
+			(xxdm, qk, wb, lf)
+		VALUES (#{xxdm}, '1', '1', '1')
+		ON DUPLICATE KEY UPDATE qk = '1', wb = '1', lf = '1'
+	</insert>
+	
+	<insert id="insertScoreStatTerm" parameterType="hashmap">
+		INSERT INTO ${db_name_scoreManage_global}.t_gm_scorestatterm
+			(xxdm, qk, wb, lf) 
+		VALUES
+			(#{xxdm}, #{qk}, #{wb}, #{lf})
+	</insert>
+	
+	<delete id="delScoreStatTerm" parameterType="String">
+		DELETE FROM ${db_name_scoreManage_global}.t_gm_scorestatterm WHERE xxdm = #{xxdm}
+	</delete>
+	
+	<select id="ifExistsSettingBj"  parameterType="java.lang.String"  resultType="java.lang.Integer">
+		SELECT 1 FROM ${db_name_scoreManage_global}.t_sar_setting_bj WHERE xxdm = #{xxdm}
+		LIMIT 1
+	</select>
+	
+	<!-- 获取班级报告参数 -->
+	<select id="getClassReportParam" parameterType="java.lang.String" resultType="JSONObject">
+		SELECT dm, szz FROM ${db_name_scoreManage_global}.t_sar_setting_bj WHERE xxdm = #{xxdm}		
+	</select>
+	
+	<!-- 保存班级报告参数 -->
+	<insert id="insertClassReportParamBatch" parameterType="java.util.List">
+		INSERT INTO ${db_name_scoreManage_global}.t_sar_setting_bj
+			(xxdm, dm, szz) 
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+			(#{item.xxdm}, #{item.dm}, #{item.szz})			
+		</foreach>
+		ON DUPLICATE KEY UPDATE szz = VALUES(szz)
+	</insert>
+	
+	<select id="ifExistsSettingStu"  parameterType="java.lang.String"  resultType="java.lang.Integer">
+		SELECT 1 FROM ${db_name_scoreManage_global}.t_sar_setting_stu WHERE xxdm = #{xxdm}
+		LIMIT 1	
+	</select>
+	
+	<!-- 保存学生报告参数 -->
+	<insert id="insertStudentReportParamBatch" parameterType="java.util.List"> 
+		INSERT INTO ${db_name_scoreManage_global}.t_sar_setting_stu
+			(xxdm, dm, tsydm, szz) 
+		VALUES  
+		<foreach collection="list" item="item" separator=",">
+			(#{item.xxdm}, #{item.dm}, #{item.tsydm}, #{item.szz}) 
+		</foreach>
+        ON DUPLICATE KEY UPDATE szz = VALUES(szz)
+	</insert> 
+	
+	<!-- 获取学生报告参数 -->
+	<select id="getSettingStuList" parameterType="java.lang.String" resultType="com.talkweb.scoreManage.po.sar.SettingStu">
+		SELECT xxdm, dm, tsydm, szz FROM ${db_name_scoreManage_global}.t_sar_setting_stu WHERE xxdm = #{xxdm}		
+	</select>
+	
+
+
+
+	
+	
+	
+	
+	<select id="getExamNameList"  parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT a.kslcdm as value, a.kslcmc as text
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo} a
+		<if test="data.njList != null">
+			 INNER JOIN ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo_nj} b 
+			 	ON a.kslcdm = b.kslcdm AND a.xxdm = b.xxdm AND a.xnxq = b.xnxq
+			 	AND b.nj IN
+				<foreach collection="data.njList" item="item" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+		</if>
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.fxflag = '1' AND a.drflag = '1'
+		<if test="data.fbteaflag != null">
+			AND a.fbteaflag = #{data.fbteaflag}
+		</if>
+		ORDER BY a.cdate DESC;
+	</select>
+	
+	<!-- 成绩分析设置   文理科分组01或班级分组02-->
+	<select id="getGroupDropDownList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT bmfz AS value, fzmc AS text 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_topgroup}
+		WHERE xxdm = #{data.xxdm} AND xnxq = #{data.xnxq} AND lb = #{data.lb} AND kslc = #{data.kslcdm} 
+		<if test="data.njList != null">
+			AND nj IN
+			<foreach collection="data.njList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="data.fzList != null">
+			AND ssfz IN
+			<foreach collection="fzList" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<!-- 考试关联下的科目雷彪 -->
+	<select id="getSubjectList" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT t.subjectId
+		FROM (
+			SELECT kmdm AS subjectId 
+				FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} 
+			WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+			<if test="data.njList != null">
+				AND nj IN
+				<foreach collection="data.njList" item="item" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+		    UNION ALL
+	        SELECT kmdm AS subjectId 
+	        	FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} 
+	        WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq}
+			<if test="data.njList != null">
+				AND nj in
+				<foreach collection="data.njList" item="item" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+		) t
+	</select>
+	
+	<!-- 获取考试班级列表 -->
+	<select id="getExamClassIdList" parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+		SELECT DISTINCT bh 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} 
+		WHERE xxdm = #{data.xxdm} AND kslc = #{data.kslc} AND xnxq = #{data.xnxq} AND nj = #{data.nj}
+	</select>
+	
+	<select id="getScoreReleaseList" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT DISTINCT a.kslcdm AS examId, a.kslcmc AS examName, a.fbflag AS pub2StuFlag, a.fbteaflag AS pub2TeaFlag,
+			a.fbpmflag AS stuRankPubFlag, a.fxflag AS alzFlag, a.fbteapmflag AS teaRankPubFlag 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo} a
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslcdm = #{data.kslcdm};
+	</select>
+	
+	
+	<!-- 新高考志愿使用 -->
+	<select id="getScoreStuBZF"  parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT kslc, kmdm, bzf 
+			FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestubzf_mk} a 
+		WHERE a.xxdm = #{data.xxdm} AND a.xnxq = #{data.xnxq} AND a.kslc = #{data.kslc} 
+			AND a.xh = #{data.xh}
+	</select>
+	
+	
+	<resultMap id="ManageViewOfStuScore" type="JSONObject">
+		<result column="bh" property="classId"/>	
+		<collection property="ClassGroup" resultMap="ClassGroup" 
+			javaType="java.util.List"/>
+	</resultMap>
+	<resultMap id="ClassGroup" type="JSONObject">	
+		<result column="xh" property="studentId"/>	
+		<collection property="SubScoreList" resultMap="SubScoreList" 
+			javaType="java.util.List"/>
+	</resultMap>
+	<resultMap id="SubScoreList" type="JSONObject">
+		<result column="kmdm" property="subjectId"/>
+		<result column="cj" property="score"/>		
+	</resultMap>
+	
+	<!-- 学生成绩查看（管理员/老师） -->
+	<select id="getStuScore" parameterType="splitDbAndTableRule" resultMap="ManageViewOfStuScore">
+		SELECT *
+		FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestubzf_mk}
+		WHERE xxdm =#{data.xxdm} AND kslc=#{data.kslc} AND  nj=#{data.nj} 
+			<if test="data.xh!=null">
+				AND xh=#{data.xh}
+			</if>
+			AND xnxq = #{data.xnxq} ORDER BY kmdm;
+	</select>
+	
+	
+	<!-- 获取学生与班级映射关系(定二走一排课之后) -->
+	<resultMap id="StuTclassMap" type="JSONObject">
+		<result column="studentId" property="studentId"/>	
+		<collection property="tclassIds" resultMap="TclassList" 
+			javaType="java.util.List"/>
+	</resultMap>
+	<resultMap id="TclassList" type="JSONObject">	
+		<result column="subjectId" property="subjectId"/>	
+		<result column="tclassLevel" property="tclassType"/>
+		<result column="tclassId" property="tclassId"/>	
+		<result column="tclassName" property="tclassName"/>	
+	</resultMap>
+	<select id="getStuTclassMap" parameterType="JSONObject" resultMap="StuTclassMap">
+        SELECT a.studentId,a.tclassId,c.tclassName,a.subjectId,c.tclassLevel
+		FROM  cc_schedule.t_sch_student_tclass_relationship a  JOIN (
+			SELECT schoolId, schoolYear , termInfoId,scheduleId,
+			scheduleName,maxDaysForWeek,halfAtLastDay,sameForAll,
+			published,createTime,isArrange,arrangeResult,dayOfStart
+			 FROM cc_schedule.t_sch_scheduleinfo 
+			WHERE schoolId=#{schoolId} AND schoolYear=#{schoolYear} ORDER BY createTime DESC LIMIT 1
+		) b on (a.schoolId = b.schoolId and a.schoolYear = b.schoolYear  and a.termInfoId = b.termInfoId and a.scheduleId = b.scheduleId )
+		 JOIN cc_placementtask_${termInfoId}.t_pl_dezy_class c
+		on (c.schoolId = a.schoolId and c.subjectId = a.subjectId  and c.tclassId = a.tclassId )
+		WHERE  a.schoolId =#{schoolId} 
+		<if test="scheduleId!=null">
+			AND a.scheduleId=#{scheduleId}
+		</if>
+		<if test="placementId!=null">
+			AND	c.placementId=#{placementId}
+		</if>
+		<if test="gradeId!=null">
+			AND gradeId=#{gradeId}		
+		</if>
+		AND a.scheduleId=b.scheduleId AND a.schoolId=b.schoolId 
+		<if test="studentIds!=null">
+			AND studentId IN 
+			<foreach collection="studentIds" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		AND published=1;
+	</select>
+	
+	<!-- 查找特定学生成绩 -->
+	<!--成绩分析-获取统计参数-->
+	<select id="getStuSubjectScoreRank" parameterType="splitDbAndTableRule" resultType="com.talkweb.scoreManage.po.gm.ScoreStuStatisticsRankMk">
+		Select *FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scorestustatisticsrank_mk}
+		WHERE xxdm =#{data.xxdm} AND kslc=#{data.kslc} 
+		<if test="data.nj!=null">
+			AND  nj=#{data.nj}	
+		</if>
+		<if test="data.studentId!=null">
+			AND xh=#{data.studentId};		
+		</if>
+		<if test="data.subjectId!=null">
+			AND kmdm=#{data.subjectId}
+		</if>
+	</select>
+	
+	<!-- 查找新高考（七/六选三）科目成绩 -->
+	<select id="get3Plus3Scores" parameterType="splitDbAndTableRule" resultType="JSONObject">
+		SELECT kmdm,xh,bh,cj
+		FROM ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo} 
+		WHERE xxdm=#{data.schoolId} AND kslc=#{data.kslc} AND nj=#{data.gradeId}
+			AND kmdm IN (1,2,3,4,5,6,7,8,9,19)
+		ORDER BY bh,xh
+	</select>
+	
+	<select id="getSynthscoreSubject"  parameterType="splitDbAndTableRule" resultType="java.lang.Long">
+	       SELECT distinct a.kmdm  FROM
+           ${dbRule.db_name_scoreManage}.${tableRule.t_gm_synthscore} a 
+           where a.xxdm = #{data.schoolId}
+	</select>
+	
+	<select id="getDegreeinfoRelate"  parameterType="splitDbAndTableRule" resultType="JSONObject">
+	   select  a.kslcdm , a.examId
+	   from ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo_relate} a
+	   where examId = #{data.examId}
+	</select>
+	<delete id="deleteDegreeinfoRelate"  parameterType="splitDbAndTableRule" >
+	   delete from ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo_relate}
+	   where  kslcdm = #{data.kslcdm}
+	</delete>
+	<insert id="insertDegreeinfoRelate" parameterType="splitDbAndTableRule">
+	   insert into ${dbRule.db_name_scoreManage}.${tableRule.t_gm_degreeinfo_relate}
+	   (kslcdm , examId ) values (#{data.kslcdm} , #{data.examId} )
+	</insert>
+	
+	<insert id="insertDegreeinfoError"  parameterType="splitDbAndTableRule">
+	   insert into ${dbRule.db_name_scoreManage}.${tableRule.t_gm_error} (fileName , cdate , msg) VALUES
+	    <foreach collection="data"  item="item" index="index" separator=",">
+	    (#{item.fileName},#{item.cdate},#{item.msg}) 
+	    </foreach>
+	   
+	</insert>
+	
+	 <select id="getExamClassList"  parameterType="splitDbAndTableRule" resultType="JSONObject" >
+	   select  distinct  bh
+	   from  ${dbRule.db_name_scoreManage}.${tableRule.t_gm_scoreinfo}
+	   where kslc = #{data.kslc}
+	</select>
+	
+</mapper>

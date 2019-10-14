@@ -1,0 +1,53 @@
+version: "3.4"
+services:
+  __DOMAIN_NAME__:
+    image: ${docker_image}
+    environment:
+      TZ: Asia/Shanghai
+      JAVA_OPTS: -server -Xms2048m -Xmx2048m
+      DOMAIN_NAME: ${DOMAIN_NAME}
+    ports:
+     - ${APP_PORT}:8080
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+#      interval: 40s
+#      timeout: 10s
+#      retries: 3
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    deploy:
+      #启动的实例数
+      replicas: 1
+      #重启策略 非零退出才重启
+      restart_policy:
+        condition: on-failure
+      resources:
+        #限制使用百分之50CPU最大使用，4G最大内存使用
+        limits:
+          cpus: "1"
+          memory: 4096M
+        #保留百分之10CPU使用，256MB的内存给应用使用
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+      placement:
+        constraints:
+          - node.role == worker
+      update_config:
+        #并行更新容器的数量 一次一个
+        parallelism: 1
+        #如果更新失败就回滚到上一个版本
+        failure_action: rollback
+        #更新一个之后要延迟10秒钟更新下一个
+        delay: 10s
+        #先停止第一个再启动一个
+        order: stop-first
+    logging:
+      driver: fluentd
+      options:
+        tag: docker.{{.Name}}
+        fluentd-async-connect: "true"
+    networks:
+      - docker-net
+networks:
+  docker-net:

@@ -1,0 +1,1452 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report7" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="4ec54c23-55b5-4fa5-a9ed-a481114829ec">
+	<property name="ireport.zoom" value="3.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="1385"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 2_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 3_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 4">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 4_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 4_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 4_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="Table Dataset 2" uuid="08d04296-ad1a-4eec-b7f6-4f9358e669bf">
+		<field name="rowName" class="java.lang.String"/>
+		<field name="mondayFirName" class="java.lang.String"/>
+		<field name="mondaySecName" class="java.lang.String"/>
+		<field name="mondayThrName" class="java.lang.String"/>
+		<field name="mondayFouName" class="java.lang.String"/>
+		<field name="mondayFivName" class="java.lang.String"/>
+		<field name="mondaySixName" class="java.lang.String"/>
+		<field name="mondaySevName" class="java.lang.String"/>
+		<field name="mondayEigName" class="java.lang.String"/>
+		<field name="tuesdayFirName" class="java.lang.String"/>
+		<field name="tuesdaySecName" class="java.lang.String"/>
+		<field name="tuesdayThrName" class="java.lang.String"/>
+		<field name="tuesdayFouName" class="java.lang.String"/>
+		<field name="tuesdayFivName" class="java.lang.String"/>
+		<field name="tuesdaySixName" class="java.lang.String"/>
+		<field name="tuesdaySevName" class="java.lang.String"/>
+		<field name="tuesdayEigName" class="java.lang.String"/>
+		<field name="wednesdayFirName" class="java.lang.String"/>
+		<field name="wednesdaySecName" class="java.lang.String"/>
+		<field name="wednesdayThrName" class="java.lang.String"/>
+		<field name="wednesdayFouName" class="java.lang.String"/>
+		<field name="wednesdayFivName" class="java.lang.String"/>
+		<field name="wednesdaySixName" class="java.lang.String"/>
+		<field name="wednesdaySevName" class="java.lang.String"/>
+		<field name="wednesdayEigName" class="java.lang.String"/>
+		<field name="thursdayFirName" class="java.lang.String"/>
+		<field name="thursdaySecName" class="java.lang.String"/>
+		<field name="thursdayThrName" class="java.lang.String"/>
+		<field name="thursdayFouName" class="java.lang.String"/>
+		<field name="thursdayFivName" class="java.lang.String"/>
+		<field name="thursdaySixName" class="java.lang.String"/>
+		<field name="thursdaySevName" class="java.lang.String"/>
+		<field name="thursdayEigName" class="java.lang.String"/>
+		<field name="fridayFivName" class="java.lang.String"/>
+		<field name="fridaySecName" class="java.lang.String"/>
+		<field name="fridayThrName" class="java.lang.String"/>
+		<field name="fridayFouName" class="java.lang.String"/>
+		<field name="fridaySixName" class="java.lang.String"/>
+		<field name="fridayFirName" class="java.lang.String"/>
+		<field name="fridaySevName" class="java.lang.String"/>
+		<field name="fridayEigName" class="java.lang.String"/>
+		<field name="saturdayFivName" class="java.lang.String"/>
+		<field name="saturdaySecName" class="java.lang.String"/>
+		<field name="saturdayThrName" class="java.lang.String"/>
+		<field name="saturdayFouName" class="java.lang.String"/>
+		<field name="saturdaySixName" class="java.lang.String"/>
+		<field name="saturdayFirName" class="java.lang.String"/>
+		<field name="saturdaySevName" class="java.lang.String"/>
+		<field name="saturdayEigName" class="java.lang.String"/>
+		<field name="sundayFivName" class="java.lang.String"/>
+		<field name="sundaySecName" class="java.lang.String"/>
+		<field name="sundayThrName" class="java.lang.String"/>
+		<field name="sundayFouName" class="java.lang.String"/>
+		<field name="sundaySixName" class="java.lang.String"/>
+		<field name="sundayFirName" class="java.lang.String"/>
+		<field name="sundaySevName" class="java.lang.String"/>
+		<field name="sundayEigName" class="java.lang.String"/>
+	</subDataset>
+	<field name="stimedata" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<field name="timeTableName" class="java.lang.String"/>
+	<field name="bottomNote1" class="java.lang.String"/>
+	<field name="bottomNote2" class="java.lang.String"/>
+	<field name="bottomNote3" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="555" splitType="Stretch">
+			<componentElement>
+				<reportElement key="table 4" style="table 4" x="0" y="50" width="802" height="445" uuid="7f81e122-ef67-43a4-8542-7064ef6a4eee"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Table Dataset 2" uuid="4f73d577-a895-49d4-8b2b-9626700bd490">
+						<dataSourceExpression><![CDATA[$F{stimedata}]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="74" uuid="d9a47da1-aa39-4a7b-a7d6-95f1990f29f5">
+						<jr:columnHeader style="table 4_CH" height="45" rowSpan="2">
+							<staticText>
+								<reportElement style="table 4_CH" x="0" y="0" width="74" height="23" uuid="49865b26-67e0-4d9f-a9ba-8c565204b3c2"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<text><![CDATA[星期]]></text>
+							</staticText>
+							<staticText>
+								<reportElement x="0" y="23" width="74" height="22" uuid="60018f5a-f9d8-4adc-890f-b873a25429d6"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+								</textElement>
+								<text><![CDATA[节次]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 4_TD" height="20" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="74" height="20" uuid="1d1134e7-527e-48bc-845a-60d9c5cf7139"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{rowName}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:columnGroup width="104" uuid="186782f9-c2c2-4866-9bd1-848117f80702">
+						<jr:columnHeader style="table_CH" height="23" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="104" height="23" uuid="f995bc6f-0c78-41db-9c30-a8d2c44e17ce"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<text><![CDATA[星期一]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:column width="13" uuid="75ff7fc1-06c1-4d0f-ac5b-14f53192a95a">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="56b270c9-ee4d-4170-9b93-945b941ce38e"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[一]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="3bf100ca-cf4e-4a9e-b7f8-97dd350651bf"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{mondayFirName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="f9e81793-43f9-4b89-9047-ee0ce8b3d7f6">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="9822bdac-e5bf-4526-99dc-cd921fe8cc04"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[二]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="13c3b525-16aa-4434-95cb-19a9c9ed792e"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{mondaySecName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="ce7b1f0f-0ec5-46ba-b225-6ebc88f595c6">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="24e05250-56ae-4df1-98cd-40f5e51cd74e"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[三]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="af297946-913f-4a26-b484-984987f04da7"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{mondayThrName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="bcdd9447-6130-4864-b2ff-19bd350aebee">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="164c7ca1-ff63-4f7d-8bbb-f932a3b2dd60"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[四]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="946b1b7c-3b13-48bb-901f-26d76c6526e6"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{mondayFouName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="75789171-61a2-4fd6-84ce-3bed4bba6058">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="7d683751-3a1a-4eea-aefa-a86a9771a769"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[五]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="628d0b0e-36b1-4ce7-9551-4f36311355e5"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{mondayFivName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="f6c00012-9d36-4180-b632-b7a1ea1aaef2">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="7af9df1b-60a3-4cb3-b7bc-ac55923bc52b"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[六]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="859fe825-193a-4c09-b694-6c63a9cd9303"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{mondaySixName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="84a7f8f6-d2a4-41b0-a4af-ecd1a040e29a">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="0c3d79fb-cfae-4a99-8cef-192e4aacd9d7"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[七]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="f2534265-72c9-4a9a-96ad-bc4e28a71e1c"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{mondaySevName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="6d2e7680-ad1e-4656-9ba5-ae63eac045e3">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="aab9a036-fc79-4c44-a6e8-58a7b5817a7d"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[八]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="88c66271-fe90-4d22-8fbb-c31ce41f5b75"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{mondayEigName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:columnGroup>
+					<jr:columnGroup width="104" uuid="0c9568d6-d478-4bea-8205-f89ae882406c">
+						<jr:columnHeader style="table_CH" height="23" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="104" height="23" uuid="27f970ae-2111-412c-a991-31629051a592"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<text><![CDATA[星期二]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:column width="13" uuid="43b64709-eb1f-4802-8c7c-cd105d863928">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="138c2161-7ebb-4963-b069-fc67972e57e8"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[一]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="bdbbf4a0-7591-47fb-b479-ac47367b5b7a"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{tuesdayFirName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="e8b8ed38-e9dd-4d07-be62-a545cf4bd5b9">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="8042e811-2734-49ea-a3ae-bb30ef3335b2"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[二]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="bf6dcefd-522c-461b-b21e-11dc37382efa"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{tuesdaySecName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="b049dba7-d643-4932-921a-6742d5b3e3b8">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="727830a6-7875-49e8-a4dc-2167ea95c8c6"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[三]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="b17778f5-ed71-4634-8307-63c5b3a14337"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{tuesdayThrName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="c143afe2-16bb-43ac-a8ce-e2e1537e9e5d">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="bc366e85-e026-4016-a1eb-39380329f86c"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[四]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="caad0efd-d2c2-49f3-af50-6b48c6392108"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{tuesdayFouName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="923d1a97-99b2-45ac-8af5-d5c3c3645e3c">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="e7717cf4-3cef-478f-bddc-15a8aa65ccc8"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[五]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="257e5f06-10d0-4e65-8427-fabceaeb7808"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{tuesdayFivName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="90fd1042-7ed2-4e09-a230-548702d0f344">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="e962bbcf-9904-4baa-a475-4b1a25a7c1d1"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[六]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="746fc9b2-bf0e-491b-ae0f-aa176a9e610f"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{tuesdaySixName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="b0f4d296-78c0-44a7-ad40-442d507d30d8">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="75318bcc-ffcd-4101-8cec-6cd50779d1f4"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[七]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="cb81e7dc-8622-4686-8a74-c11130b36343"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{tuesdaySevName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="1a5087a7-086a-4681-a954-6f54baf22f3e">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="94ad98fe-2013-441e-9f5f-92d5903ea606"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[八]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="ae0a6d55-bc13-468f-9ed6-ec2ec838b689"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{tuesdayEigName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:columnGroup>
+					<jr:columnGroup width="104" uuid="afafa71d-ec02-48d5-9645-4159dd8cd0fa">
+						<jr:columnHeader style="table_CH" height="23" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="104" height="23" uuid="cb5b4aa3-21bc-494c-b659-e4fc897f7013"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<text><![CDATA[星期三]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:column width="13" uuid="4fbe811c-2226-45e2-a5d8-988854f59276">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="274563ff-6c95-4dd3-82e1-f5a6236be6c1"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[一]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="e307bdab-6e8e-4e67-a5c9-839334cf29e6"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{wednesdayFirName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="82e3a902-2873-4d47-9a2f-60161e889823">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="8ceff581-127d-4d1b-bfb7-1f5f9d2dabb8"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[二]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="ac360716-1ac9-4198-ba74-421954b07fad"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{wednesdaySecName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="965e3c43-07a3-4b48-8195-a78dd9298112">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="b0d96750-da0b-464d-8111-5a277aa22a5f"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[三]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="95fa87cf-d51a-4e7a-a8ee-a6ebf12f341e"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{wednesdayThrName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="61f6e11d-1aab-457a-a13b-5c0aacbd2a0f">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="c90222ee-6b34-413b-8b8e-5ba5fd21e7de"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[四]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="06e1a161-1f9d-4c5b-8bab-8201b6f904fb"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{wednesdayFouName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="a57036a4-d9bc-45a6-bfb2-e7e41d1a23be">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="e9df516d-a21b-4b93-a3a9-1bd807b428ae"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+									</textElement>
+									<text><![CDATA[五]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="6e60ba87-e684-46be-ba24-47c7cd5db8d1"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{wednesdayFivName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="f33095cc-e484-42fe-a14f-03c93f02da22">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="5648efa5-e7dd-4a15-a9da-f0bf8f674271"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[六]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="15b90ba9-4931-4faf-98bc-8c6b332e4526"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{wednesdaySixName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="b7d4088e-862d-4682-9502-19f6d39b87ef">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="18d8b01b-a62f-4f24-b65e-35d54e0688cf"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[七]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="4f6b4569-9116-4e6b-89d8-8f3f39bd1ac2"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{wednesdaySevName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="0b181041-f6b4-40f9-8382-0b1916453727">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="a60abde6-272e-404d-a896-f5bb604d56ff"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[八]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="27e73961-ad51-4fe3-9b37-590ded0f8e24"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{wednesdayEigName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:columnGroup>
+					<jr:columnGroup width="104" uuid="9a833f38-9855-4463-be4f-88bc0c2a3220">
+						<jr:columnHeader style="table_CH" height="23" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="104" height="23" uuid="3de81e33-2a71-4262-ac87-e792180f7a48"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<text><![CDATA[星期四]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:column width="13" uuid="a3a1a59a-f3e9-4b45-a16e-2c9b4c5af500">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="8d7d71da-9878-4c08-a809-23f91b3d9d70"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[一]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="c52c3205-48c0-40fa-b1e5-a77534cbc1ca"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{thursdayFirName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="510c701e-c37c-470c-9379-95ca23c14038">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="9e10793f-cd28-472f-a8eb-39b2b0dfea2c"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[二]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="b1e85cbe-f700-4802-9a75-46fa1f30d868"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{thursdaySecName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="209f18b4-3e0f-4785-b351-593dabe33810">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="526eaef2-e279-48bb-a99c-de4471c84cb1"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[三]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="67a38baf-468a-4168-9f42-5978743962ff"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{thursdayThrName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="aeb45c4f-eb52-4b29-a672-c163b3f0f648">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="378e7860-e8ec-4191-8822-cb32a9ee6095"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[四]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="04d50be8-769d-4937-86b7-f6c37cf7a230"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{thursdayFouName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="3e35dbc9-3ebb-4f03-b72b-21398c742b57">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="7eed54a6-7561-44a2-ac32-470f8b710118"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[五]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="0eac7c99-9d97-47d7-929a-045395c4b355"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{thursdayFivName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="ab3774d3-efae-48be-8136-4c5dfde95e76">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="7c69bb2f-1484-4201-bc0d-8f0647f7813b"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[六]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="e873b353-ebc6-43c1-8ba8-059765588b3f"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{thursdaySixName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="972d4c25-02e4-4e8a-a637-280ca37d4543">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="c2f50a7c-8347-462d-8841-49a8e88d3b54"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[七]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="0ff088f3-50ed-4d1e-90bc-5f0a85d87456"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{thursdaySevName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="617c218b-374f-490b-b1f2-a669876b9123">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="5b4e0a20-0922-4e28-ae53-95b2c347bd13"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[八]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="b0daf872-f865-4f7a-b8dc-e3c100e023f1"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{thursdayEigName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:columnGroup>
+					<jr:columnGroup width="104" uuid="6caf08f5-66ab-45de-93d0-45cd16f398f2">
+						<jr:columnHeader style="table_CH" height="23" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="104" height="23" uuid="103d2b3a-8127-4d66-af64-a0b50c03877f"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<text><![CDATA[星期五]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:column width="13" uuid="5e71043c-7815-4178-9a2e-831488522da3">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="218dcce4-b785-46ff-a18d-e0e61f745a16"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[一]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="41608b9b-e3a2-4a15-98eb-87364dd6fbe2"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{fridayFirName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="ce2af9dc-b93a-4c52-a227-7e684b08f46d">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="51ee72b3-1ec6-4c53-b79b-b81099f440d1"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[二]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="f16e6ad4-588a-447e-8ffd-7a8e8f98b829"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{fridaySecName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="4a2214ae-a8ab-4374-bdad-e09e560e0e3d">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="17b85cc9-59dd-4cf0-b824-3269bbc003f0"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[三]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="2916675b-2b82-4293-92d8-6ea360df4b8c"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{fridayThrName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="1d43983e-11ee-487e-9038-02d68c759ac3">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="2a478c51-dcec-4b87-8d84-df4208c7c47a"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[四]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="743833a6-f8f7-4564-999b-69846fb2302c"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{fridayFouName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="550b917c-1a52-40a6-82c0-0b529b5920d0">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="f345eef6-b0bd-4c04-9145-7e6f140863d9"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[五]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="093d719d-85d1-4521-9c08-05bc821384fc"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{fridayFivName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="aa47b2d9-94b7-481e-a9fa-f9b9ed010e57">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="79144ae1-f72b-407a-b72d-d341624cc8bf"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[六]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="4b7f7b81-d2e0-4680-9181-4cc9711e176f"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{fridaySixName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="17baa3b4-42f6-46c0-a4e2-9367bfa8e842">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="d5fa2995-a9ee-4249-a906-f28cb47390e6"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[七]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="6d8e7e03-09fa-4ade-80d4-ead5aee542f2"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{fridaySevName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="9ee2b1c7-405e-480b-b3b8-ec572f28d4ff">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="b8c7b3f0-6db6-4d71-827a-fa1226eabcb6"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[八]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="4453fc43-2e0d-442b-b501-af3a9f1b2785"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{fridayEigName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:columnGroup>
+					<jr:columnGroup width="104" uuid="3dc32c7c-11da-436d-a1ac-0fbf6ad3749e">
+						<jr:columnHeader style="table 4_CH" height="23" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="104" height="23" uuid="19df0681-23ae-4ae3-8d6c-db3cb5fb6759"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<text><![CDATA[星期六]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:column width="13" uuid="f5aa763d-5a5a-4dc6-93e4-2b894b1d2430">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="aead9fc4-78fc-49c5-a37f-145127d649ce"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[一]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="f189d6cb-e188-47e5-bc78-108d9d43de93"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{saturdayFirName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="d1fe06df-d960-45ef-980e-399e07250df4">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="69781023-f3b7-49f9-a806-28124e79f34f"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[二]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="2949a802-6029-4089-93b9-b5f0ceb8db8b"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{saturdaySecName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="e907d1e8-3d9d-4439-a153-19195f00a1f1">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="dfd8b842-db07-4d08-8af4-d98f5b53bd0e"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[三]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="f41ba48c-6d13-4f8a-84b9-275b9781587d"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{saturdayThrName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="d4a758ea-5826-44f8-af29-f37e4ed936df">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="33e44d23-30c4-4099-b1a6-bbbf285b4071"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[四]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="27f72dfa-0feb-479f-b55a-073e33c8a5f1"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{saturdayFouName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="3a51daf3-f823-4048-8639-4b5cca3eba72">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="38dc26c9-b098-43e9-93a8-e92d714d3379"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[五]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="501ec3d6-156d-4fed-b624-b487b7d7f0c2"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{saturdayFivName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="2361c2f8-0ea2-4a43-88ba-a639022a385f">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="167ee356-cc94-4d98-89bf-a9ab32b08d48"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[六]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="1a55e38c-4ebb-4b6c-ac76-c6df220ef16d"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{saturdaySixName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="43cd3a00-5372-438a-ad99-ea3de8b37bdb">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="b28eee4b-2b7e-4089-a209-c61a8c8eb20c"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[七]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="58b96b00-8826-4ce5-a51a-0bd4ebba5b62"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{saturdaySevName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="02369d0f-90c6-4ff2-81ef-73660a8d94b1">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="b274e6df-8554-495f-978e-391bff4f71a7"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[八]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="b7c73f6d-5b2d-452a-a59f-323b107161e9"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{saturdayEigName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:columnGroup>
+					<jr:columnGroup width="104" uuid="762c95dc-aa10-43a0-a2cd-03ccbab701bb">
+						<jr:columnHeader style="table_CH" height="23" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="104" height="23" uuid="11555723-a8bb-4c7d-acd1-c4ef035513be"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="宋体" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+								</textElement>
+								<text><![CDATA[星期日]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:column width="13" uuid="d839ceb3-23e6-4e67-aba3-8f8dc38ce1a4">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="79bb2d96-589c-4800-9ab9-3648e9b9663c"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[一]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="ce9143fc-2e3a-4f01-982a-b870343b6eb1"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{sundayFirName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="8b296185-a13a-41a7-9be9-7a989f16c3f4">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="4c72e439-fe1f-424a-8693-e8e2436ad5be"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[二]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="cc61d33e-a8dd-44e9-ac35-c7ece6aee1ca"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{sundaySecName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="d0c3475c-f31a-4a16-88bc-7dd66da16bfc">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="7939f66f-5907-4545-844a-7afd72855650"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[三]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="7a56c068-e4cc-4a30-a090-bab83032690c"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{sundayThrName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="b0f6141c-11fb-47f8-8f6c-7a13cd6847db">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="3126bbdd-0837-4dca-9353-eaabf0f5574b"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[四]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="e93dcca8-dd14-4514-8ae3-9171853e6b9c"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{sundayFouName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="92aa85b4-bbd6-4f46-83a7-1307e5586a88">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="899ba4ab-f47e-4596-b156-d8f5d4e2359a"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[五]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="83f7287b-a99f-4149-b986-d511cdc8edcd"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{sundayFivName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="d706379a-9b89-4a33-ac62-dc81999a7029">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="5b662632-6679-4f6c-9353-0d420d713cb4"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[六]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="3a86dd78-b15b-42be-8d57-751e4e82d0e9"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{sundaySixName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="1a99a02f-3bb7-4c18-b716-aa162a71afb2">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="22770d0b-dc30-4ad3-b79c-282d3b4dca9e"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[七]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="6d37ced5-8f98-4fa6-9eb7-bbe356ff79db"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{sundaySevName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="13" uuid="cce509ae-5040-4c80-a9ed-48a0304e1c77">
+							<jr:columnHeader style="table_TD" height="22" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="13" height="22" uuid="cba648f9-0c19-4b00-8f5a-6d29b97cc039"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<text><![CDATA[八]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true">
+									<reportElement x="0" y="0" width="13" height="20" uuid="2fd84543-335a-4678-b6cb-8ea6f348b74e"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="宋体" size="9" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{sundayEigName}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:columnGroup>
+				</jr:table>
+			</componentElement>
+			<textField>
+				<reportElement x="101" y="0" width="600" height="50" uuid="f31f0ef9-6947-486e-9459-e2093fb6949f"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None">
+					<font fontName="宋体" size="16" isBold="true" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{timeTableName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="515" width="778" height="20" uuid="aaf49ab8-d80b-4c1e-ace8-55abc773a666"/>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bottomNote2}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="495" width="778" height="20" uuid="f1f1656d-b869-4246-b424-f1607c615e52"/>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bottomNote1}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="535" width="778" height="20" uuid="15bf744f-8d81-4274-91ce-569c1bd15db2"/>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font fontName="宋体" size="9" isBold="false" pdfFontName="STSong-Light" pdfEncoding="UniGB-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bottomNote3}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

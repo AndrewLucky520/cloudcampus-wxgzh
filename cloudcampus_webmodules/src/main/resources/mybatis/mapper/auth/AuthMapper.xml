@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.talkweb.auth.dao.AuthDao">  
+	
+		<!-- 权限-获取菜单 -->
+	<select id="getNavListByRoleAndSchool" statementType="CALLABLE" 
+		resultType="com.talkweb.auth.entity.NavInfo">
+		call  ${db_name_auth}.proc_getNavListByRoleAndSchool(#{xxdm},#{countyCode},#{cityCode},#{provinceCode},#{role},#{pyccs});
+	</select>
+	
+	
+	
+	<select id="getMenuByUserSysId" parameterType="string" resultType="hashmap">
+	  SELECT treeDm,mc,linkPath FROM ${zhx_conn}.v_ws_usermenu WHERE userSysId = #{userSysId} 
+	</select>
+	
+	<!-- 系统管理员 可查看本校所有年级 -->
+	<select id="getAdminNJ" parameterType="hashmap" resultType="java.util.Map">
+		SELECT (${xn}-CONVERT(b.dm, UNSIGNED)) AS synj,b.mc,a.pycc,
+		CONCAT('[',${xn}-CAST(b.dm AS UNSIGNED)+ CAST(c.qsnj AS UNSIGNED),']',b.mc) AS njmc
+		 FROM ${zhx_conn}.t_tr_school_pycc a
+		INNER JOIN ${zhx_conn}.t_dm_nj b ON a.pycc=b.pycc
+		INNER JOIN ${zhx_conn}.t_dm_pycc c ON a.pycc=c.dm
+		WHERE a.xxdm=#{xxdm}
+		ORDER BY  a.pycc desc,CONVERT(b.dm, UNSIGNED) 
+	</select>
+	
+	<!-- 系统管理员 可查看本校所有班级 -->
+	<select id="getAdminBJ" parameterType="hashmap" resultType="hashmap">
+	    SELECT a.synj,a.bh,a.pycc,a.nj as rxnd,a.bjmc FROM ${zhx_conn}.t_ss_class a
+		INNER JOIN ${zhx_conn}.`t_ss_classenrol` b ON a.bh=b.bh
+		WHERE CONCAT(b.xn,b.xqm)=#{xnxq} AND a.xxdm=#{xxdm} AND b.sfcx='0' and a.synj is not null
+	</select>
+	
+	<!-- 系统管理员 可查看所有科目 -->
+	<select id="getAdminKM"  resultType="hashmap">
+	  SELECT kmdm,zwmc
+	  FROM ${zhx_conn}.t_tp_lessoninfo
+	</select>
+	
+	<!-- 任课教师 年级 -->
+	<select id="getRKJSNJ" parameterType="hashmap" resultType="hashmap">
+	  SELECT b.SYNJ,b.pycc
+	  FROM ${zhx_conn}.t_tr_courseteachers a
+      INNER JOIN ${zhx_conn}.t_ss_class b ON a.bh = b.BH AND a.XXDM = b.XXDM
+      WHERE a.zgh = #{zgh} AND a.XXDM = #{xxdm}
+	</select>
+	
+	<!-- 任课教师 班级 -->
+	<select id="getRKJSBJ" parameterType="hashmap" resultType="hashmap">
+	  SELECT b.BJMC,b.pycc
+	  FROM ${zhx_conn}.t_tr_courseteachers a
+      INNER JOIN ${zhx_conn}.t_ss_class b ON  a.bh = b.BH AND a.XXDM = b.XXDM
+      WHERE zgh = #{zgh} AND a.XXDM = #{xxdm}  and b.synj is not null
+	</select>
+	
+	<!-- 任课教师 科目 -->
+	<select id="getRKJSKM" parameterType="hashmap" resultType="hashmap">
+	  SELECT b.ZWMC
+      FROM ${zhx_conn}.t_tr_courseteachers a
+      INNER JOIN ${zhx_conn}.t_tp_lessoninfo b ON a.kmdm = b.KMDM 
+      WHERE a.zgh = #{zgh} AND a.XXDM = #{xxdm}
+	</select>
+	
+	<!-- 班主任 年级 -->
+	<select id="getBZRNJ" parameterType="hashmap" resultType="hashmap">
+	  SELECT b.SYNJ
+      FROM ${zhx_conn}.t_ss_classenrol a
+      INNER JOIN ${zhx_conn}.t_ss_class b ON a.XXDM = b.XXDM AND a.BH = b.BH
+      WHERE a.BZRZGH = #{zgh} AND a.XXDM = #{xxdm}
+	</select>
+	
+	<!-- 班主任 班级 -->
+	<select id="getBZRBJ" parameterType="hashmap" resultType="hashmap">
+	  SELECT b.BJMC
+      FROM ${zhx_conn}.t_ss_classenrol a
+      INNER JOIN ${zhx_conn}.t_ss_class b ON a.XXDM = b.XXDM AND a.BH = b.BH 
+      WHERE a.BZRZGH = #{zgh} AND a.XXDM = #{xxdm}
+	</select>
+	
+	<!-- 班主任 科目 -->
+	<select id="getBZRKM" parameterType="hashmap" resultType="hashmap">
+	  SELECT c.ZWMC
+      FROM ${zhx_conn}.t_ss_classenrol a
+      INNER JOIN ${zhx_conn}.t_tr_courseteachers b ON a.XXDM = b.xxdm AND a.BH = b.bh
+      INNER JOIN ${zhx_conn}.t_tp_lessoninfo c  ON b.kmdm = c.KMDM
+      WHERE a.BZRZGH = #{zgh} AND a.XXDM = #{xxdm}
+	</select>
+	
+	<!-- 年级组长 年级 -->
+	<select id="getNJZZNJ" parameterType="hashmap" resultType="hashmap">
+	  SELECT c.synj 
+	  FROM ${zhx_conn}.t_tr_bmxx a
+      INNER JOIN ${zhx_conn}.t_tr_bmxx_nj b ON a.jgh=b.JGH
+      INNER JOIN ${zhx_conn}.t_ss_class c ON (#{nj}-cast(b.nj as UNSIGNED))=c.synj AND b.xxdm=c.XXDM
+      INNER JOIN ${zhx_conn}.t_tr_bmfzr d ON a.jgh=d.jgh
+      WHERE a.jglb='1' AND a.xxdm=#{xxdm} AND d.FZRGH = #{zgh}
+	</select>
+	
+	<!-- 年级组长 班级 -->
+	<select id="getNJZZBJ" parameterType="hashmap" resultType="hashmap">
+	  SELECT c.BJMC
+	  FROM ${zhx_conn}.t_tr_bmxx a
+      INNER JOIN ${zhx_conn}.t_tr_bmxx_nj b ON a.jgh=b.JGH
+      INNER JOIN ${zhx_conn}.t_ss_class c ON (#{nj}-CAST(b.nj as UNSIGNED))=c.synj AND b.xxdm=c.XXDM
+      INNER JOIN ${zhx_conn}.t_tr_bmfzr d ON a.jgh=d.jgh
+      WHERE a.jglb='1' AND a.xxdm=#{xxdm} AND d.FZRGH = #{zgh}
+	</select>
+	
+	<!-- 年级组长 科目 -->
+	<select id="getNJZZKM" parameterType="hashmap" resultType="hashmap">
+	  SELECT e.ZWMC
+	  FROM t_tr_bmxx a
+      INNER JOIN t_tr_bmxx_nj b ON a.jgh=b.JGH
+      INNER JOIN t_ss_class c ON (#{nj}-CAST(b.nj as UNSIGNED))=c.synj AND b.xxdm=c.XXDM
+	  INNER JOIN t_tr_courseteachers d ON c.BH = d.bh
+	  INNER JOIN t_tp_lessoninfo e ON d.KMDM = e.KMDM
+	  WHERE a.jglb='1' AND a.xxdm=#{xxdm} AND d.FZRGH = #{zgh}
+	</select>
+	
+	<!-- 教研组长 年级 -->
+	<select id="getJYZZNJ" parameterType="hashmap" resultType="hashmap">
+	  SELECT c.synj 
+	  FROM ${zhx_conn}.t_tr_bmxx a
+      INNER JOIN ${zhx_conn}.t_tr_bmxx_nj b ON a.jgh=b.JGH
+      INNER JOIN ${zhx_conn}.t_ss_class c ON (#{nj}-cast(b.nj as UNSIGNED))=c.synj AND b.xxdm=c.XXDM
+      INNER JOIN ${zhx_conn}.t_tr_bmfzr d ON a.jgh=d.jgh
+      WHERE a.jglb='2' AND a.xxdm=#{xxdm} AND d.FZRGH = #{zgh}
+	</select>
+	
+	<!-- 教研组长 班级 -->
+	<select id="getJYZZBJ" parameterType="hashmap" resultType="hashmap">
+	  SELECT c.BJMC
+	  FROM ${zhx_conn}.t_tr_bmxx a
+      INNER JOIN ${zhx_conn}.t_tr_bmxx_nj b ON a.jgh=b.JGH
+      INNER JOIN ${zhx_conn}.t_ss_class c ON (#{nj}-CAST(b.nj as UNSIGNED))=c.synj AND b.xxdm=c.XXDM
+      INNER JOIN ${zhx_conn}.t_tr_bmfzr d ON a.jgh=d.jgh
+      WHERE a.jglb='2' AND a.xxdm=#{xxdm} AND d.FZRGH = #{zgh}
+	</select>
+	
+	<!-- 教研组长 科目 -->
+	<select id="getJYZZKM" parameterType="hashmap" resultType="hashmap">
+	  SELECT d.ZWMC
+      FROM ${zhx_conn}.t_tr_bmxx a
+      INNER JOIN ${zhx_conn}.t_tr_bmfzr b ON a.xxdm = b.XXDM AND a.jgh = b.JGH
+      INNER JOIN ${zhx_conn}.t_tr_bmxx_km c ON (#{nj}-CAST(b.nj as UNSIGNED))=c.synj AND a.xxdm = c.XXDM AND a.jgh = c.JGH
+      INNER JOIN ${zhx_conn}.t_tp_lessoninfo d ON c.YJKM = d.KMDM
+      WHERE a.jglb = '2' AND a.xxdm = #{xxdm} AND b.FZRGH = #{zgh}
+	</select>
+	
+	<!-- 备课组长 年级 -->
+	<select id="getBKZZNJ" parameterType="hashmap" resultType="hashmap">
+	  SELECT c.synj 
+	  FROM ${zhx_conn}.t_tr_bmxx a
+      INNER JOIN ${zhx_conn}.t_tr_bmxx_nj b ON a.jgh=b.JGH
+      INNER JOIN ${zhx_conn}.t_ss_class c ON (#{nj}-cast(b.nj as UNSIGNED))=c.synj AND b.xxdm=c.XXDM
+      INNER JOIN ${zhx_conn}.t_tr_bmfzr d ON a.jgh=d.jgh
+      WHERE a.jglb='3' AND a.xxdm=#{xxdm} AND d.FZRGH = #{zgh}
+	</select>
+	
+	<!-- 备课组长 班级 -->
+	<select id="getBKZZBJ" parameterType="hashmap" resultType="hashmap">
+	  SELECT c.BJMC
+	  FROM ${zhx_conn}.t_tr_bmxx a
+      INNER JOIN ${zhx_conn}.t_tr_bmxx_nj b ON a.jgh=b.JGH
+      INNER JOIN ${zhx_conn}.t_ss_class c ON (#{nj}-CAST(b.nj as UNSIGNED))=c.synj AND b.xxdm=c.XXDM
+      INNER JOIN ${zhx_conn}.t_tr_bmfzr d ON a.jgh=d.jgh
+      WHERE a.jglb='3' AND a.xxdm=#{xxdm} AND d.FZRGH = #{zgh}
+	</select>
+	
+	<!-- 备课组长 科目 -->
+	<select id="getBKZZKM" parameterType="hashmap" resultType="hashmap">
+	  SELECT d.ZWMC
+      FROM ${zhx_conn}.t_tr_bmxx a
+      INNER JOIN ${zhx_conn}.t_tr_bmfzr b ON a.xxdm = b.XXDM AND a.jgh = b.JGH
+      INNER JOIN ${zhx_conn}.t_tr_bmxx_km c ON (#{nj}-CAST(b.nj as UNSIGNED))=c.synj AND a.xxdm = c.XXDM AND a.jgh = c.JGH
+      INNER JOIN ${zhx_conn}.t_tp_lessoninfo d ON c.YJKM = d.KMDM
+      WHERE a.jglb = '3' AND a.xxdm = #{xxdm} AND b.FZRGH = #{zgh}
+	</select>
+	
+	
+	<!-- 自定义角色 年级 -->
+	<select id="getZDYNJ" parameterType="hashmap" resultType="hashmap">
+	  SELECT b.synj
+	  FROM ${zhx_conn}.t_ws_usersnj a
+	  INNER JOIN ${zhx_conn}.t_ss_class b ON (#{nj}-CAST(a.NJ AS UNSIGNED)) = b.synj
+	  WHERE b.XXDM =#{xxdm} AND a.UserSysId = #{userSysId}
+	</select>
+	
+	<!-- 自定义角色 班级 -->
+	<select id="getZDYBJ" parameterType="hashmap" resultType="hashmap">
+	  SELECT b.BJMC
+	  FROM ${zhx_conn}.t_ws_usersnj a
+	  INNER JOIN ${zhx_conn}.t_ss_class b ON (#{nj}-CAST(a.NJ AS UNSIGNED)) = b.synj
+	  WHERE b.XXDM =#{xxdm} AND a.UserSysId = #{userSysId}
+	</select>
+	
+	<!-- 自定义角色 科目 -->
+	<select id="getZDYKM" parameterType="hashmap" resultType="hashmap">
+	  SELECT d.ZWMC
+	  FROM ${zhx_conn}.t_ws_usersnj a
+	  INNER JOIN ${zhx_conn}.t_ss_class b ON (#{nj}-CAST(a.NJ AS UNSIGNED)) = b.synj
+	  INNER JOIN ${zhx_conn}.t_tr_courseteachers c ON b.BH = c.BH
+	  INNER JOIN ${zhx_conn}.t_tp_lessoninfo d ON c.KMDM = d.KMDM
+	  WHERE b.XXDM = #{xxdm} AND a.UserSysId = #{userSysId}
+	</select>
+	<!-- 任课教师权限 auth -->
+	<select id="getNj001"  parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		select d,zwmc,a.kmdm,b.pycc,b.bh,b.bjmc,b.synj,CONCAT('[',b.nj,']',e.mc) as njmc
+		FROM ${zhx_conn}.T_TR_CourseTeachers  a
+		INNER JOIN ${zhx_conn}.t_ss_class b ON a.`bh`=b.`BH` 
+		INNER JOIN ${zhx_conn}.t_ss_classenrol c ON c.bh=b.bh AND c.xn=a.xn AND c.xqm = a.xqm AND c.sfcx=0 
+		INNER JOIN ${zhx_conn}.t_dm_nj e ON e.dm = (CAST(a.xn AS UNSIGNED)-CAST(b.synj AS UNSIGNED))
+		INNER JOIN ${zhx_conn}.t_tp_lessoninfo d ON d.kmdm = a.kmdm
+		where a.xn=#{xn} and a.xqm=#{xqm} and b.zgh=#{userSysId} ;
+	</select>
+	<!-- 班主任权限 -->
+	<select id="getNj002" parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT a.`bh`,b.`bjmc`,b.pycc,b.`synj`, CONCAT('[',b.nj,']',e.mc) AS njmc 
+		FROM ${zhx_conn}.T_SS_ClassEnrol a
+		INNER JOIN ${zhx_conn}.t_ss_class b ON b.`BH`=a.`BH` 
+		INNER JOIN ${zhx_conn}.t_dm_nj e ON e.dm = (CAST(a.xn AS UNSIGNED)-CAST(b.synj AS UNSIGNED))
+		WHERE a.`BZRZGH`=#{userSysId} and a.`SFCX`='0' and a.xn=#{xn} and a.xqm=#{xqm};
+	</select>
+	<!-- 年级组长权限 -->
+	<select id="getNj003"  parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT f.synj,CONCAT('[',f.nj,']',d.mc) AS njmc,f.bh,f.bjmc,f.pycc  
+		FROM T_TR_BMFZR a
+		INNER JOIN  ${zhx_conn}.T_TR_BMXX b ON a.`jgh`=b.jgh
+		INNER JOIN ${zhx_conn}.T_TR_BMXX_NJ c ON c.jgh = a.jgh
+		INNER JOIN ${zhx_conn}.t_dm_nj d ON d.dm= c.nj  
+		INNER JOIN ${zhx_conn}.T_SS_ClassEnrol e ON e.sfcx='0' 
+		INNER JOIN ${zhx_conn}.t_ss_class f ON f.`BH`=e.`BH`  AND d.dm = (CAST(e.xn AS UNSIGNED)-CAST(f.synj AS UNSIGNED))
+		WHERE a.`jgh`=#{userSysId} and e.`SFCX`='0' and e.xn=#{xn} and e.xqm=#{xqm};
+	</select>
+	<!-- 备课组长权限 -->
+	<select id="getNj005"  parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT f.synj,CONCAT('[',f.nj,']',d.mc) AS njmc,f.bh,f.bjmc,f.pycc  
+		FROM T_TR_BMFZR a
+		INNER JOIN  ${zhx_conn}.T_TR_BMXX b ON a.`jgh`=b.jgh
+		INNER JOIN ${zhx_conn}.T_TR_BMXX_NJ c ON c.jgh = a.jgh
+		INNER JOIN ${zhx_conn}.t_dm_nj d ON d.dm= c.nj  
+		INNER JOIN ${zhx_conn}.T_SS_ClassEnrol e ON e.sfcx='0' 
+		INNER JOIN ${zhx_conn}.t_ss_class f ON f.`BH`=e.`BH`  AND d.dm = (CAST(e.xn AS UNSIGNED)-CAST(f.synj AS UNSIGNED))
+		WHERE a.`jgh`=#{userSysId} and e.`SFCX`='0' and e.xn=#{xn} and e.xqm=#{xqm};
+	</select>
+	<!-- 教研组长科目权限 -->
+	<select id="getJyzzKM"  parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT DISTINCT d.kmdm,d.zwmc 
+		FROM ${zhx_conn}.T_TR_BMFZR a
+		INNER JOIN ${zhx_conn}.T_TR_BMXX b ON a.`JGH`=b.`jgh`
+		INNER JOIN ${zhx_conn}.T_TR_BMXX_KM c ON a.`JGH`=c.`JGH`
+		INNER JOIN ${zhx_conn}.t_tp_lessoninfo d ON d.kmdm = c.yjkm
+		where a.jgh = #{userSysId}
+	</select>
+	<!--  自定义角色权限-->
+	<select id="getNjNNN"  parameterType="hashmap" resultType="com.alibaba.fastjson.JSONObject">
+		SELECT f.synj,CONCAT('[',f.nj,']',d.mc) AS njmc,f.bh,f.bjmc,f.pycc  
+		FROM ${zhx_conn}.T_TR_BMFZR a
+		INNER JOIN  ${zhx_conn}.T_TR_BMXX b ON a.`jgh`=b.jgh
+		INNER JOIN ${zhx_conn}.T_TR_BMXX_NJ c ON c.jgh = a.jgh
+		INNER JOIN ${zhx_conn}.t_dm_nj d ON d.dm= c.nj  
+		INNER JOIN ${zhx_conn}.T_SS_ClassEnrol e ON e.sfcx='0' 
+		INNER JOIN ${zhx_conn}.t_ss_class f ON f.`BH`=e.`BH`  AND d.dm = (CAST(e.xn AS UNSIGNED)-CAST(f.synj AS UNSIGNED))
+		WHERE a.`userSysId`=#{userSysId} and roleCode=#{roleCode} and e.`SFCX`='0' and e.xn=#{xn} and e.xqm=#{xqm};
+	</select>
+	<!-- 更新微信公众号绑定状态 -->
+	<update id="updateMoblieLoginState" parameterType="hashmap" statementType="CALLABLE">
+		call  ${db_name_auth}.proc_updateMoblieLoginState(#{accountId},#{openId},#{sourceType},#{status});
+	</update>
+	<select id="getNewEntranceSchool" parameterType="hashmap" resultType="JSONObject">
+		SELECT * FROM ${db_name_auth}.`t_nav_newentranceschool` nes WHERE nes.`ruleId`=#{xxdm};
+	</select>
+	<!-- 获取登陆状态 -->
+	<select id="getMobileLoginState" parameterType="hashmap" resultType="JSONObject">
+		select status,accountId,loginTime from  ${db_name_auth}.t_mobile_account_login_status
+		where   sourceType=#{sourceType} AND openId=#{openId} order by loginTime desc limit 0,1;
+	</select>
+	<select id="getExtIdByUserId" parameterType="JSONObject" resultType="JSONObject">
+ 		SELECT a.`extId` AS extUserId,u.`extId` AS extAccountId FROM ${db_name_csCurCommonData}${termInfoId}.t_user u 
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_account a ON a.`id`=u.`accountId` AND  a.`status`=1 AND u.`status`=1
+		WHERE u.`id`=#{userId};
+	</select>
+	<select id="getExtStudentByParentId" parameterType="JSONObject" resultType="JSONObject">
+	SELECT u.`extId` AS extStudentAccountId,a.`extId` AS extStudentUserId  
+	FROM ${db_name_csCurCommonData}${termInfoId}.t_parent p 
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_user u ON p.`studentId`=u.`id` AND u.`status`=1
+		INNER JOIN ${db_name_csCurCommonData}${termInfoId}.t_account a ON  a.`id`=u.`accountId` AND a.`status`=1
+		WHERE  p.`parentId`=#{userId};
+	</select>
+	<select id="getTokenByClientId"  parameterType="JSONObject" resultType="String">
+	   SELECT `accessToken` FROM ${db_name_auth}.`t_client` WHERE `clientId`=#{clientId};
+	</select>
+</mapper>

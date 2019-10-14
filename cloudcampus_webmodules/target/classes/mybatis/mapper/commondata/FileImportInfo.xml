@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.talkweb.commondata.dao.FileImportInfoDao">
+
+	<select id="getFileBy" parameterType="com.alibaba.fastjson.JSONObject"
+		resultType="java.lang.String">
+		SELECT i.fileId FROM ${db_name_auth}.t_importfileinfo i
+		where i.schoolId=#{schoolId}
+		<if test="keyId!=null and keyId!=''">
+			and i.keyId=#{keyId}
+		</if>
+	</select>
+	
+	<select id="getFileByFileId"  parameterType="com.alibaba.fastjson.JSONObject"  resultType="java.lang.String">
+	   SELECT i.keyId  FROM ${db_name_auth}.t_importfileinfo i
+		where i.schoolId=#{schoolId}
+		<if test="fileId!=null and fileId!=''">
+			and i.fileId=#{fileId}
+		</if>
+	</select>
+	
+	<insert id='addFile' parameterType='com.alibaba.fastjson.JSONObject'>
+		INSERT INTO
+		${db_name_auth}.t_importfileinfo(keyId,schoolId,createDate,fileId)
+		VALUES(#{keyId},#{schoolId},#{createDate},#{fileId})
+		on duplicate key update createDate =values(createDate),fileId=values(fileId)
+	</insert>
+	<delete id='deleteFile' parameterType='com.alibaba.fastjson.JSONObject'>
+		DELETE FROM ${db_name_auth}.t_importfileinfo
+		where schoolId=#{schoolId}
+		<if test="keyId!=null and keyId!=''">
+			and keyId=#{keyId}
+		</if>
+	</delete>
+	<select id="getFileIdsBeforeDate" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT t.fileId FROM ${db_name_auth}.t_importfileinfo t WHERE
+		t.createDate &lt; #{strDate}
+	</select>
+	<delete id="deleteFileIdsBeforeDate" parameterType="java.lang.String">
+		DELETE FROM ${db_name_auth}.t_importfileinfo WHERE createDate &lt;
+		#{strDate}
+	</delete>
+	<delete id="deleteFileByFileId" parameterType="java.lang.String">
+		DELETE FROM ${db_name_auth}.t_importfileinfo WHERE fileId = #{fileId}
+	</delete>
+</mapper>

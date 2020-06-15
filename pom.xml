@@ -41,7 +41,7 @@
 		<servlet-version>3.0-alpha-1</servlet-version>
 		<commonslang-version>2.6</commonslang-version>
 		<commonsio-version>2.4</commonsio-version>
-		<commonscollections-version>3.2.1</commonscollections-version>
+		<commonscollections-version>3.2.2</commonscollections-version>
 		<fileupload-version>1.3.1</fileupload-version>
 		<junit-version>4.12</junit-version>
 		<jackson-version>1.9.13</jackson-version>

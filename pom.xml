@@ -40,7 +40,7 @@
 		<jspapi-version>2.2.1-b03</jspapi-version>
 		<servlet-version>3.0-alpha-1</servlet-version>
 		<commonslang-version>2.6</commonslang-version>
-		<commonsio-version>2.4</commonsio-version>
+		<commonsio-version>2.7</commonsio-version>
 		<commonscollections-version>3.2.1</commonscollections-version>
 		<fileupload-version>1.3.1</fileupload-version>
 		<junit-version>4.12</junit-version>

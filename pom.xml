@@ -60,7 +60,7 @@
 		<iTextAsian-version>13.07.30</iTextAsian-version>
 		<talkweb-simsun-version>1.0</talkweb-simsun-version>
 		<httpcore-version>4.4.3</httpcore-version>	
-		<httpcomponents-version>4.5.1</httpcomponents-version>	
+		<httpcomponents-version>4.5.13</httpcomponents-version>	
 		<spring-security-core-version>4.0.3.RELEASE</spring-security-core-version>
 		<fastdfs-version>15.12.01</fastdfs-version>
 		<cloudcampusapi-version>0.1.1</cloudcampusapi-version>

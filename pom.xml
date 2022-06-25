@@ -50,7 +50,7 @@
 		<poiooxml-version>3.11</poiooxml-version>
 		<spring-data-redis-version>1.5.0.RELEASE</spring-data-redis-version>
 		<jedis-version>2.7.0</jedis-version>
-		<spring-data-mongodb-version>1.7.0.RELEASE</spring-data-mongodb-version>
+		<spring-data-mongodb-version>3.3.5</spring-data-mongodb-version>
 		<cors-version>2.4</cors-version>
 		<talkweb-account-center-version>6.4</talkweb-account-center-version> 
 		<talkweb-libthrift-version>0.9.2</talkweb-libthrift-version>
